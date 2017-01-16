@@ -40,11 +40,11 @@ setup(name='spynl',
       version=find_version('spynl', 'main', 'version.py'),
       description='spynl',
       long_description=README,
-      classifiers=["Programming Language :: Python"
+      classifiers=["Programming Language :: Python3"
                    "Framework :: Pylons",
                    "Topic :: Internet :: WWW/HTTP",
                    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
-      author='Softwear BB',
+      author='Softwear BV',
       author_email='development@softwear.nl',
       url='http://www.softwear.nl',
       keywords='API SaaS',
