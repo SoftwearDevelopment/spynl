@@ -1,0 +1,136 @@
+# Dutch translations for spynl.main.
+# Copyright (C) 2016 Softwear BV
+# This file is distributed under the same license as the spynl.main project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: spynl.main 5.48.rc1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-11-17 20:14+0100\n"
+"PO-Revision-Date: 2016-09-28 16:22+0200\n"
+"Last-Translator: Nicolas <nicolas@softwear.nl>\n"
+"Language: nl\n"
+"Language-Team: nl <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.3.4\n"
+
+#: spynl/main/endpoints.py:41
+msgid "pong"
+msgstr "peng"
+
+#: spynl/main/error_views.py:47
+msgid "no-endpoint-for-path"
+msgstr "Geen endpoint gevonden voor pad '${path}'."
+
+#: spynl/main/error_views.py:53
+msgid "permission-denial"
+msgstr "'${permission}' toegang is geweigerd voor ${context}."
+
+#: spynl/main/error_views.py:62 spynl/main/error_views.py:110
+msgid "internal-server-error"
+msgstr "Interne serverfout."
+
+#: spynl/main/error_views.py:100
+msgid "no-message-available"
+msgstr "Geen bericht beschikbaar."
+
+#: spynl/main/exceptions.py:36
+msgid "bad-origin"
+msgstr "Requests naar Spynl zijn niet toegestaan vanaf origin '${origin}'."
+
+#: spynl/main/exceptions.py:55
+msgid "missing-parameter"
+msgstr "Er ontbreekt een verplichte parameter: ${param}."
+
+#: spynl/main/exceptions.py:65
+msgid "illegal-parameter"
+msgstr "Ongeldige parameter: ${param}."
+
+#: spynl/main/exceptions.py:75
+msgid "bad-validation-instructions"
+msgstr "De beschrijving voor dit endpoint kan niet gebruikt worden: ${error}."
+
+#: spynl/main/exceptions.py:86 spynl/main/validation.py:121
+msgid "invalid-response"
+msgstr "Spynl kon helaas geen valide response genereren: ${error}"
+
+#: spynl/main/exceptions.py:96
+msgid "email-tmpl-not-found"
+msgstr "De e-mailtemplate <${template}> kan niet worden gevonden."
+
+#: spynl/main/mail.py:167
+msgid "mail-template-file-string"
+msgstr "Specificeer een templatebestand of \"body_string\""
+
+#: spynl/main/serial/exceptions.py:13
+msgid "undetermined-content-type-exception"
+msgstr "De request heeft een body maar de content type is niet herkent."
+
+#: spynl/main/serial/exceptions.py:23
+msgid "unsupported-content-type-exception"
+msgstr "Content type is niet ondersteund: \"${type}\""
+
+#: spynl/main/serial/exceptions.py:33
+msgid "deserialization-unsupported-exception"
+msgstr "Deserialisation van content type \"${type}\" is niet ondersteund."
+
+#: spynl/main/serial/exceptions.py:44
+msgid "serialization-unsupported-exception"
+msgstr "Serialisation van content type \"${type}\" is niet ondersteund."
+
+#: spynl/main/serial/exceptions.py:56
+msgid "malformed-request-exception-type"
+msgstr "Misvormd \"${type}\" request: ${request}"
+
+#: spynl/main/serial/exceptions.py:60
+msgid "malformed-request-exception"
+msgstr "Misvormd request: ${request}"
+
+#: spynl/main/serial/objects.py:117
+msgid "date-decode-value-error"
+msgstr ""
+"De waarde '${value}' voor key '${key}' lijkt geen geldige datastring te "
+"zijn wat past binnen ${format}."
+
+#: spynl/main/urlson.py:116
+msgid "unexpected-end-of-input"
+msgstr "Onverwacht einde van input."
+
+#: spynl/main/utils.py:310
+msgid "parse-value-exception-as-class"
+msgstr "\"${value}\" kon niet worden ontleed naar ${class}."
+
+#: spynl/main/utils.py:318
+msgid "parse-value-exception-not-class"
+msgstr "${class} is geen class. Kan waarde \"${value}\" niet ontleden."
+
+#: spynl/main/utils.py:327
+msgid "parse-value-exception-any-class"
+msgstr "\"${value}\" kon niet worden ontleed in een class in ${classes}."
+
+#: spynl/main/validation.py:67
+msgid "validations-is-not-list"
+msgstr "validations moet een lijst zijn."
+
+#: spynl/main/validation.py:74
+msgid "bad-validation-instructions-missing-field"
+msgstr "Ontbrekend veld: ${field}."
+
+#: spynl/main/validation.py:79
+msgid "bad-validation-instructions-setting-in"
+msgstr "Setting \"in\" zou of \"request\" of \"response\" moeten zijn."
+
+#: spynl/main/validation.py:126
+msgid "bad-validation-instructions-bad-schema"
+msgstr ""
+"De beschrijving voor de validatie voor deze endpoint kan niet worden "
+"gebruikt: ${error}"
+
+#: spynl/main/validation.py:132
+msgid "bad-validation-instructions-schema-not-found"
+msgstr "Kon schema ${schema} niet vinden om te valideren."
+

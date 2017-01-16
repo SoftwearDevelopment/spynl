@@ -1,0 +1,150 @@
+{
+    "definitions": {
+        "Error": {
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "default": "error",
+                    "enum": [
+                        "error",
+                        "ok"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "status"
+            ]
+        },
+        "Standard200": {
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "default": "ok",
+                    "enum": [
+                        "ok",
+                        "error"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "status"
+            ]
+        },
+        "Status": {
+            "default": "ok",
+            "enum": [
+                "ok",
+                "error"
+            ],
+            "type": "string"
+        }
+    },
+    "info": {
+        "description": "A list of all endpoints on this Spynl instance, with a short description on how to use them. <br/><br/><span style=\"color: grey;\">\nAll endpoints usually return application/json, unless otherwise\nspecified here or requested differently by the request.\nThey will have a \"status\" (ok|error) field and all error responses\nalso will have a \"message\" field.\n<span>",
+        "title": "Spynl Endpoints",
+        "version": "5.52.rc1"
+    },
+    "paths": {
+        "/None": {
+            "get": {
+                "description": "The index for all about-endpoints.\n####Response\nJSON keys | Content Type | Description\n--------- | ------------ | -----------\nstatus    | string | 'ok' or 'error'\nmessage   | string | Information about the available about/* endpoints.\nspynl_version | string | The version of this Spynl instance.\nlanguage  | string | The language (e.g. \"en\") served.\ntime      | string | Time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\n",
+                "show-try": true,
+                "summary": "The index for all about-endpoints.",
+                "tags": [
+                    "about"
+                ]
+            }
+        },
+        "/about/build": {
+            "get": {
+                "description": "\n####Response\nJSON keys | Content Type | Description\n--------- | ------------ | -----------\nstatus    | string | 'ok' or 'error'\nbuild_time| string | time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\nstart_time| string | time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\nbuild_number | string | The build number, set by Jenkins\nspynl_function| string | Which functionality this node has been spun up to fulfil\ntime      | string | time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\n",
+                "summary": "Information about the build of this instance.",
+                "tags": [
+                    "about"
+                ]
+            }
+        },
+        "/about/doc": {
+            "get": {
+                "description": "Presented as text/html (in swagger-ui). Requires 'read' permission for the 'about' resource.",
+                "summary": "All endpoints offered by this instance, with explanations.",
+                "tags": [
+                    "about"
+                ]
+            },
+            "show-try": false
+        },
+        "/about/endpoints": {
+            "get": {
+                "description": "Presented as text/html (in swagger-ui). Requires 'read' permission for the 'about' resource.",
+                "summary": "All endpoints offered by this instance, with explanations.",
+                "tags": [
+                    "about"
+                ]
+            },
+            "show-try": false
+        },
+        "/about/environment": {
+            "get": {
+                "description": "Requires 'read' permission for the 'about' resource.\n####Response\nJSON keys | Content Type | Description\n--------- | ------------ | -----------\nstatus    | string | 'ok' or 'error'\ntime      | string | time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\npython    | string | Python version\npip-installed-packages | dict | \"name\":\"version\" for each package.\n",
+                "summary": "All software packages installed by pip for this instance.",
+                "tags": [
+                    "about"
+                ]
+            }
+        },
+        "/about/ini": {
+            "get": {
+                "description": "Presented as a text/html table. Columns for name of the setting, the value in this instance, whether it is required, default value and text description.\n\nRequires 'read' permission for the 'about' resource.\n",
+                "summary": "A table of all Spynl ini settings in this instance.",
+                "tags": [
+                    "about"
+                ]
+            }
+        },
+        "/about/schemas": {
+            "get": {
+                "description": "Schema files are read from an internal Spynl location and Presented as text/html (using docson). This endpoint requires 'read' permission for the 'about' resource. It is linked from by /about/doc when schemas are used for validations by an endpoint.\n####Parameters\nJSON keys |   Type   |    Req.     | Description\n--------- | -------- | ----------- | --------- \nschema    |   string |  &#10004;   | Name of the schema file. \n",
+                "summary": "Using docson to display any relevant JSON schemas used by Spynl.",
+                "tags": [
+                    "about"
+                ]
+            },
+            "show-try": false
+        },
+        "/about/version": {
+            "get": {
+                "description": "Requires 'read' permission for the 'about' resource.\n####Response\nJSON keys | Content Type | Description\n--------- | ------------ | -----------\nstatus    | string | 'ok' or 'error'\nplugins   | dict   | \"spynl.plugin\": \"SCM checkin id\" for each Spynl plugin. Currently works only with mercurial.\nspynl_version | string | The version of this Spynl instance.\ntime      | string | time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\n",
+                "summary": "The spynl version and the changeset IDs of all plugins.",
+                "tags": [
+                    "about"
+                ]
+            }
+        },
+        "/ping": {
+            "get": {
+                "description": "Spynl tells you \"pong\" and the time.\n####Response\nJSON keys | Content Type | Description\n--------- | ------------ | -----------\nstatus    | string | 'ok' or 'error'\ntime      | string | time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\ngreeting  | string | 'pong'\n",
+                "summary": "Ping Spynl.",
+                "tags": [
+                    "contact"
+                ]
+            }
+        },
+        "/time": {
+            "get": {
+                "description": "Spynl tells you its server time and what it believes to be your local time if you are logged in.\n####Response\nJSON keys | Content Type | Description\n--------- | ------------ | -----------\nstatus    | string | 'ok' or 'error'\nserver_time | string | server time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\nlocal_time  | string | local user time in format: %Y-%m-%dT%H:%M:%S%z (the spynl.date_format for this Spynl instance)\ntz        | string | local time zone, e.g. Europe/Amsterdam\n",
+                "summary": "Get the Spynl time.",
+                "tags": [
+                    "contact"
+                ]
+            }
+        }
+    },
+    "swagger": "2.0"
+}

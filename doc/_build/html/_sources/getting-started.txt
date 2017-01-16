@@ -1,0 +1,10 @@
+Getting started
+==================
+
+take inspirations from the deveopment env setup guide I guess.
+
+Download Spynl
+-------------------
+
+Write a simple plugin
+----------------------

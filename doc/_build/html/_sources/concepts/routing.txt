@@ -1,0 +1,8 @@
+Endpoints and routes
+=======================
+
+Endpoint registration and documentation
+-----------------------------------------
+
+Reource-based routes
+----------------------

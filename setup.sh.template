@@ -1,0 +1,106 @@
+#!/bin/bash
+
+################################################################
+# ---- Usage ----                                              #
+# ./setup.sh --pre-install --virtualenv=$HOME/workspace/spynl  #
+# (don't use ~, it will not work!! You can use $PWD though)    #
+# If you want to install non-pip dependencies (using sudo) use #
+# --install-dependencies                                       #
+################################################################
+
+LBL="[spynl.main setup]"
+
+############################################################
+# ---- Parse command line arguments and set variables ---- #
+############################################################
+for i in "$@"
+do
+    case $i in
+    -h|--help)
+	    echo "$LBL Usage: ./setup.sh [--pre-install|--post-install] [--install-dependencies] [--virtualenv=<abs.path>]"
+	    exit
+	    ;;
+	-p|--post-install)
+	    POST=TRUE
+	    shift
+	    ;;
+	-a|--pre-install) # a as in ante
+	    PRE=TRUE
+	    shift
+	    ;;
+	--virtualenv=*)
+	    VIRTUALENV=${i#*=}
+	    shift
+	    ;;
+	--install-dependencies)
+	    DEPENDENCIES=TRUE
+	    shift
+	    ;;
+	*)
+            echo "unknown command line option: '$1'"
+	    exit 2
+	    ;;
+    esac
+done
+
+# get canonical (not relative) path to the script:
+SCRIPTPATH=$( cd $(dirname $0) ; pwd )
+
+########################
+# ---- Functions ----- #
+########################
+pre_install() {
+	if command_exists "apt-get"; then
+	    debian_install
+	elif command_exists "yum"; then
+	    fedora_install
+	fi
+    # You could also do something only needed in a virtualenv
+    if [[ $VIRTUALENV ]]; then
+	# echo the virtualenv folder
+	echo $VIRTUALENV
+    fi
+}
+
+# This function should not contain any sudo commands
+post_install() {
+    # Anything that needs to be done after setup.py has been run
+    # Do not include any sudo commands
+    echo "nothing to be done for now"
+}
+
+debian_install() {
+    if [ $DEPENDENCIES ]; then
+    # Put any sudo install commands here
+    # sudo apt-get install .....
+    echo "nothing to be done for now"
+    fi
+}
+
+fedora_install() {
+    if [ $DEPENDENCIES ]; then
+    # Put any sudo install commands here
+    # sudo yum ....
+    echo "nothing to be done for now"
+    fi
+}
+
+command_exists() {
+    command -v "$@" > /dev/null 2>&1
+}
+
+######################
+# ---- Run code ---- #
+######################
+
+# run either the pre-install or the post install function:
+if [[ ($POST && $PRE) || (! $POST && ! $PRE) ]]; then
+    echo "Choose either --pre-install or --post-install"
+    exit 2
+elif [[ $PRE ]]; then
+    pre_install
+elif [[ $POST ]]; then
+    post_install
+fi
+
+

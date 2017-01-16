@@ -1,0 +1,12 @@
+# default - schema:
+required:
+  - status
+properties:
+  status:
+    type: string
+    default: error
+    enum:
+      - error
+      - ok
+  message:
+    type: string

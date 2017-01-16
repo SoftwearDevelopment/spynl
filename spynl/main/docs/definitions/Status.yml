@@ -1,0 +1,6 @@
+# status:
+type: string
+default: ok
+enum:
+  - ok
+  - error

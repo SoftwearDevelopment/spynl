@@ -1,0 +1,131 @@
+# Translations template for spynl.main.
+# Copyright (C) 2016 Softwear BV
+# This file is distributed under the same license as the spynl.main project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: spynl.main 5.49.rc1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-11-23 14:26+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.3.4\n"
+
+#: spynl/main/endpoints.py:41
+msgid "pong"
+msgstr ""
+
+#: spynl/main/error_views.py:47
+msgid "no-endpoint-for-path"
+msgstr ""
+
+#: spynl/main/error_views.py:53
+msgid "permission-denial"
+msgstr ""
+
+#: spynl/main/error_views.py:62 spynl/main/error_views.py:110
+msgid "internal-server-error"
+msgstr ""
+
+#: spynl/main/error_views.py:100
+msgid "no-message-available"
+msgstr ""
+
+#: spynl/main/exceptions.py:36
+msgid "bad-origin"
+msgstr ""
+
+#: spynl/main/exceptions.py:55
+msgid "missing-parameter"
+msgstr ""
+
+#: spynl/main/exceptions.py:65
+msgid "illegal-parameter"
+msgstr ""
+
+#: spynl/main/exceptions.py:75
+msgid "bad-validation-instructions"
+msgstr ""
+
+#: spynl/main/exceptions.py:86 spynl/main/validation.py:121
+msgid "invalid-response"
+msgstr ""
+
+#: spynl/main/exceptions.py:96
+msgid "email-tmpl-not-found"
+msgstr ""
+
+#: spynl/main/mail.py:167
+msgid "mail-template-file-string"
+msgstr ""
+
+#: spynl/main/serial/exceptions.py:13
+msgid "undetermined-content-type-exception"
+msgstr ""
+
+#: spynl/main/serial/exceptions.py:23
+msgid "unsupported-content-type-exception"
+msgstr ""
+
+#: spynl/main/serial/exceptions.py:33
+msgid "deserialization-unsupported-exception"
+msgstr ""
+
+#: spynl/main/serial/exceptions.py:44
+msgid "serialization-unsupported-exception"
+msgstr ""
+
+#: spynl/main/serial/exceptions.py:56
+msgid "malformed-request-exception-type"
+msgstr ""
+
+#: spynl/main/serial/exceptions.py:60
+msgid "malformed-request-exception"
+msgstr ""
+
+#: spynl/main/serial/objects.py:117
+msgid "date-decode-value-error"
+msgstr ""
+
+#: spynl/main/urlson.py:116
+msgid "unexpected-end-of-input"
+msgstr ""
+
+#: spynl/main/utils.py:310
+msgid "parse-value-exception-as-class"
+msgstr ""
+
+#: spynl/main/utils.py:318
+msgid "parse-value-exception-not-class"
+msgstr ""
+
+#: spynl/main/utils.py:327
+msgid "parse-value-exception-any-class"
+msgstr ""
+
+#: spynl/main/validation.py:67
+msgid "validations-is-not-list"
+msgstr ""
+
+#: spynl/main/validation.py:74
+msgid "bad-validation-instructions-missing-field"
+msgstr ""
+
+#: spynl/main/validation.py:79
+msgid "bad-validation-instructions-setting-in"
+msgstr ""
+
+#: spynl/main/validation.py:126
+msgid "bad-validation-instructions-bad-schema"
+msgstr ""
+
+#: spynl/main/validation.py:132
+msgid "bad-validation-instructions-schema-not-found"
+msgstr ""
+
