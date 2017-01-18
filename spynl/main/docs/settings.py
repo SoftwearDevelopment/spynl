@@ -89,10 +89,21 @@ ini_doc = [{'name': 'spynl.date_systemtz',
            {'name': 'spynl.session',
             'plugin': '',
             'required': 'no',
-            'default': 'Session from beaker.session',
-            'info': 'Sets the session to MongoDB if this is the value in the '
-                    'ini file, all other values or not ommitting this setting '
-                    'will result in the use of Session from beaker.session'},
+            'default': 'Pyramid',
+            'info': 'Sets the name of the session class to use. Spynl will '
+                    'look this class up under settings[<name>]. '
+                    'The class should conform to the interface '
+                    'pyramid.interfaces.ISession. The value "Pyramid" or '
+                    'omitting this setting will result in the use of the '
+                    'Session class from beaker.session'},
+ 
+           {'name': 'spynl.scm_host',
+            'plugin': '',
+            'required': 'no',
+            'default': '',
+            'info': 'Which source control management provider your Spynl '
+                    'plugin repositories use. E.g. "github.com" or '
+                    '"bitbucket.org".'},
            
            {'name': 'spynl.schema.repo_url',
             'plugin': '',
