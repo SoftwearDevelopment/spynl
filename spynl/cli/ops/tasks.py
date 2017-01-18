@@ -2,7 +2,6 @@
 
 import os
 import json
-import configparser
 from datetime import datetime, timedelta
 import pytz
 from urllib.parse import urlparse
@@ -11,34 +10,33 @@ import requests
 from invoke import task
 from invoke.exceptions import Exit
 
-from cli.utils import (resolve_repo_names, repo, chdir, get_spynl_package,
-                       assert_response_code) 
-from cli.dev import tasks as dev_tasks
+from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
+                                  get_config_package, lookup_scm_url)
+from spynl.cli.utils import (resolve_packages_param, get_spynl_package,
+                             package_dir, chdir, assert_response_code) 
+from spynl.cli.dev import tasks as dev_tasks
 
 
-@task(help={'repos': dev_tasks.repos_help,
-            'config-repo': 'The repo containing production.ini and '
-                           'maybe smoke_test.py',
+@task(help={'packages': dev_tasks.packages_help,
             'revision': 'The code revision (e.g. branch name or tag, '
                         'applicable across repositories). '
-                        'Defaults to "default".',
+                        'Defaults to "master" on git and "default" on '
+                        'mercurial.',
             'fallbackrevision': 'Revision to fall back on if revision '
-                                'is not given. Defaults to "default".',
-            'spynlrevision': 'You can specify a revision for the spynl '
-                             'repo that is used by Jenkins as basis for '
-                             'the build. Defaults to "default".',
+                                'is not given. Defaults to "master" on git '
+                                'and "default" on mercurial.',
+            'spynlbranch': 'You can specify a branch for the main Spynl '
+                           'package. Defaults to "master".',
             'task': 'The AWS ECS task identifier to be restarted '
                     '(see the spynl.ops.ecr.dev_tasks setting). '
                     'Can be more than task (provide a comma-separated '
                     'list in that case). Alternatively, use "production" '
                     'to deploy to the production ECR.'})
-def start_build(ctx, repos='_all', config_repo=None, revision='default',
-                fallbackrevision='default', spynlrevision='default',
-                task=''):
+def start_build(ctx, packages='_all', revision='', fallbackrevision='',
+                spynlbranch='master', task=''):
     """Make a new Spynl build: call the SPYNL job on Jenkins."""
-    config = configparser.ConfigParser()
-    config.read('%s/development.ini' % os.environ['VIRTUAL_ENV'])
-    jenkins_url = config['app:main'].get('spynl.ops.jenkins_url', '').strip()
+    config = get_dev_config()
+    jenkins_url = config.get('spynl.ops.jenkins_url', '').strip()
     if not jenkins_url:
         raise Exit('[spynl ops.start_build] No spynl.ops.jenkins_url '
                    'setting found! Exiting ...')
@@ -57,71 +55,44 @@ def start_build(ctx, repos='_all', config_repo=None, revision='default',
           "/buildWithParameters?delay=0sec"\
           .format(jscheme=jurl_parts.scheme, juser=jenkins_user,
                   jpw=os.environ['JENKINS_PASSWORD'], jloc=jurl_parts.netloc)
-    installed_repos = resolve_repo_names(repos, complain_not_installed=False)
-    if config_repo is None:
-        raise Exit('[spynl ops.start_build] Please set the --config-repo param '
-                   '(the config repo contains development.ini and '
-                   'production.ini).')
-    if config_repo not in installed_repos:
-        raise Exit('[spynl ops.start_build] Config repo %s is not installed.'
-                   % config_repo)
-    params = dict(repos=','.join(installed_repos), configrepo=config_repo,
+    installed_packages_urls = resolve_packages_param(packages, to='scm-urls')
+    params = dict(scm_urls=','.join(installed_packages_urls),
                   revision=revision, fallbackrevision=fallbackrevision,
-                  spynlrevision=spynlrevision, task=task)
+                  spynlbranch=spynlbranch, task=task)
     print('[spynl ops.start_build] Calling up Jenkins server at %s with params %s.' % (url, str(params)))
     response = requests.post(url, params)
     print('[spynl ops.start_build] Got response: %s' % response)
 
 
-@task(help={'repos': dev_tasks.repos_help,
-            'revision': 'The code revision (e.g. branch name or tag, '
-                        'applicable across repositories). '
-                        'Defaults to "default".',
-            'fallbackrevision': 'Which revision to fallback on if the '
-                                'repo does not have revision. '
-                                'Defaults to "default".',
-            'revertchanges': 'Revert uncommited changes in order to update.'
-                             'Otherwise this task will raise if a repo has '
-                             'local changes.'})
-def tag_repo_states(ctx, repos='_all', revision='default',
-                    fallbackrevision='default',
-                    revertchanges=False):
+@task(help={'packages': dev_tasks.packages_help})
+def mk_repo_state(ctx, packages='_all'):
     """
-    Go through all repos and collect the commit IDs they are at
-    in the current revision (e.g. a branch or tag).
-    Store that information in a file.
+    Go through all packages and collect the commit IDs they are at.
+    Store their scm URLs and the commit IDs in a file called "repo-state.txt".
+    This allows us to store this meta information in a human-readable form
+    as a build artefact and also to restore this state inside of a Docker
+    image.
     """
-    if revision is None or revision == "":
-        raise Exit("[spynl ops.tag_repo_states] revision argument is empty!")
-
-    with open('repostate.txt', 'w') as repostate:
-        # --- install/check for changes
-        for name in resolve_repo_names(repos, complain_not_installed=False):
-            package = get_spynl_package(name)
-            if package is None or not os.path.exists(package.location):
-                dev_tasks.install(ctx, repos=name, revision=revision,
-                                  fallbackrevision=fallbackrevision)
-            with repo(name):
-                if revertchanges:
-                    ctx.run('hg revert --all')
-                elif ctx.run('hg st -amdr').stdout != "":
-                    raise Exit("[spynl ops.tag_repo_states] Repo %s has "
-                               "uncomitted changes." % name)
-        # --- update to revision or fallbackrevision
-        for name in resolve_repo_names(repos):
-            with repo(name):
-                ctx.run('hg pull -q')
-                ctx.run("if echo \"$(hg branches) $(hg tags)\" | grep -i '^{rev}[[:space:]]' > /dev/null; then hg update -q {rev}; else hg update -q {fb_rev}; fi".format(rev=revision, fb_rev=fallbackrevision))
-                commit_id = ctx.run('hg id -i', hide='both').stdout.strip()
-                print("[spynl ops.tag_repo_states] "
-                      "Repo %s (at branch %s) has commit ID: %s" %
-                      (name, ctx.run('hg branch', hide='both').stdout.strip(),
-                       commit_id))
-                repostate.write("%s %s\n" % (name, commit_id))
+    with open('repo-state.txt', 'w') as repo_state:
+        for name in resolve_packages_param(packages):
+            with chdir('%s/src/spynl' % os.environ.get('VIRTUAL_ENV')):
+                commit_id = ctx.run('git rev-parse HEAD', hide='both')\
+                               .stdout.strip()
+                surl = 'ssh://git@github.com/SoftwearDevelopment/spynl.git'
+                repo_state.write("%s %s\n" % (surl, commit_id))
+            with package_dir(name):
+                scm_url = lookup_scm_url(os.getcwd())
+                if scm_url.endswith('.git') or '.git@' in scm_url:
+                    commit_id = ctx.run('git rev-parse HEAD', hide='both')\
+                                   .stdout.strip()
+                else:
+                    commit_id = ctx.run('hg id -i', hide='both').stdout.strip()
+                print("[spynl ops.mk_repo_state] Package %s has commit ID: %s"
+                      % (name, commit_id))
+                repo_state.write("%s %s\n" % (scm_url, commit_id))
 
 
 @task(help={'buildnr': 'Number of the SPYNL-Deploy build of Jenkins.',
-            'config-repo': 'The repo containing production.ini',
             'task': 'Can be either "production" or one of the dev '
                     'tasks given by the spynl.ops.ecr.dev_tasks setting. '
                     'With the former, the image will be pushed to the '
@@ -129,48 +100,36 @@ def tag_repo_states(ctx, repos='_all', revision='default',
                     'to the tag. With the latter, the image will be pushed '
                     'to the development AWS ECR. It will be tagged with the '
                     'task name and the task in the AWS ECS will be restarted, '
-                    'so the new image will be live.',
-            'revision': 'The code revision (e.g. branch name or tag, '
-                        'applicable across repositories). Optional - '
-                        'should be left out if a repostate.txt file has '
-                        'already been made.',
-            'fallbackrevision': 'A fallback revision can also be given for the '
-                                'case that a repo does not have revision.'})
-def deploy(ctx, buildnr=None, config_repo=None, task=None, revision=None,
-           fallbackrevision='default'):
+                    'so the new image will be live.'})
+def deploy(ctx, buildnr=None, task=None):
     """Build a Spynl Docker image and deploy it."""
     # --- make sure we have repostate.txt
-    if not os.path.exists('repostate.txt'):
-        if revision is None:
-            raise Exit("[spynl ops.deploy] No repostate.txt found and no "
-                       "revision given.")
-        tag_repo_states(ctx, revision=revision,
-                        fallbackrevision=fallbackrevision)
-    # --- put repostates.txt into the docker build directory
-    spynl = get_spynl_package('spynl')
-    ctx.run('mv repostate.txt %s/cli/ops/docker' % spynl.location)
+    if not os.path.exists('repo-state.txt'):
+        mk_repo_states(ctx)
+    # --- put repo-state.txt into the docker build directory
+    venv = os.environ['VIRTUAL_ENV']
+    ctx.run('mv repo-state.txt %s/src/spynl/spynl/cli/ops/docker' % venv)
     # --- put production.ini into the docker build directory
-    config_package = get_spynl_package(config_repo)
-    ctx.run('cp %s/production.ini %s/cli/ops/docker'
-            % (config_package.location, spynl.location))
+    config_package = get_config_package()
+    ctx.run('cp %s/production.ini %s/src/spynl/spynl/cli/ops/docker'
+            % (config_package.location, venv))
 
     # check ECR configuration
-    config = configparser.ConfigParser()
-    config.read('%s/development.ini'  % config_package.location)
+    config = get_dev_config()
     dev_ecr_profile, dev_ecr_uri =\
-        config['app:main'].get('spynl.ops.ecr.dev_url', '').split('@')
+        config.get('spynl.ops.ecr.dev_url', '').split('@')
     if task != 'production' and not dev_ecr_uri:
         raise Exit('[spynl ops.deploy] ECR for development is not configured. '
                    'Exiting ...')
     prod_ecr_profile, prod_ecr_uri =\
-        config['app:main'].get('spynl.ops.ecr.prod_url', '').split('@')
+        config.get('spynl.ops.ecr.prod_url', '').split('@')
     if task == 'production' and not prod_ecr_uri:
         raise Exit('[spynl ops.deploy] ECR for production is not configured. '
                    'Exiting ...')
-    dev_domain = config['app:main'].get('spynl.ops.dev_domain', '')
+    dev_domain = config.get('spynl.ops.dev_domain', '')
 
     # --- build Docker image
-    with chdir(spynl.location + '/cli/ops/docker'):
+    with chdir('%s/src/spynl/spynl/cli/ops/docker' % venv):
         result = ctx.run('./build-image.sh %s %s' % (buildnr, dev_domain))
         if not result:
             raise Exit("[spynl ops.deploy] Building docker image failed: %s"
@@ -201,7 +160,7 @@ def deploy(ctx, buildnr=None, config_repo=None, task=None, revision=None,
 
         # tag the image for being used in one of our defined Tasks
         if task:
-            ecr_dev_tasks = [t.strip() for t in config['app:main']
+            ecr_dev_tasks = [t.strip() for t in config
                              .get('spynl.ops.ecr.dev_tasks', '')
                              .split(',')]
             for t in task.split(","):
@@ -225,30 +184,30 @@ def deploy(ctx, buildnr=None, config_repo=None, task=None, revision=None,
     ctx.run('docker logout')
 
 
-@task(help={'repos': dev_tasks.repos_help})
-def prepare_docker_run(ctx, repos='_all'):
+@task(help={'packages': dev_tasks.packages_help})
+def prepare_docker_run(ctx, packages='_all'):
     """
     Give repos a chance to make configuration changes just when the
     Docker container starts up, e.g. update /production.ini based
-    on environment variables like SPYNL_ENVRIONMENT.
+    on environment variables like SPYNL_ENVIRONMENT.
     This allows test/production environments to be configured in their
     preferred way.
-    If the repos provide a script called "prepare-docker-run.sh",
+    If the packages provide a script called "prepare-docker-run.sh",
     this task will run it.
     """
-    print("[spynl ops.prepare_docker_run] Will check repos %s ..." % repos)
-    for repo_name in resolve_repo_names(repos):
-        package = get_spynl_package(repo_name)
-        print("[spynl ops.prepare_docker_run] Checking repo %s at %s ..." % (repo_name, package.location))
-        with repo(repo_name):
+    print("[spynl ops.prepare_docker_run] Will check packages %s ..." % packages)
+    for package_name in resolve_packages_param(packages):
+        package = get_spynl_package(package_name)
+        print("[spynl ops.prepare_docker_run] Checking package %s at %s ..."
+              % (package_name, package.location))
+        with package_dir(package_name):
             if os.path.exists('%s/prepare-docker-run.sh' % package.location):
                 print("[spynl ops.prepare_docker_run] Preparing repo: %s ..."
-                      % repo_name)
+                      % package_name)
                 ctx.run('%s/prepare-docker-run.sh' % package.location)
 
 
-@task(help={'repos': dev_tasks.repos_help,
-            'config-repo': 'The repo containing development.ini',
+@task(help={'packages': dev_tasks.packages_help,
             'task': 'Spynl task, used to find out at which URL to test Spynl. '
                     ' One of the tasks specified by the ini-setting '
                     ' "spynl.ops.dev_url". For tasks other than "dev", the '
@@ -257,12 +216,10 @@ def prepare_docker_run(ctx, repos='_all'):
                     ' then the <url> parameter should be given.',
             'url': 'URL to run smoke test against. Will overwrite whatever '
                    'URL the task parameter indicates.'})
-def smoke_test(ctx, repos="_all", config_repo=None, url=None, task='dev'):
+def smoke_test(ctx, packages="_all", url=None, task='dev'):
     """Run smoke tests"""
-    config_package = get_spynl_package(config_repo)
-    config = configparser.ConfigParser()
-    config.read('%s/development.ini'  % config_package.location)
-    ecr_dev_tasks = [t.strip() for t in config['app:main']
+    config = get_dev_config()
+    ecr_dev_tasks = [t.strip() for t in config
                      .get('spynl.ops.ecr.dev_tasks', '')
                      .split(',')]
     if url is not None:
@@ -275,7 +232,7 @@ def smoke_test(ctx, repos="_all", config_repo=None, url=None, task='dev'):
             task = task.split(',')[0].strip()
         if task not in ecr_dev_tasks:
             raise Exit('Task %s is not named in spynl.ops.ecr.dev.tasks.')
-        spynl_url = config['app:main'].get('spynl.ops.dev_url', '').strip()
+        spynl_url = config.get('spynl.ops.dev_url', '').strip()
         if not spynl_url:
             raise Exit('spynl.ops.dev_url not set.')
         if task != 'dev':
@@ -300,9 +257,9 @@ def smoke_test(ctx, repos="_all", config_repo=None, url=None, task='dev'):
                    "%s (now - 15m) is not before %s"
                    % (now - timedelta(minutes=15), build_time))
 
-    for repo_name in resolve_repo_names(repos):
-        package = get_spynl_package(repo_name)
-        with repo(repo_name):
+    for package_name in resolve_packages_param(packages):
+        with package_dir(package_name):
+            package = get_spynl_package(package_name) 
             if os.path.exists('%s/smoke-test.py' % package.location):
                 print("[spynl ops.smoke_test] Running %s/smoke-test.py ..."
                       % package.location)

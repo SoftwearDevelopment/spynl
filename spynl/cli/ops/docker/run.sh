@@ -20,7 +20,7 @@ fi
 sed -e 's#^\(workers =\).*$#\1 '$WEB_CONCURRENCY'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
 # set SPYNL_FUNCTION in production.ini
-sed -e 's#^\(spynl.function =\).*$#\1 '$SPYNL_FUNCTION'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
+sed -e 's#^\(spynl.ops.function =\).*$#\1 '$SPYNL_FUNCTION'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
 # should we pretty-print?
 if [[ "$SPYNL_ENVIRONMENT" == "" || "$SPYNL_ENVIRONMENT" == "test" ]]; then
@@ -40,7 +40,7 @@ else
 fi
 
 # set SPYNL_ENVIRONMENT in production.ini
-sed -e 's#^\(spynl.spynl_environment =\).*$#\1 '$SPYNL_ENVIRONMENT'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
+sed -e 's#^\(spynl.ops.environment =\).*$#\1 '$SPYNL_ENVIRONMENT'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
 # this can be handy when looking at /logs/spynl.log from outside a container
 printf "======================= \nOUTPUTTING production.ini ...\n========================= \n\n" >> /logs/spynl.log

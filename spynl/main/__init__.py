@@ -33,7 +33,7 @@ def main(global_config, test_settings=None, **settings):
     """
     # load (test) settings
     config = Configurator(settings=settings)
-    config.add_settings({'spynl.start_time': now()})
+    config.add_settings({'spynl.ops.start_time': now()})
 
     if test_settings:
         for key, value in test_settings.items():

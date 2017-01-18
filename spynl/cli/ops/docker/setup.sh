@@ -22,21 +22,18 @@ virtualenv --python=python3.5 venv
 source venv/bin/activate
 
 # install spynl.main
-pip install -e hg+ssh://hg@bitbucket.org/spynl/spynl#egg=spynl
-
-spynl dev.translations --repos spynl
-spynl dev.get_schemas --version SCHEMA_VERSION 
+pip install -e git+https://git@github.com/SoftwearDevelopment/spynl.git#egg=spynl
 
 # record build time and build number
 CURRTIME=`date -u "+%Y-%m-%dT%H:%M:%S+0000"`
 BUILDNR=PLACEHOLDER
-sed -e 's#^\(spynl.build_time =\).*$#\1 '$CURRTIME'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
-sed -e 's#^\(spynl.build_number =\).*$#\1 '$BUILDNR'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
+sed -e 's#^\(spynl.ops.build_time =\).*$#\1 '$CURRTIME'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
+sed -e 's#^\(spynl.ops.build_number =\).*$#\1 '$BUILDNR'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
 
 # This is how to install further repos
 # build_image.sh can also replace this with specific install-repo calls
-#spynl dev.install --repos spynl.something --revision default 
+#spynl dev.install --scm-url <some-url> 
 
 # install gunicorn & paste 
 pip install gunicorn

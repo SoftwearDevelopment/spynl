@@ -5,7 +5,7 @@ import os
 import sys
 import codecs
 import re
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -40,15 +40,16 @@ setup(name='spynl',
       version=find_version('spynl', 'main', 'version.py'),
       description='spynl',
       long_description=README,
-      classifiers=["Programming Language :: Python3"
+      classifiers=["Programming Language :: Python :: 3.5",
                    "Framework :: Pylons",
                    "Topic :: Internet :: WWW/HTTP",
                    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
       author='Softwear BV',
       author_email='development@softwear.nl',
       url='http://www.softwear.nl',
+      license='MIT',
       keywords='API SaaS',
-      packages=find_packages(), # spynl, spynl.main.*, spynl.test
+      packages=['spynl.cli', 'spynl.main'],
       include_package_data=True,
       zip_safe=False,
       install_requires=install_requires,
@@ -56,7 +57,7 @@ setup(name='spynl',
       test_suite="spynl",
       entry_points={
           "paste.app_factory": ["main = spynl.main:main"],
-          "console_scripts": ["spynl = cli.spynlcli:program.run"]
+          "console_scripts": ["spynl = spynl.cli:program.run"]
       },
       paster_plugins=['pyramid']
 )

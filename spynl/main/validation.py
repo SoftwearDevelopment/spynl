@@ -8,7 +8,8 @@ from functools import wraps
 
 import jsonschema
 
-from spynl.main.utils import get_logger, get_yaml_from_docstring
+from spynl.main.utils import (get_logger, get_settings,
+                              get_yaml_from_docstring)
 from spynl.main.exceptions import InvalidResponse, BadValidationInstructions
 from spynl.main.locale import SpynlTranslationString as _
 
@@ -102,8 +103,9 @@ def apply_schema(data, schema_name):
     """Find and apply a JSON schema to JSON data and deal with any problems."""
     # get schema location
     logger = get_logger(__name__)
-    p2s = '{}/docs/docson/schemas'\
-          .format('/'.join(os.path.abspath(__file__).split('/')[:-1]))
+    settings = get_settings()
+    p2s = '%s/%s' % (os.environ.get('VIRTUAL_ENV', ''),
+                     settings.get('spynl.schemas', '').strip())
     schema_path = '{}/{}'.format(p2s, schema_name)
     if os.path.exists(schema_path):
         schema_str = open(schema_path, 'r').read()

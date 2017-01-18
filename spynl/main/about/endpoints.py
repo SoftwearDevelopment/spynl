@@ -3,7 +3,7 @@ This module provides information for version, db, build and enviroment.
 """
 
 import sys
-from os import path as osp
+import os
 from subprocess import check_output
 import pip
 
@@ -16,6 +16,9 @@ from spynl.main.locale import SpynlTranslationString as _
 from spynl.main.dateutils import now, date_to_str
 from spynl.main.docs.settings import ini_doc, ini_description
 from spynl.main.docs.documentation import HIDE_TRYITOUT_IDS
+from spynl.main.pkg_utils import (get_spynl_package,
+                                  get_dev_config,
+                                  get_spynl_packages)
 
 
 def hello(request):
@@ -43,9 +46,9 @@ def hello(request):
       show-try: true
     """
     return {'message': _('about-message',
-                         default='This is the Spynl API/Middleware.'
+                         default='This is the Spynl API/Middleware. '
                                  'You can get more information at '
-                                 'about/endpoints, about/ini, about/version, '
+                                 'about/endpoints, about/ini, about/versions, '
                                  'about/build and about/environment.'),
             'spynl_version': spynl_version,
             'language': request._LOCALE_,
@@ -67,7 +70,7 @@ def endpoint_doc(request):
     """
     request.response.content_type = 'text/html'
     path2swagger = '{}/../docs/swagger-ui/index.html'\
-                   .format('/'.join(osp.abspath(__file__).split('/')[:-1]))
+                   .format('/'.join(os.path.abspath(__file__).split('/')[:-1]))
     index = open(path2swagger, 'r').read()
     static_url = request.static_url('spynl.main:docs/swagger-ui/')
     # We would like to treat the swagger-ui directory as a drop-in
@@ -122,9 +125,9 @@ def schemas(request):
     return HTTPFound("{}#schemas/{}".format(static_url, schema))
 
 
-def version(request):
+def versions(request):
     """
-    The spynl version and the changeset IDs of all plugins.
+    The changeset IDs of Spynl and all installed plugins.
 
     ---
     get:
@@ -145,28 +148,32 @@ def version(request):
 
     """
     spynl_settings = get_settings()
+    dev_config = get_dev_config()
+
     response = dict(spynl_version=spynl_version)
     response['time'] = date_to_str(now())
 
     # Plugins
-    path2src = __file__.split('/spynl/spynl')[0]
     response['plugins'] = {}
+    packages = get_spynl_packages()
+    cmd = 'git log --format="%H" -n 1'
+    if dev_config.get('scm_type') == 'hg':
+        cmd = 'hg id -i 2>&1'
+    # TODO: if pip-installed, we'll have to ask pip explicitly for spynl
+    spynl = get_spynl_package('spynl', packages)
     try:
+        os.chdir(spynl.location)
         response['plugins']['spynl'] = \
-                check_output('hg id -i 2>&1 {}'.format(path2src + '/spynl'),
-                             shell=True).strip()
+                check_output(cmd, shell=True).strip()
     except Exception as err:
         response['plugins']['spynl'] = str(err)
-    plugins = spynl_settings.get('plugins', [])
-    for plugin in plugins:
-        plugin_name = plugin.rpartition('.')[0]
+    for package in packages:
         try:
-            response['plugins'][plugin_name] = \
-              check_output('hg id -i 2>&1 {}/{}'
-                           .format(path2src, plugin_name),
-                           shell=True).strip()
+            os.chdir(package.location)
+            response['plugins'][package.project_name] = \
+              check_output(cmd, shell=True).strip()
         except Exception as err:
-            response['plugins'][plugin_name] = str(err)
+            response['plugins'][package.project_name] = str(err)
     return response
 
 
@@ -196,10 +203,10 @@ def build(request):
     response = {}
 
     response['time'] = date_to_str(now())
-    response['build_time'] = spynl_settings.get('spynl.build_time', None)
-    response['start_time'] = spynl_settings.get('spynl.start_time', None)
-    response['build_number'] = spynl_settings.get('spynl.build_number', None)
-    response['spynl_function'] = spynl_settings.get('spynl.function', None)
+    response['build_time'] = spynl_settings.get('spynl.ops.build_time', None)
+    response['start_time'] = spynl_settings.get('spynl.ops.start_time', None)
+    response['build_number'] = spynl_settings.get('spynl.ops.build_number', None)
+    response['spynl_function'] = spynl_settings.get('spynl.ops.function', None)
 
     return response
 

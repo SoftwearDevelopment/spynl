@@ -33,8 +33,8 @@ tenant_schema = {
 
 def _sfolder():
     """return schema folder location"""
-    path2here = '/'.join(os.path.abspath(__file__).split('/')[:-1])
-    return '{}/../main/docs/docson/schemas'.format(path2here)
+    venv_loc = os.environ.get('VIRTUAL_ENV', '')
+    return '%s/spynl-schemas' % venv_loc
 
 
 def _write_schema(sname, sdata):

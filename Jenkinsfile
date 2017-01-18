@@ -1,5 +1,10 @@
 #!/usr/bin/env groovy
 
+// Note:
+// Activating the virtualenv doesn't stay active across
+// sh invocations in pipeline scripts.
+// See https://issues.jenkins-ci.org/browse/JENKINS-37116
+
 node {
   try {
 
@@ -7,28 +12,28 @@ node {
 
     // Stamp exact states of repos and run unit tests
     stage('Unit Tests') {
-      sh 'rm -rf repostate.txt venv'
-      sh "${workspace}/cli/ops/run-unit-tests.sh $repos $revision $fallbackrevision $spynlrevision $configrepo"
-      archive 'repostate.txt'                                // for history
-      stash name:'repostate', includes:'**/repostate.txt'    // for using it again later in this build
+      sh 'rm -rf repo-state.txt venv'
+      sh "${workspace}@script/spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -s $spynlbranch -m && ${workspace}@script/spynl/cli/ops/run-unit-tests.sh"
+      archive 'repo-state.txt'                              // for history
+      stash name:'repo-state', includes:'**/repo-state.txt' // for using it again later in this build
       junit 'venv/**/pytests.xml'
       //coverage 'venv/**/coverage.xml'  // Check this ticket: https://issues.jenkins-ci.org/browse/JENKINS-30700
     }
 
-    // Deploy to swcloud or softwearconnect depending on the REVISION
+    // Build Docker Image and deploy to dev or production ECR
     stage('Deploy') {
-      unstash name:'repostate'
-      sh "${workspace}/cli/ops/prepare-stage.sh $repos $revision $fallbackrevision $spynlrevision $configrepo"
-      sh "source venv/bin/activate && spynl ops.deploy --buildnr ${env.BUILD_NUMBER} --config-repo $configrepo --task $task --revision $revision --fallbackrevision $fallbackrevision"
-      archive 'venv/src/spynl/cli/ops/docker/docker.build.log'  // for debugging
+      unstash name:'repo-state'
+      sh "${workspace}@script/spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -s $spynlbranch"
+      sh "source venv/bin/activate && spynl ops.deploy --buildnr ${env.BUILD_NUMBER} --task $task"
+      archive 'venv/src/spynl/spynl/cli/ops/docker/docker.build.log'  // for debugging
     }
 
     // Run smoke test to see if Spynl actually arrived
     stage('Smoke Tests') {
       if (task != "production" ){
         sleep time:90, unit:'SECONDS'
-        sh "${workspace}/cli/ops/prepare-stage.sh $repos $revision $fallbackrevision $spynlrevision $configrepo"
-        sh "source venv/bin/activate && spynl ops.smoke_test --repos $repos --config-repo $configrepo --task $task"
+        sh "${workspace}@script/spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -s $spynlbranch"
+        sh "source venv/bin/activate && spynl ops.smoke_test --task $task"
       } 
     }
 

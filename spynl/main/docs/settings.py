@@ -59,7 +59,7 @@ ini_doc = [{'name': 'spynl.date_systemtz',
             'default': 'nl',
             'info': 'Languages (e.g. de,nl) which Spynl should translate '
                     'to (other than english). This affects how the task '
-                    '<spynl dev.translations> works. Use a comma-separated '
+                    '<spynl dev.translate> works. Use a comma-separated '
                     ' list for more than one.'},
  
            {'name': 'spynl.tld_origin_whitelist',
@@ -97,36 +97,14 @@ ini_doc = [{'name': 'spynl.date_systemtz',
                     'omitting this setting will result in the use of the '
                     'Session class from beaker.session'},
  
-           {'name': 'spynl.scm_host',
-            'plugin': '',
-            'required': 'no',
-            'default': '',
-            'info': 'Which source control management provider your Spynl '
-                    'plugin repositories use. E.g. "github.com" or '
-                    '"bitbucket.org".'},
-           
-           {'name': 'spynl.schema.repo_url',
-            'plugin': '',
-            'required': 'no',
-            'default': '',
-            'info': 'URL of the repository which hosts JSON schemas for '
-                    ' Spynl to use for validations.'},
- 
-           {'name': 'spynl.schema.revision',
-            'plugin': '',
-            'required': 'no',
-            'default': '',
-            'info': 'revision of the repository which hosts json schemas for '
-                    ' spynl to use for validations.'},
- 
-           {'name': 'spynl.environment',
+           {'name': 'spynl.ops.environment',
             'plugin': '',
             'required': 'no',
             'default': '',
             'info': 'The environment Spynl is running in. This is quite '
                     'useful for things like error log aggregation.'},
 
-           {'name': 'spynl.function',
+           {'name': 'spynl.ops.function',
             'plugin': '',
             'required': 'no',
             'default': '',

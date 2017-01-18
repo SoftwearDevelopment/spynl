@@ -1,2 +1,3 @@
-include *.txt *.ini *.cfg *.rst
-recursive-include spynl *.ico *.png *.css *.gif *.jpg *.pt *.txt *.js *.html *.xml *.jinja2
+include *.py *.txt *.cfg *.rst
+recursive-include spynl *
+recursive-exclude spynl/tests *
