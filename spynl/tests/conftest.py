@@ -55,6 +55,17 @@ def app(settings):
 
 
 @pytest.fixture
+def app_factory():
+    """Return a basic factory app maker to be able to pass custom settings."""
+    def make_app(settings):
+        """Return the maker app."""
+        spynl_app = main(None, test_settings=settings)
+        webtest_app = TestApp(spynl_app)
+        return webtest_app
+    return make_app
+
+
+@pytest.fixture
 def mailer(app):
     """Return applications mailer."""
     mailer = get_mailer(app.app.registry)

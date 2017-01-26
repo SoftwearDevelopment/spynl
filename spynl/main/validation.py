@@ -106,7 +106,7 @@ def apply_schema(data, schema_name):
     settings = get_settings()
     p2s = '%s/%s' % (os.environ.get('VIRTUAL_ENV', ''),
                      settings.get('spynl.schemas', '').strip())
-    schema_path = '{}/{}'.format(p2s, schema_name)
+    schema_path = os.path.join(p2s, schema_name)
     if os.path.exists(schema_path):
         schema_str = open(schema_path, 'r').read()
         # redirect shared subschema pointers to our file structure

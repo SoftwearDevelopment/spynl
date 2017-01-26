@@ -10,28 +10,22 @@ name.
 
 
 import os
+from uuid import uuid4
 
 import pytest
 from pyramid.testing import DummyRequest
 
 from spynl.main.mail import _sendmail as sendmail, send_template_email
 
-from spynl.main.utils import get_settings
-from spynl.main.exceptions import EmailTemplateNotFound, SpynlException
+from spynl.main.exceptions import EmailTemplateNotFound
 
 
-@pytest.fixture(scope="module")
-def template(request):
+@pytest.fixture
+def template(tmpdir):
     """Create a temporary template file for tests to use."""
-    with open('test_template.txt', 'w'):
-        pass
-    template_path = os.getcwd() + '/test_template.txt'
-
-    @request.addfinalizer
-    def fin():
-        """Delete the temporary file after all tests finish."""
-        os.remove('test_template.txt')
-    return template_path
+    file_ = tmpdir.mkdir('template').join(uuid4().hex + '.jinja2')
+    yield file_.strpath
+    os.remove(file_.strpath)
 
 
 @pytest.fixture

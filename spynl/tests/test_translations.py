@@ -6,24 +6,22 @@ from spynl.main.testutils import get
 from spynl.main.endpoints import ping
 from spynl.main.utils import check_origin
 
-from .conftest import app as app_factory
-
 
 @pytest.fixture(autouse=True)
-def reset_app(request, app):
+def reset_app(app):
     """Reset app, here our aim is to reset cookies."""
-    @request.addfinalizer
-    def fin():
-        """request.cookiejar is a http.cookiejar.CookieJar."""
-        app.cookiejar.clear()
+    # request.cookiejar is a http.cookiejar.CookieJar
+    yield
+    app.cookiejar.clear()
 
 
-@pytest.mark.parametrize("method,language",
-                         [(None, 'en'),
-                          ('cookie', 'nl'),
-                          ('header', 'nl'),
-                          ('setting', 'nl')])
-def test_response_message(app, method, language, settings):
+@pytest.mark.parametrize("method,language", [
+    (None, 'en'),
+    ('cookie', 'nl'),
+    ('header', 'nl'),
+    ('setting', 'nl')
+])
+def test_response_message(app, app_factory, method, language, settings):
     """Test /about, with various methods of specifying the language"""
     headers = {}
     if method == 'cookie':
@@ -39,8 +37,7 @@ def test_response_message(app, method, language, settings):
 
 def test_exception_message_is_translated():
     """Test not whitelisted origin."""
-    headers = {"Origin": "Not-a-Url",
-               "Content-Type": "application/json"}
+    headers = {"Origin": "Not-a-Url", "Content-Type": "application/json"}
     dr = testing.DummyRequest(headers=headers)
     dr._LOCALE_ = 'nl_NL'
     with testing.testConfig(request=dr) as my_config:
