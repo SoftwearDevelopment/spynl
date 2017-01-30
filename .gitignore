@@ -6,3 +6,5 @@
 # ignore compiled translations
 *.mo
 
+spynl/main/docs/docson/schemas/
+
