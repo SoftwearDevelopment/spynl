@@ -67,19 +67,20 @@ def start_build(ctx, packages='_all', revision='', fallbackrevision='',
 @task(help={'packages': dev_tasks.packages_help})
 def mk_repo_state(ctx, packages='_all'):
     """
-    Go through all packages and collect the commit IDs they are at.
-    Store their scm URLs and the commit IDs in a file called "repo-state.txt".
+    Go through all packages (spynl&spynl-plugins) and collect the commit IDs
+    they are at. Store their scm URLs and the commit IDs in a file called
+    "repo-state.txt".
     This allows us to store this meta information in a human-readable form
     as a build artefact and also to restore this state inside of a Docker
     image.
     """
     with open('repo-state.txt', 'w') as repo_state:
+        spynl_scm_url = lookup_scm_url(os.getcwd())
+        commit_id = ctx.run('git rev-parse HEAD', hide='both').stdout.strip()
+        print("[spynl ops.mk_repo_state] Package spynl has commit ID: %s"
+              % commit_id)
+        repo_state.write("%s %s\n" % (spynl_scm_url, commit_id))
         for name in resolve_packages_param(packages):
-            with chdir('%s/src/spynl' % os.environ.get('VIRTUAL_ENV')):
-                commit_id = ctx.run('git rev-parse HEAD', hide='both')\
-                               .stdout.strip()
-                surl = 'ssh://git@github.com/SoftwearDevelopment/spynl.git'
-                repo_state.write("%s %s\n" % (surl, commit_id))
             with package_dir(name):
                 scm_url = lookup_scm_url(os.getcwd())
                 if scm_url.endswith('.git') or '.git@' in scm_url:
@@ -107,12 +108,11 @@ def deploy(ctx, buildnr=None, task=None):
     if not os.path.exists('repo-state.txt'):
         mk_repo_states(ctx)
     # --- put repo-state.txt into the docker build directory
-    venv = os.environ['VIRTUAL_ENV']
-    ctx.run('mv repo-state.txt %s/src/spynl/spynl/cli/ops/docker' % venv)
+    ctx.run('mv repo-state.txt spynl/cli/ops/docker')
     # --- put production.ini into the docker build directory
     config_package = get_config_package()
-    ctx.run('cp %s/production.ini %s/src/spynl/spynl/cli/ops/docker'
-            % (config_package.location, venv))
+    ctx.run('cp %s/production.ini spynl/cli/ops/docker'
+            % config_package.location)
 
     # check ECR configuration
     config = get_dev_config()
@@ -129,7 +129,7 @@ def deploy(ctx, buildnr=None, task=None):
     dev_domain = config.get('spynl.ops.dev_domain', '')
 
     # --- build Docker image
-    with chdir('%s/src/spynl/spynl/cli/ops/docker' % venv):
+    with chdir('spynl/cli/ops/docker'):
         result = ctx.run('./build-image.sh %s %s' % (buildnr, dev_domain))
         if not result:
             raise Exit("[spynl ops.deploy] Building docker image failed: %s"

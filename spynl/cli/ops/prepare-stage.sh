@@ -2,13 +2,11 @@
 
 # * make a venv with spynl and spynl plugins installed
 # * create repo-state.txt if needed (pass -m)
-# * full usage: ./prepare-stage.sh -u <SCM-URLS> [-r <REVISION>] [-f <FALLBACK-REVISION>] 
-#                                 [-s <SPYNL-BRANCH>] [-m]
+# * full usage: ./prepare-stage.sh -u <SCM-URLS> [-r <REVISION>] [-f <FALLBACK-REVISION>] [-m]
 
 SCM_URLS=
 REVISION_PARAM=
 FBREVISION_PARAM=
-SPYNLBRANCH=
 MAKE_REPO_STATE=0
 
 while getopts "u:r:f:s:m" opt; do
@@ -34,15 +32,6 @@ while getopts "u:r:f:s:m" opt; do
         fi
       fi
       ;;
-    s)
-      if [[ "$OPTARG" != "" ]]; then
-        if [[ $OPTARG == -* ]]; then
-          ((OPTIND--))
-        else
-          SPYNLBRANCH="@$OPTARG"
-        fi
-      fi
-      ;;
     m)
       MAKE_REPO_STATE=1
       ;;
@@ -61,7 +50,6 @@ echo "====== Preparing Stage ======"
 echo "SCM_URLS: $SCM_URLS"
 echo "REVISION_PARAM: $REVISION_PARAM"
 echo "FBREVISION_PARAM: $FBREVISION_PARAM"
-echo "SPYNLBRANCH: $SPYNLBRANCH"
 echo "MAKE_REPO_STATE: $MAKE_REPO_STATE"
 echo "============================="
 
@@ -73,7 +61,7 @@ source venv/bin/activate
 pip3 install invoke==0.14.0
 pip3 install --upgrade setuptools
 
-pip install -e git+https://git@github.com/SoftwearDevelopment/spynl.git$SPYNLBRANCH#egg=spynl
+pip install -e .
 
 for url in ${SCM_URLS//,/ }
 do

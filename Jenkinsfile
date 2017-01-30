@@ -13,7 +13,8 @@ node {
     // Stamp exact states of repos and run unit tests
     stage('Unit Tests') {
       sh 'rm -rf repo-state.txt venv'
-      sh "${workspace}@script/spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -s $spynlbranch -m && ${workspace}@script/spynl/cli/ops/run-unit-tests.sh"
+      checkout scm
+      sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -m && spynl/cli/ops/run-unit-tests.sh"
       archive 'repo-state.txt'                              // for history
       stash name:'repo-state', includes:'**/repo-state.txt' // for using it again later in this build
       junit 'venv/**/pytests.xml'
@@ -22,8 +23,9 @@ node {
 
     // Build Docker Image and deploy to dev or production ECR
     stage('Deploy') {
+      checkout scm
       unstash name:'repo-state'
-      sh "${workspace}@script/spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -s $spynlbranch"
+      sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision"
       sh "source venv/bin/activate && spynl ops.deploy --buildnr ${env.BUILD_NUMBER} --task $task"
       archive 'venv/src/spynl/spynl/cli/ops/docker/docker.build.log'  // for debugging
     }
@@ -32,7 +34,8 @@ node {
     stage('Smoke Tests') {
       if (task != "production" ){
         sleep time:90, unit:'SECONDS'
-        sh "${workspace}@script/spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -s $spynlbranch"
+        checkout scm
+        sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision"
         sh "source venv/bin/activate && spynl ops.smoke_test --task $task"
       } 
     }
