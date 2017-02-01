@@ -27,7 +27,7 @@ node {
       unstash name:'repo-state'
       sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision"
       sh "source venv/bin/activate && spynl ops.deploy --buildnr ${env.BUILD_NUMBER} --task $task"
-      archive 'venv/src/spynl/spynl/cli/ops/docker/docker.build.log'  // for debugging
+      archive 'spynl/cli/ops/docker/docker.build.log'  // for debugging
     }
 
     // Run smoke test to see if Spynl actually arrived
