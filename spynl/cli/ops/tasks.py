@@ -105,7 +105,7 @@ def deploy(ctx, buildnr=None, task=None):
     """Build a Spynl Docker image and deploy it."""
     # --- make sure we have repostate.txt
     if not os.path.exists('repo-state.txt'):
-        mk_repo_states(ctx)
+        mk_repo_state(ctx)
     # --- put repo-state.txt into the docker build directory
     ctx.run('mv repo-state.txt spynl/cli/ops/docker')
     # --- put production.ini into the docker build directory
