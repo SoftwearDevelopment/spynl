@@ -36,7 +36,10 @@ def hello(request):
         status    | string | 'ok' or 'error'\n
         message   | string | Information about the available about/*
         endpoints.\n
-        spynl_version | string | The version of this Spynl instance.\n
+        spynl_version | string | The version of the spynl package in this
+        instance.\n
+        plugins | dict | For each installed spynl plugin, the name as key
+        and the version as value.\n
         language  | string | The language (e.g. "en") served.\n
         time      | string | Time in format: $setting[spynl.date_format]\n
 
@@ -44,12 +47,17 @@ def hello(request):
         - about
       show-try: true
     """
+    plugin_versions = {}
+    packages = get_spynl_packages()
+    for package in packages:
+        plugin_versions[package.project_name] = package.version
     return {'message': _('about-message',
                          default='This is the Spynl API/Middleware. '
                                  'You can get more information at '
                                  'about/endpoints, about/ini, about/versions, '
                                  'about/build and about/environment.'),
             'spynl_version': spynl_version,
+            'plugins': plugin_versions,
             'language': request._LOCALE_,
             'time': date_to_str(now())}
 
