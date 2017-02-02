@@ -16,9 +16,8 @@ from spynl.main.locale import SpynlTranslationString as _
 from spynl.main.dateutils import now, date_to_str
 from spynl.main.docs.settings import ini_doc, ini_description
 from spynl.main.docs.documentation import HIDE_TRYITOUT_IDS
-from spynl.main.pkg_utils import (get_spynl_package,
-                                  get_dev_config,
-                                  get_spynl_packages)
+from spynl.main.pkg_utils import (get_spynl_packages,
+                                  lookup_scm_commit)
 
 
 def hello(request):
@@ -141,39 +140,24 @@ def versions(request):
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n
         status    | string | 'ok' or 'error'\n
-        plugins   | dict   | "spynl.plugin": "SCM checkin id" for each Spynl
-        plugin. Currently works only with mercurial.\n
         spynl_version | string | The version of this Spynl instance.\n
+        spynl_commit  | string | The git commit id this Spynl instance.\n
+        plugins   | dict   | {<spynl-plugin>: {<commit>: <SCM commit id>,
+        <version>: <package version>}} for each Spynl plugin.\n
         time      | string | time in format: $setting[spynl.date_format]\n
-
     """
-    spynl_settings = get_settings()
-    dev_config = get_dev_config()
-
-    response = dict(spynl_version=spynl_version)
+    response = {}
     response['time'] = date_to_str(now())
+    response['spynl_version'] = spynl_version
+    path2spynl = os.path.dirname(__file__) + '/../../..'
+    response['spynl_commit'] = lookup_scm_commit(path2spynl)
 
-    # Plugins
     response['plugins'] = {}
     packages = get_spynl_packages()
-    cmd = 'git log --format="%H" -n 1'
-    if dev_config.get('scm_type') == 'hg':
-        cmd = 'hg id -i 2>&1'
-    # TODO: if pip-installed, we'll have to ask pip explicitly for spynl
-    spynl = get_spynl_package('spynl', packages)
-    try:
-        os.chdir(spynl.location)
-        response['plugins']['spynl'] = \
-                check_output(cmd, shell=True).strip()
-    except Exception as err:
-        response['plugins']['spynl'] = str(err)
     for package in packages:
-        try:
-            os.chdir(package.location)
-            response['plugins'][package.project_name] = \
-              check_output(cmd, shell=True).strip()
-        except Exception as err:
-            response['plugins'][package.project_name] = str(err)
+        pinfo = dict(version=package.version,
+                     commit=lookup_scm_commit(package.location))
+        response['plugins'][package.project_name] = pinfo
     return response
 
 

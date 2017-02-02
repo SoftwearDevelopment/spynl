@@ -4,8 +4,9 @@ from invoke.exceptions import Exit
 import pip
 
 from spynl.main.version import __version__ as spynl_version
+from spynl.main.utils import chdir
 from spynl.main.pkg_utils import get_config_package, get_dev_config 
-from spynl.cli.utils import resolve_packages_param, package_dir, chdir
+from spynl.cli.utils import resolve_packages_param, package_dir
 
 
 packages_help = "Affected packages, defaults to all installed."
