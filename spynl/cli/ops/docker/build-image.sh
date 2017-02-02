@@ -23,7 +23,7 @@ if [ ! -f "repo-state.txt" ]; then
     exit
 fi
 
-hg --q revert setup.sh
+git checkout -- setup.sh
 
 # --- check for Deployment Key (needed within image for building)
 if [ ! -f ~/.ssh/deployment-key ]; then
@@ -42,9 +42,9 @@ for line in "${REPOSTATE[@]}"; do
     SCM_URL=`echo $line | cut -d ' ' -sf 1`
     COMMITID=`echo $line | cut -d ' ' -sf 2`
     echo "[build_spynl_docker_image] For repo $SCM_URL, I found commit ID $COMMITID."
-    if [ "$SCM_URL" == "ssh://git@github.com/SoftwearDevelopment/spynl.git" ]; then
+    if [ "$SCM_URL" == "https://github.com/SoftwearDevelopment/spynl.git" ]; then
         sed -e "s|spynl.git#egg=spynl|spynl.git@"$COMMITID"#egg=spynl|" setup.sh > setup.sh.tmp && mv setup.sh.tmp setup.sh
-        cp $VIRTUAL_ENV/src/spynl/spynl/main/version.py tmp_version.py  # then we don't need to import spynl dependencies
+        cp ../../../main/version.py tmp_version.py  # then we don't need to import spynl dependencies
         SPYNL_VERSION=$(python3 -c 'from tmp_version import __version__; print(__version__)')
         rm tmp_version.py
     else

@@ -5,6 +5,8 @@ import json
 import logging
 import traceback
 import sys
+import os
+import contextlib
 from functools import wraps
 from inspect import isfunction, isclass, getargspec
 from collections import namedtuple
@@ -476,3 +478,15 @@ def is_production_environment(or_test=False):
     if or_test:
         allowed_envs.append('test')
     return settings.get('spynl.spynl_environment') in allowed_envs
+
+
+@contextlib.contextmanager
+def chdir(dirname=None):
+    """Change to this directory during this context"""
+    curdir = os.getcwd()
+    try:
+        if dirname is not None:
+            os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(curdir)

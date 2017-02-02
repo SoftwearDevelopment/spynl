@@ -10,10 +10,12 @@ import requests
 from invoke import task
 from invoke.exceptions import Exit
 
+from spynl.main.utils import chdir
 from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
-                                  get_config_package, lookup_scm_url)
+                                  get_config_package, lookup_scm_url,
+                                  lookup_scm_commit)
 from spynl.cli.utils import (resolve_packages_param, get_spynl_package,
-                             package_dir, chdir, assert_response_code) 
+                             package_dir, assert_response_code) 
 from spynl.cli.dev import tasks as dev_tasks
 
 
@@ -59,7 +61,8 @@ def start_build(ctx, packages='_all', revision='', fallbackrevision='',
     params = dict(scm_urls=','.join(installed_packages_urls),
                   revision=revision, fallbackrevision=fallbackrevision,
                   spynlbranch=spynlbranch, task=task)
-    print('[spynl ops.start_build] Calling up Jenkins server at %s with params %s.' % (url, str(params)))
+    print('[spynl ops.start_build] Calling up Jenkins server at '
+          '%s with params %s.' % (url, str(params)))
     response = requests.post(url, params)
     print('[spynl ops.start_build] Got response: %s' % response)
 
@@ -76,18 +79,14 @@ def mk_repo_state(ctx, packages='_all'):
     """
     with open('repo-state.txt', 'w') as repo_state:
         spynl_scm_url = lookup_scm_url(os.getcwd())
-        commit_id = ctx.run('git rev-parse HEAD', hide='both').stdout.strip()
+        commit_id = lookup_scm_commit(os.getcwd())
         print("[spynl ops.mk_repo_state] Package spynl has commit ID: %s"
               % commit_id)
         repo_state.write("%s %s\n" % (spynl_scm_url, commit_id))
         for name in resolve_packages_param(packages):
             with package_dir(name):
                 scm_url = lookup_scm_url(os.getcwd())
-                if scm_url.endswith('.git') or '.git@' in scm_url:
-                    commit_id = ctx.run('git rev-parse HEAD', hide='both')\
-                                   .stdout.strip()
-                else:
-                    commit_id = ctx.run('hg id -i', hide='both').stdout.strip()
+                commit_id = lookup_scm_commit(os.getcwd())
                 print("[spynl ops.mk_repo_state] Package %s has commit ID: %s"
                       % (name, commit_id))
                 repo_state.write("%s %s\n" % (scm_url, commit_id))
@@ -106,7 +105,7 @@ def deploy(ctx, buildnr=None, task=None):
     """Build a Spynl Docker image and deploy it."""
     # --- make sure we have repostate.txt
     if not os.path.exists('repo-state.txt'):
-        mk_repo_states(ctx)
+        mk_repo_state(ctx)
     # --- put repo-state.txt into the docker build directory
     ctx.run('mv repo-state.txt spynl/cli/ops/docker')
     # --- put production.ini into the docker build directory

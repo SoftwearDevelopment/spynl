@@ -7,6 +7,7 @@ import configparser
 from collections import namedtuple
 import subprocess
 
+from spynl.main.utils import chdir
 from spynl.main.exceptions import SpynlException
 
 
@@ -71,6 +72,20 @@ def lookup_scm_url(package_location):
         scm_cfg.read('%s/.hg/hgrc' % package_location)
         if 'paths' in scm_cfg:
             return scm_cfg['paths'].get('default')
+
+
+def lookup_scm_commit(package_location):
+    """Look up the SCM commit ID for a package."""
+    with chdir(package_location):
+        if os.path.exists('.git'):
+            cmd = 'git rev-parse HEAD'
+        elif os.path.exists('.hg'):
+            cmd = 'hg id -i'
+        else:
+            return None
+        cmd_result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,
+                                    universal_newlines=True)
+        return cmd_result.stdout.strip()
 
 
 def get_config_package():

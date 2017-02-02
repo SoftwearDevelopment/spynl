@@ -10,6 +10,8 @@ mkdir -p pylint-results
 # for Junit output
 pip install pytest-cov pytest-sugar
 
-py.test spyn/tests --junit-xml=pytests.xml --cov spynl --cov-report xml --cov-append
+cd spynl
+py.test --junit-xml=pytests.xml --cov spynl --cov-report xml --cov-append
+cd ..
 
 spynl dev.test --reports

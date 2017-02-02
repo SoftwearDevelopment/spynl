@@ -46,18 +46,6 @@ def package_dir(package_name=None):
         os.chdir(curdir)
 
 
-@contextlib.contextmanager
-def chdir(dirname=None):
-    """Change to this directory during this context"""
-    curdir = os.getcwd()
-    try:
-        if dirname is not None:
-            os.chdir(dirname)
-        yield
-    finally:
-        os.chdir(curdir)
-
-
 def assert_response_code(response, exp_code):
     """
     Make it easy to expect one or more HTTP status codes
