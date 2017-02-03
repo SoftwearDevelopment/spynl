@@ -41,10 +41,12 @@ ini_doc = [{'name': 'spynl.date_systemtz',
             'required': 'no',
             'default': 'en',
             'info': 'A csv string describing the languages supported by the '
-                    'application. Spynl has no dialect support, so only '
-                    'two-letter language codes should be provided. '
-                    'The first language is considered to be the preferred '
-                    'language.'},
+                    'application (other than english). Spynl has no dialect '
+                    'support, so only two-letter language codes should be '
+                    'provided. The first language is considered to be the preferred '
+                    'language. This setting can affect which langauge '
+                    'Spynl picks for a request and also how the task '
+                    '<spynl dev.translate> works.'},
 
            {'name': 'spynl.domain',
             'plugin': '',
@@ -53,15 +55,6 @@ ini_doc = [{'name': 'spynl.date_systemtz',
             'info': 'Used for setting the cookie-domain, and for a default '
                     'no-reply emailaddress.'},
 
-           {'name': 'spynl.languages',
-            'plugin': '',
-            'required': 'no',
-            'default': 'nl',
-            'info': 'Languages (e.g. de,nl) which Spynl should translate '
-                    'to (other than english). This affects how the task '
-                    '<spynl dev.translate> works. Use a comma-separated '
-                    ' list for more than one.'},
- 
            {'name': 'spynl.tld_origin_whitelist',
             'plugin': '',
             'required': 'no',
@@ -96,7 +89,7 @@ ini_doc = [{'name': 'spynl.date_systemtz',
                     'pyramid.interfaces.ISession. The value "Pyramid" or '
                     'omitting this setting will result in the use of the '
                     'Session class from beaker.session'},
- 
+
            {'name': 'spynl.ops.environment',
             'plugin': '',
             'required': 'no',
@@ -172,8 +165,9 @@ ini_doc = [{'name': 'spynl.date_systemtz',
             'default': '',
             'info': 'The key used to connect to NewRelic. Leave empty if '
                     'you are not usig NewRelic.'}
-
           ]
+
+
 def get_ini_doc_setting(name):
     """
     Returns the documentation entry of a specific setting or None

@@ -23,7 +23,7 @@ def resolve_packages_param(packages_param, complain_not_installed=True,
                 and name not in [p.project_name for p in installed_packages]):
                 if complain_not_installed:
                     raise Exit("Package %s is not installed. Exiting ..." % name)
-        packages = [p for p in installed_packages if p.projectname in pnames]
+        packages = [p for p in installed_packages if p.project_name in pnames]
     else:
         packages = installed_packages
     if to == 'scm-urls':

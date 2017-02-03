@@ -88,16 +88,20 @@ def lookup_scm_commit(package_location):
         return cmd_result.stdout.strip()
 
 
-def get_config_package():
+def get_config_package(require=None):
     """
     Return the config package. Complain if several packages have the 
     .ini files.
     """
     config_package = None
+    if require is None:
+        require = ('development.ini', 'production.ini')
+    if not isinstance(require, (list, tuple,)):
+        require = (require,)
     packages = get_spynl_packages()
     for package in packages:
         plisting = os.listdir(package.location)
-        if 'development.ini' in plisting and 'production.ini' in plisting:
+        if all([ini in plisting for ini in require]):
             if config_package is not None:
                 emsg = ("Two packages have configurations (development.ini "
                         "and production.ini): %s and %s. unsure which to use!"

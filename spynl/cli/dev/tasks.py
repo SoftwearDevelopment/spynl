@@ -79,13 +79,21 @@ def install(ctx, scm_url=None, developing=True, revision=None,
 
 @task
 def serve(ctx):
-    '''Run local dev server'''
-    config_package = get_config_package()
+    '''
+    Run a local server. The ini-file development.ini is searched for in
+    installed Spynl plugins. If there is none, minimal.ini is used.
+    '''
+    config_package = get_config_package(require='development.ini')
     if config_package is None:
-        raise Exit("No spynl-plugin found with .ini files. Exiting ...")
+        print('[spynl dev.serve] No config package found. '
+              'Serving with minimal.ini ...')
+        path2spynl = os.path.dirname(__file__) + '/../../..'
+        ini_location = '%s/minimal.ini' % path2spynl
+    else:
+        ini_location = '%s/development.ini' % config_package.location
+        print('[spynl dev.serve] Serving with %s ...' % ini_location)
     with package_dir('spynl'):
-        ctx.run('pserve %s/development.ini --reload'
-                % config_package.location, pty=True)
+        ctx.run('pserve %s --reload' % ini_location, pty=True)
 
 
 @task(aliases=('tests',),
@@ -151,21 +159,30 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
             if package_name == 'spynl':
                 package_name = 'spynl.main'
             print("[spynl dev.translate] Package: %s ..." % package_name)
-            package_path = package_name.replace('.', '/')
+            locale_path = ''
+            for path, dirs, files in os.walk(os.path.abspath(os.getcwd())):
+                if 'locale' in dirs:
+                    locale_path = path
+                    break
             # make locale folder if it doesn't exist already:
-            if not os.path.exists('%s/locale' % package_path):
-                os.mkdir('./%s/locale' % package_path)
+            if locale_path == '':
+                print("[spynl dev.translate] Creating locale folder ...")
+                os.mkdir('locale')
+                locale_path = '.'
+            else:
+                print("[spynl dev.translate] Located locale folder in %s ..."
+                      % locale_path)
             if refresh:
                 # Extract messages from source:
                 ctx.run('python setup.py extract_messages '
-                        '--output-file {rp}/locale/messages.pot --no-wrap '
-                        '--sort-by-file --input-dirs {rp} --project {project} '
+                        '--output-file {lp}/locale/messages.pot --no-wrap '
+                        '--sort-by-file --input-dirs {lp} --project {project} '
                         '--copyright-holder "Softwear BV" --version {v}'
-                        .format(rp=package_path, project=package_name,
+                        .format(lp=locale_path, project=package_name,
                                 v=spynl_version))
 
             for lang in languages:
-                path2po = '%s/locale/%s/LC_MESSAGES/%s.po' % (package_path, lang,
+                path2po = '%s/locale/%s/LC_MESSAGES/%s.po' % (locale_path, lang,
                                                               package_name)
                 # update if refresh
                 if refresh:
@@ -174,23 +191,23 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
                         print('[spynl dev.translate] File %s does not exist.'
                               ' Initializing.' % path2po)
                         ctx.run('python setup.py init_catalog -l {lang} '
-                                '-i {rp}/locale/messages.pot '
-                                '-d {rp}/locale -D {rn}'
-                                .format(rp=package_path, rn=package_name, lang=lang))
+                                '-i {lp}/locale/messages.pot '
+                                '-d {lp}/locale -D {pn}'
+                                .format(lp=locale_path, pn=package_name, lang=lang))
                     # update if not init
                     else:
                         print('[spynl dev.translate] update the %s catalog'
                               % lang)
                         ctx.run('python setup.py update_catalog -N --no-wrap '
-                                '-l {lang} -i {rp}/locale/messages.pot '
-                                '-d {rp}/locale -D {rn}'
-                                .format(rp=package_path, rn=package_name, lang=lang))
+                                '-l {lang} -i {lp}/locale/messages.pot '
+                                '-d {lp}/locale -D {pn}'
+                                .format(lp=locale_path, pn=package_name, lang=lang))
                 # if not refresh, compile
                 elif os.path.exists(path2po):
-                    ctx.run('python setup.py compile_catalog --domain {rn} '
-                            '--directory {rp}/locale --domain {rn} '
+                    ctx.run('python setup.py compile_catalog --domain {pn} '
+                            '--directory {lp}/locale --domain {pn} '
                             '--locale {lang}'
-                            .format(rp=package_path, rn=package_name, lang=lang))
+                            .format(lp=locale_path, pn=package_name, lang=lang))
                 else:
                     print('[spynl dev.translate] File %s does not exist.'
                           ' Update the package first.' % path2po)

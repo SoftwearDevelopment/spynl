@@ -9,6 +9,7 @@ import pip
 
 from pyramid.renderers import render
 from pyramid.httpexceptions import HTTPFound
+from pyramid.i18n import negotiate_locale_name
 
 from spynl.main.version import __version__ as spynl_version
 from spynl.main.utils import get_settings
@@ -52,13 +53,13 @@ def hello(request):
     for package in packages:
         plugin_versions[package.project_name] = package.version
     return {'message': _('about-message',
-                         default='This is the Spynl API/Middleware. '
+                         default='This is a Spynl web application. '
                                  'You can get more information at '
                                  'about/endpoints, about/ini, about/versions, '
                                  'about/build and about/environment.'),
             'spynl_version': spynl_version,
             'plugins': plugin_versions,
-            'language': request._LOCALE_,
+            'language': negotiate_locale_name(request),
             'time': date_to_str(now())}
 
 
@@ -150,8 +151,8 @@ def versions(request):
         status    | string | 'ok' or 'error'\n
         spynl_version | string | The version of this Spynl instance.\n
         spynl_commit  | string | The git commit id this Spynl instance.\n
-        plugins   | dict   | {<spynl-plugin>: {<commit>: <SCM commit id>,
-        <version>: <package version>}} for each Spynl plugin.\n
+        plugins   | dict   | {spynl-plugin: {commit: SCM commit id,
+        version: package version}} for each Spynl plugin.\n
         time      | string | time in format: $setting[spynl.date_format]\n
     """
     response = {}

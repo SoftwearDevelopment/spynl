@@ -1,0 +1,17 @@
+Translations
+===============
+
+Maintaining a translation (i18n) infrastructure is basically a solved
+problem. But setting it up is tedious and making sure all strings get
+translated, no matter where they live, can present pitfalls.
+
+
+Translating a string in Spynl
+--------------------------------
+
+dev.translate to simplify the workflow 
+-----------------------------------------
+
+A word about when Spynl translates
+---------------------------------------
+Spynl translates everything at the end (so you capture all strings, e.g. also constants)

@@ -35,6 +35,8 @@ sed -e 's#^\(spynl.ops.build_number =\).*$#\1 '$BUILDNR'#' /production.ini > /pr
 # build_image.sh can also replace this with specific install-repo calls
 #spynl dev.install --scm-url <some-url> 
 
+spynl dev.translate
+
 # install gunicorn & paste 
 pip install gunicorn
 pip install paste pastedeploy

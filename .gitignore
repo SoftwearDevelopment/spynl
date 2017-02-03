@@ -7,4 +7,4 @@
 *.mo
 
 spynl/main/docs/docson/schemas/
-
+spynl/main/docs/swagger-ui/spynl.json

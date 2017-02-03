@@ -50,9 +50,9 @@ def document_endpoint(config, function, endpoint_name, resource=None):
     yaml_str = get_yaml_from_docstring(function.__doc__, load_yaml=False)
 
     if not yaml_str:
-        log.warning("No YAML found in docstring of endpoint %s"
-                    " (resource: %s). Cannot generate entry in /about/doc."
-                    % (endpoint_name, resource))
+        log.warning("No YAML found in docstring of endpoint %s "
+                    "(resource: %s). Cannot generate entry in "
+                    "/about/endpoints." % (endpoint_name, resource))
     else:
         if resource:
             # Replace $resource in the docstring with the actual resource

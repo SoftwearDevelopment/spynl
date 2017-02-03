@@ -4,7 +4,7 @@ For endpoints that are based on resources, it is important
 that the right path leads to the right resource being used
 as context in the request.
 Spynl allows each Resource being accessible with more than
-paths (aliases). We use the URLDispatch feature of Pyramid
+one path (alias). We use the URLDispatch feature of Pyramid
 here, so we create routes for all possible cases.
 """
 
@@ -158,7 +158,7 @@ def add_endpoint(config, func, endpoint_name,
                                 endpoint_name, route_name, context_name)
                     document_endpoint(config, func,
                                       has_method and path + '/' + endpoint_name\
-                                          or endpoint_name,
+                                          or path,
                                       resource=path)
     else:  # This is a general endpoint without route
         logger.debug("Adding endpoint '%s'", endpoint_name)
