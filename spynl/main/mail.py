@@ -108,7 +108,7 @@ def send_template_email(request, recipient, template_string=None,
                         attachments=None, sender=None):
     """
     Send email using a html template.
-    
+
     The email's content (which can contain HTML code) is defined by a Jinja
     template. This content template can be given either by filename
     <template_file> (absolute path) or directly in string form
@@ -133,6 +133,7 @@ def send_template_email(request, recipient, template_string=None,
     text_body = ''
     if subject:
         replacements['subject'] = subject
+
     for key, value in replacements.items():
         if isinstance(value, SpynlTranslationString):
             replacements[key] = value.translate()
@@ -151,6 +152,12 @@ def send_template_email(request, recipient, template_string=None,
     else:
         replacements['content'] = Template(template_string).render(
             **replacements)
+
+    # Add a line to tell where the mail would be sent in production
+    if not is_production_environment() and mailer.__class__ is not DummyMailer:
+        replacements['content'] = ("[This mail would in production be sent to"
+                                   " {}]\n".format(recipient) +
+                                   replacements['content'])
 
     # Render the base template with the content of the given template
     base_template = get_settings().get('base_email_template')
