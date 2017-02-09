@@ -46,6 +46,15 @@ Here is the content of our (very) simple `setup.py`, where we state that
         }
        )
 
+This says that `hello_world.py` should be plugged into the Spynl application.
+What this means is that Spynl calls Pyramid's `config.include <http://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html#pyramid.config.Configurator.include>`_ function, passing the `hello_world`
+module to it. Therefore, Pyramid expects a function `hello_world.includeme`,
+which we'll write below.
+
+`spynl_plugins` is a list, so we could add other modules if that would suit our code
+organisation in `my-package`. For that matter, we could also add other packages
+who also define `spynl.plugins` entry points.
+
 And here is `hello_world.py`. We write one endpoint and the registration for it:
 
 .. code:: python
@@ -56,6 +65,18 @@ And here is `hello_world.py`. We write one endpoint and the registration for it:
     def includeme(config):
         config.add_endpoint(hello, 'hello')
 
+
+The `hello` function is a pretty vanilla endpoint. It returns a dictionary.
+This would mean Spynl returns it as `application/json` (it's default response
+type), but it could also be served as XML or even YAML (read more about
+:ref:`serialisation`).
+
+The `includeme` function gets a Pyramid 
+`config <http://docs.pylonsproject.org/projects/pyramid/en/latest/api/config.html>`_
+object, on which we can in principle do everything one can do when writing a pure
+Pyramid application. We don't need anything but `config.add_endpoint` however,
+which is actually unique to Spynl (it does some extra magic w.r.t. documentation
+and route management).
 
 Finally, we develop our package so Spynl knows about it and serve the application:
 

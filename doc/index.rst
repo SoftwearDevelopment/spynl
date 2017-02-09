@@ -1,6 +1,6 @@
-=================================
+=======================================
 Spynl - write a web app you can manage 
-=================================
+=======================================
 
 Spynl is a Python web framework which extends the  `Pyramid <http://getpyramid.com>`_ web framework.
 
