@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/SoftwearDevelopment/spynl.svg?branch=master)](https://travis-ci.org/SoftwearDevelopment/spynl)
+[![Build Status](https://travis-ci.org/SoftwearDevelopment/spynl.svg?branch=master)](https://travis-ci.org/SoftwearDevelopment/spynl)&nbsp;
+[![Documentation Status](https://readthedocs.org/projects/spynl/badge/?version=latest)](http://spynl.readthedocs.io/en/latest/?badge=latest)
 =======================================
 Spynl - write a web app you can manage 
 =======================================
