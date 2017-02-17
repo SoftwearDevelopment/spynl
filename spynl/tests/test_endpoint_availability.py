@@ -22,7 +22,7 @@ def test_non_production_endpoints_that_doesnt_get_added(app_factory, settings,
 
     monkeypatch.setattr('spynl.main.main', patched_main)
     settings_ = deepcopy(settings)
-    settings_['spynl.spynl_environment'] = 'production'
+    settings_['spynl.ops.environment'] = 'production'
     app = app_factory(settings_)
 
     response = app.get('/test-endpoint', expect_errors=True)

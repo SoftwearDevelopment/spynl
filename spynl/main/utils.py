@@ -413,7 +413,7 @@ def send_exception_to_external_monitoring(user_info=None, exc_info=None,
         if is_package_installed('raven') and settings.get('spynl.sentry_key')\
           and settings.get('spynl.sentry_project'):
             import raven  # pylint: disable=import-error
-            spynl_env = settings.get('spynl.spynl_environment', 'dev')
+            spynl_env = settings.get('spynl.ops.environment', 'dev')
             spynl_function = settings.get('spynl.function', 'all')
             client = raven.Client(
                 dsn='https://{}@app.getsentry.com/{}'.format(
@@ -477,7 +477,7 @@ def is_production_environment(or_test=False):
     allowed_envs = ['beta', 'production']
     if or_test:
         allowed_envs.append('test')
-    return settings.get('spynl.spynl_environment') in allowed_envs
+    return settings.get('spynl.ops.environment') in allowed_envs
 
 
 @contextlib.contextmanager
