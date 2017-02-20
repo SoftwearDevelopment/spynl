@@ -13,7 +13,7 @@ from invoke.exceptions import Exit
 from spynl.main.utils import chdir
 from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
                                   get_config_package, lookup_scm_url,
-                                  lookup_scm_commit)
+                                  lookup_scm_commit, get_spynl_packages)
 from spynl.cli.utils import (resolve_packages_param, get_spynl_package,
                              package_dir, assert_response_code) 
 from spynl.cli.dev import tasks as dev_tasks
@@ -63,8 +63,15 @@ def start_build(ctx, packages='_all', revision='', fallbackrevision='',
                   spynlbranch=spynlbranch, task=task)
     print('[spynl ops.start_build] Calling up Jenkins server at '
           '%s with params %s.' % (url, str(params)))
-    response = requests.post(url, params)
-    print('[spynl ops.start_build] Got response: %s' % response)
+    pkg_names = [pkg.project_name for pkg in get_spynl_packages('_all')]
+    print('\nThe following spynl plugins will be built:\n{}'
+          .format('\n'.join(pkg_names)))
+    answer = None
+    while answer not in ('y', 'n'):
+        answer = input('\nProceed with the build (y/n)?')
+    if answer == 'y':
+        response = requests.post(url, params)
+        print('[spynl ops.start_build] Got response: %s' % response)
 
 
 @task(help={'packages': dev_tasks.packages_help})
