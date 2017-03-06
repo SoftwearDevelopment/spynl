@@ -5,7 +5,7 @@ import pip
 
 from spynl.main.version import __version__ as spynl_version
 from spynl.main.utils import chdir
-from spynl.main.pkg_utils import get_config_package, get_dev_config 
+from spynl.main.pkg_utils import get_config_package, get_dev_config
 from spynl.cli.utils import resolve_packages_param, package_dir
 
 
@@ -27,15 +27,16 @@ packages_help = "Affected packages, defaults to all installed."
                         '$VIRTUAL_ENV/src directory.'})
 def install(ctx, scm_url=None, developing=True, revision=None,
             fallbackrevision=None, install_deps=True, src_path=None):
-    '''
+    """
     Clone a repo, update to revision or fallbackrevision
     and install the Spynl package.
-    '''
+    """
     ctx.run('pip install --upgrade setuptools')  # make sure we have the latest
     src_path = src_path or os.environ['VIRTUAL_ENV'] + '/src'
     if scm_url is None:
         raise Exit("[spynl dev.install] Please give the --scm-url parameter.")
     scm_url = scm_url.strip('/')
+    # set scm_type
     scm_type = (scm_url.endswith('.git') or '.git@' in scm_url) and "git" or "hg"
     if not os.path.exists(src_path):
         os.mkdir(src_path)
@@ -56,7 +57,10 @@ def install(ctx, scm_url=None, developing=True, revision=None,
         if revision is not None:
             cmd = scm_type == 'git' and 'git checkout' or 'hg update'
             print('[spynl dev.install] Using revision %s ...' % revision)
-            if not ctx.run('{} {}'.format(cmd, revision), warn=True):
+            # this might not work for mercurial anymore:
+            try:
+                ctx.run('{} {}'.format(cmd, revision), warn=True)
+            except:
                 def_branch = 'master' if scm_type == 'git' else 'default'
                 print('[spynl dev.install] Updating to fallback revision %s ...'
                         % fallbackrevision if fallbackrevision else def_branch)
