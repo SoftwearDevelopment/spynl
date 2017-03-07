@@ -14,14 +14,14 @@ def now(tz=None):
     return localize_date(datetime.utcnow(), tz=tz)
 
 
-def date_format_str():
+def spynl_date_format():
     """Get the date format from the .ini file, or set default."""
     return get_settings().get('spynl.date_format', '%Y-%m-%dT%H:%M:%S%z')
 
 
 def date_to_str(when):
     """Convert date to string according to settings format"""
-    return when.strftime(date_format_str())
+    return when.strftime(spynl_date_format())
 
 
 def date_from_str(dstr):

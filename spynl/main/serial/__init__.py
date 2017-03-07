@@ -21,7 +21,7 @@ from datetime import datetime
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.settings import asbool
 
-from spynl.main.serial.typing import handlers
+from spynl.main.serial.typing import CONTENT_TYPE_HANDLERS
 from spynl.main.serial.typing import negotiate_response_content_type
 from spynl.main.serial.exceptions import (UndeterminedContentTypeException,
                                           UnsupportedContentTypeException,
@@ -29,7 +29,7 @@ from spynl.main.serial.exceptions import (UndeterminedContentTypeException,
                                           DeserializationUnsupportedException,
                                           MalformedRequestException)
 from spynl.main.serial.objects import (add_decode_function, decode_date,
-                                       add_encode_function, encode_boolean,
+                                       add_encode_function,
                                        encode_date,
                                        encode_spynl_translation_string)
 from spynl.main.locale import SpynlTranslationString
@@ -39,8 +39,8 @@ def parse_post_data(request):
     """Parse data according to the requests content type."""
     try:
         context = hasattr(request, 'context') and request.context or None
-        parsed_body = loads(request.text, request.content_type,
-                            request.headers, context)
+        parsed_body = load_by_content_type(request.text, request.content_type,
+                                           request.headers, context)
     except MalformedRequestException as e:
         raise HTTPBadRequest(detail=e.message.translate(request.localizer))
 
@@ -66,7 +66,8 @@ def renderer(values, system):
 
     pretty = asbool(r.registry.settings.get('spynl.pretty'))
     try:
-        response = dumps(values, r.response.content_type, pretty=pretty)
+        response = dump_by_content_type(values, r.response.content_type,
+                                        pretty=pretty)
     except UnsupportedContentTypeException as e:
         raise UndeterminedContentTypeException(str(e))
 
@@ -76,10 +77,10 @@ def renderer(values, system):
 # ---- high-level dumps and loads functions,
 #      relay to specific dumps and loads per type
 
-def dumps(body, content_type, pretty=False):
+def dump_by_content_type(body, content_type, pretty=False):
     """Relay to content-type specific dumping."""
     try:
-        handler = handlers[content_type]
+        handler = CONTENT_TYPE_HANDLERS[content_type]
     except KeyError:
         raise UnsupportedContentTypeException(content_type)
 
@@ -91,13 +92,13 @@ def dumps(body, content_type, pretty=False):
     return dump(body, pretty=pretty)
 
 
-def loads(body, content_type, headers=None, context=None):
+def load_by_content_type(body, content_type, headers=None, context=None):
     """Relay to content-type specific load."""
     if not body:
         return {}
 
     try:
-        handler = handlers[content_type]
+        handler = CONTENT_TYPE_HANDLERS[content_type]
     except KeyError:
         raise UnsupportedContentTypeException(content_type)
 
@@ -121,6 +122,5 @@ def main(config):
     add_decode_function(config, decode_date, ['date'])
     # define encoding functions
     add_encode_function(config, encode_date, datetime)
-    add_encode_function(config, encode_boolean, bool)
     add_encode_function(config, encode_spynl_translation_string,
                         SpynlTranslationString)

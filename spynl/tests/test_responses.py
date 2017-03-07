@@ -90,12 +90,9 @@ def test_bad_json(app):
     """Test that bad json in the request raises exceptions."""
     headers = {'Content-Type': 'application/json'}
 
-    with pytest.raises_regexp(AppError,
-                              'Expecting value: line 1 column 1'):
+    with pytest.raises_regexp(AppError, 'Invalid value'):
         app.post('/request_echo', '<a>', headers=headers)
-    with pytest.raises_regexp(AppError,
-                              'Expecting property name enclosed in'
-                              ' double quotes: line 1 column 2'):
+    with pytest.raises_regexp(AppError, 'Missing a name for object member'):
         app.post('/request_echo', '{', headers=headers)
 
 

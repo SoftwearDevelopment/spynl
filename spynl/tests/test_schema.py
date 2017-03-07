@@ -5,7 +5,9 @@
 import json
 import os
 from copy import deepcopy
+
 import pytest
+from pyramid import testing
 
 from spynl.main.validation import interprete_validation_instructions as validate_json
 from spynl.main.exceptions import BadValidationInstructions, InvalidResponse
@@ -19,6 +21,12 @@ PING_SCHEMA = {"$schema": "http://json-schema.org/schema#",
                "properties": {"status": {"type": "string"},
                               "greeting": {"type": "string"},
                               "time": {"type": "string"}}}
+
+@pytest.fixture
+def config():
+    configurator = testing.setUp(settings={'spynl.schemas': 'spynl-schemas'})
+    yield configurator
+    testing.tearDown()
 
 
 @pytest.fixture(autouse=True)
@@ -67,7 +75,7 @@ def invalid_schema(tmpdir):
     file_.remove()
 
 
-def test_novalidations_possible(invalid_schema):
+def test_novalidations_possible(config, invalid_schema):
     """Test cases where no validations are possible."""
     invalid_ping_response = deepcopy(USUAL_PING_RESPONSE)
     del invalid_ping_response['greeting']
@@ -107,13 +115,13 @@ def test_invalid_description(ping_schema):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
 
 
-def test_correct_response_schema(ping_schema):
+def test_correct_response_schema(config, ping_schema):
     """Test validating a usual ping reponse."""
     vals = [{'schema': ping_schema.basename, 'in': 'response'}]
     validate_json(USUAL_PING_RESPONSE, vals, 'response')
 
 
-def test_correct_sub_schema(ping_schema, tenants_schema):
+def test_correct_sub_schema(config, ping_schema, tenants_schema):
     """Test usual ping with tenants."""
     vals = [{'schema': ping_schema.basename, 'in': 'response'},
             {'schema': tenants_schema.basename, 'in': 'response',
@@ -124,14 +132,14 @@ def test_correct_sub_schema(ping_schema, tenants_schema):
     validate_json(ping_response_with_tenants, vals, 'response')
 
 
-def test_incorrect_response_schema(wrong_ping_schema):
+def test_incorrect_response_schema(config, wrong_ping_schema):
     """Change schema so that the /ping response is not correct."""
     vals = [{'schema': wrong_ping_schema.basename, 'in': 'response'}]
     with pytest.raises_regexp(InvalidResponse, "'di' is a required property"):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
 
 
-def test_incorrect_sub_schema(ping_schema, tenants_schema):
+def test_incorrect_sub_schema(config, ping_schema, tenants_schema):
     """Test usual ping with wrong tenant data."""
     vals = [{'schema': ping_schema.basename, 'in': 'response'},
             {'schema': tenants_schema.basename, 'in': 'response',

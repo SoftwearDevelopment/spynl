@@ -3,7 +3,8 @@
 from sys import stdin, stdout
 from argparse import ArgumentParser
 
-from spynl.main.serial import negotiate_content_type, loads, dumps
+from spynl.main.serial import (negotiate_content_type, load_by_content_type,
+                               dump_by_content_type)
 
 
 def main():
@@ -23,8 +24,10 @@ def main():
 
     request = stdin.read()
 
-    request = loads(request, negotiate_content_type(request, args.input_type))
-    response = dumps(request, negotiate_content_type('', args.output_type))
+    request = load_by_content_type(
+        request, negotiate_content_type(request, args.input_type))
+    response = dump_by_content_type(
+        request, negotiate_content_type('', args.output_type))
 
     output = open(args.output_filename, 'w')\
         if args.output_filename else stdout

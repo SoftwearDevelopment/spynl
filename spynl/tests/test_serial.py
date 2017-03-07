@@ -2,52 +2,67 @@
 """Specifically test (de)serialisation with straightforward unit tests."""
 
 import datetime
-import json as json_py
+import json
 from xml.etree.ElementTree import fromstring
 
 import pytest
+from pyramid import testing
 
-from spynl.main.dateutils import (date_to_str, date_from_str, localize_date)
+from spynl.main.dateutils import date_to_str, date_from_str, localize_date
 
-from spynl.main.serial import (json, xml, csv, py, loads, dumps,
+from spynl.main.serial import (json as spynl_json, xml, csv, py,
+                               load_by_content_type,
+                               dump_by_content_type,
                                MalformedRequestException,
                                UnsupportedContentTypeException)
 from spynl.main.serial.csv import loads as csv_loads
+from spynl.main.serial.objects import (add_decode_function, decode_date,
+                                       add_encode_function,
+                                       encode_date)
+
+
+@pytest.fixture
+def config():
+    configurator = testing.setUp(settings={})
+    add_decode_function(configurator, decode_date, ['date'])
+    add_encode_function(configurator, encode_date, datetime.datetime)
+    yield configurator
+    testing.tearDown()
 
 
 def test_empty():
     """Test if empty."""
-    assert loads('', None) == {}
+    assert load_by_content_type('', None) == {}
 
 
 def test_bad_content_types():
     """Test types that don't work urlencoded, plain text, nothing, object."""
     with pytest.raises(UnsupportedContentTypeException):
-        dumps('|"a": 1|', 'application/y-www-form-urlencoded')
+        dump_by_content_type('|"a": 1|', 'application/y-www-form-urlencoded')
 
     with pytest.raises(UnsupportedContentTypeException):
-        dumps('some plain text', 'text/plain')
+        dump_by_content_type('some plain text', 'text/plain')
 
     with pytest.raises(UnsupportedContentTypeException):
-        dumps('null', '')
+        dump_by_content_type('null', '')
 
     with pytest.raises(UnsupportedContentTypeException):
-        dumps('object', 'application/object')
+        dump_by_content_type('object', 'application/object')
 
 
 def test_sniff_braces():
     """Sniff true if body starts with {."""
-    assert json.sniff('   {')
+    assert spynl_json.sniff('   {')
 
 
 def test_sniff_triangle():
     """Sniff false if body starts with <."""
-    assert not json.sniff('   <')
+    assert not spynl_json.sniff('   <')
 
 
 def test_sniff_nl():
     """Sniff true if body starts with newline {."""
-    assert json.sniff('   \n{')
+    assert spynl_json.sniff('   \n{')
 
 
 def test_main_json_loads_valid(app):
@@ -59,42 +74,42 @@ def test_main_json_loads_valid(app):
                    ('{"bool":true,"float":3.5}',
                     {'bool': True, 'float': 3.5})]
     for data_in, output in valid_jsons:
-        assert json.loads(data_in) == output
+        assert spynl_json.loads(data_in) == output
 
 
 def test_main_json_loads_malformed():
     """Can't load malformed data_in (json loads)."""
     data_in = '{"malformed":'
     with pytest.raises(MalformedRequestException):
-        json.loads(data_in)
+        spynl_json.loads(data_in)
 
 
 def test_main_json_loads_encoding():
     """Load as unicode (json loads) strings with weird characters."""
     data_in = '{"a":"€9.80", "b":"Cëöß", "c":"äbc"}'
-    int_repr = json.loads(data_in)
+    int_repr = spynl_json.loads(data_in)
     assert int_repr['a'] == '€9.80'
     assert int_repr['b'] == 'Cëöß'
     assert int_repr['c'] == 'äbc'
 
 
-def test_main_json_loads_date():
+def test_main_json_loads_date(config):
     """Test date to string conversion, load json and convert back."""
     now = datetime.datetime.now()
     dstr = date_to_str(now)
     data_in = '{"date": "' + dstr + '"}'
-    assert json.loads(data_in) == {'date': date_from_str(dstr)}
+    assert spynl_json.loads(data_in) == {'date': date_from_str(dstr)}
 
 
 def test_json_dumps_no_raise():
     """Test no raise (json dumps)."""
-    assert json.dumps({'a': 1}) == '{"a": 1}'
+    assert spynl_json.dumps({'a': 1}) == '{"a":1}'
 
 
 def test_json_dumps_content_type():
     """Test content type (json dumps)."""
-    response = dumps({'a': 1}, 'application/json')
-    assert json.loads(response) == {'a': 1}
+    response = dump_by_content_type({'a': 1}, 'application/json')
+    assert spynl_json.loads(response) == {'a': 1}
 
 
 def test_json_dumps_encoding():
@@ -104,7 +119,7 @@ def test_json_dumps_encoding():
     Dump them without problems. (json dumps)
     """
     body = {'data': [{'a': '€9.80', 'b': 'Cëöß', 'c': 'äbc'}]}
-    response = json.dumps(body)
+    response = spynl_json.dumps(body)
     assert '€9.80' in response
     assert 'Cëöß' in response
     assert 'äbc' in response
@@ -117,14 +132,14 @@ def test_json_dumps_str():
     Unicode a string and a unicode get dumped as one unicode without problems.
     """
     uni = {"foreigner": "H\xf6nëng"}
-    assert '{"foreigner": "H\xf6nëng"}' == json.dumps(uni)
+    assert spynl_json.dumps(uni) == '{"foreigner":"H\xf6nëng"}'
 
 
-def test_json_dumps_date():
+def test_json_dumps_date(config):
     """Test date (json dumps)."""
     now = datetime.datetime.now()
-    assert json.dumps({'now': now}) == \
-        '{"now": "' + date_to_str(localize_date(now)) + '"}'
+    assert spynl_json.dumps({'now': now}) == \
+        '{"now":"' + date_to_str(localize_date(now)) + '"}'
 
 
 def test_xml_sniff_triangle():
@@ -217,7 +232,7 @@ def test_xml_loads_html_umlaut():
         assert xml.loads(data_in) == output
 
 
-def test_xml_loads_date(app):
+def test_xml_loads_date(config):
     """Test date (xml loads)."""
     now = datetime.datetime.now()
     dstr = date_to_str(now)
@@ -225,7 +240,7 @@ def test_xml_loads_date(app):
     assert xml.loads(data_in)['date'] == date_from_str(dstr)
 
 
-def test_xml_dumps_simple():
+def test_xml_dumps_simple(config):
     """Test simple (xml dumps)."""
     body = {'a': 1, 'b': 2.5, 'c': True}
 
@@ -242,10 +257,10 @@ def test_xml_dumps_simple():
     assert c.text.strip() == 'true'
 
 
-def test_xml_dumps_list():
+def test_xml_dumps_list(config):
     """Test list (xml dumps)."""
-    response = dumps({'a': 1, 'b': [2.5, 1.6], 'c': {'ab': True}},
-                     'application/xml')
+    response = dump_by_content_type({'a': 1, 'b': [2.5, 1.6],
+                                     'c': {'ab': True}}, 'application/xml')
     root = fromstring(response)
     assert len(root) == 3
     assert root.findtext('a').strip() == '1'
@@ -258,7 +273,7 @@ def test_xml_dumps_list():
     assert root.findtext('c/ab').strip() == 'true'
 
 
-def test_xml_dumps_nested():
+def test_xml_dumps_nested(config):
     """Test nested (xml dumps)."""
     body = {'a': 3.5, 'b': '0x10', 'c': [{'a': True}, {'c': False}]}
 
@@ -298,7 +313,7 @@ def test_xml_dumps_str():
     assert output in xml.dumps(data_in)
 
 
-def test_xml_dumps_date():
+def test_xml_dumps_date(config):
     """Test date (xml dumps)."""
     now = datetime.datetime.now()
     response = fromstring(xml.dumps({'now': now}))
@@ -355,7 +370,7 @@ def test_csv_dumps_str():
     assert value == '"H\xf6nëng"'
 
 
-def test_csv_dumps_date():
+def test_csv_dumps_date(config):
     """Test date (csv dumps)."""
     now = datetime.datetime.now()
     response = csv.dumps({'data': [{'now': now}]})
@@ -372,7 +387,7 @@ def test_for_py_dumps():
 def test_csv_loads_json_returns_dict():
     """Test json as body input will return dict."""
     body = '{"a":1, "b":2}'
-    assert csv_loads(body) == json_py.loads(body)
+    assert csv_loads(body) == json.loads(body)
 
 
 def test_csv_loads_csv_input_with_headers():
@@ -420,7 +435,7 @@ def test_csv_loads_csv_import_with_only_quotechar_in_headers():
     assert dict_reader['b'] == 't, @'
 
 
-def test_csv_loads_csvimport_with_datefield(app):
+def test_csv_loads_csvimport_with_datefield(config):
     """
     Test CSV import with a 'date' field present.
 
