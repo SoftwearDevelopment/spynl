@@ -16,7 +16,7 @@ class AboutResource(Resource):
 
     paths = ['about']
 
-    __acl__ = [(Allow, 'role:spynl-developer', 'read'),
+    __acl__ = [(Allow, 'role:sw-developer', 'read'),
                DENY_ALL]
 
 
