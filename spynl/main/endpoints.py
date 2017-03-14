@@ -15,7 +15,6 @@ from datetime import datetime
 from pyramid.security import NO_PERMISSION_REQUIRED
 
 from spynl.main.utils import get_user_info
-from spynl.main.exceptions import SpynlException
 from spynl.main.dateutils import now, localize_date, date_to_str
 
 
