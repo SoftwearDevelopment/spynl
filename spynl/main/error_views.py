@@ -6,7 +6,6 @@ from pyramid.security import ACLDenied
 from pyramid.httpexceptions import (HTTPForbidden, HTTPNotFound,
                                     HTTPInternalServerError)
 
-from spynl.main.exceptions import SpynlException
 from spynl.main.utils import log_error
 from spynl.main.locale import SpynlTranslationString as _
 
@@ -26,9 +25,7 @@ def spynl_error(exc, request):
     top_msg = "Spynl Error of type %s with message: '%s'."
     message = exc.message
     log_error(exc, request, top_msg, exc.__class__.__name__, message)
-    return {'status': 'error',
-            'type': exc.__class__.__name__,
-            'message': message}
+    return exc.make_response()
 
 
 def error400(exc, request):
@@ -54,7 +51,7 @@ def error400(exc, request):
             message = _(
                 'permission-denial',
                 default="Permission to '${permission}' ${context} was denied.",
-                mapping={'context':request.context.__class__.__name__,
+                mapping={'context': request.context.__class__.__name__,
                          'permission': exc.result.permission})
             emeta = exc.result  # TODO: log this as detail info
         else:
