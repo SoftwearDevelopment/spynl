@@ -19,11 +19,33 @@ class SpynlException(Exception):
     def __init__(self, message='an internal error has occured'):
         self.message = message
 
-    def __str__(self):
+    def make_response(self):
         """
-        This will return a str version of the message. If the message is a
+        Return a response as a dictionary.
+
+        If an exception needs to store additional information in the reponse
+        it can be overriden in the following way.
+
+        >>> def make_reponse(self):
+                data = super().make_response()
+                data.update({
+                    'extra': 'Some extra information'
+                })
+                return data
+        """
+        response = {
+            'status': 'error',
+            'type': self.__class__.__name__,
+            'message': self.message
+        }
+
+        return response
+
+    def __str__(self):
+        """This will return a str version of the message. If the message is a
         SpynlTranslationString, it will return an interpolated version of the
-        default (no translation). """
+        default (no translation).
+        """
         return str(self.message)
 
 
