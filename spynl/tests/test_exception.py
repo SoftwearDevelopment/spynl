@@ -6,15 +6,16 @@ from spynl.main.exceptions import SpynlException
 
 @pytest.fixture
 def exception_app(app_factory, settings, monkeypatch):
-    '''Plugin an endpoint that always raises and echo's back information.'''
+    """Plugin an endpoint that always raises and echo's back information."""
 
     def patched_plugin_main(config):
         def echo_raise(request):
-            '''Always raises.
+            """
+            Always raises.
 
-            If some information is passes in the query params it is included within
-            the reponse.
-            '''
+            If some information is passes in the query params it is included
+            within the reponse.
+            """
             if request.GET:
                 class CustomException(SpynlException):
                     def make_response(self):
