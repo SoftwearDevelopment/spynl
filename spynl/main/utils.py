@@ -8,12 +8,10 @@ import sys
 import os
 import contextlib
 from functools import wraps
-from inspect import isfunction, isclass, getargspec
-from collections import namedtuple
+from inspect import isclass, getargspec
 import yaml
 from tld import get_tld
 from tld.exceptions import TldBadUrl, TldDomainNotFound
-import inspect
 
 from pyramid.response import Response
 from pyramid.renderers import json_renderer_factory
@@ -24,7 +22,6 @@ from spynl.main import urlson
 from spynl.main.exceptions import SpynlException, MissingParameter, BadOrigin
 from spynl.main.version import __version__ as spynl_version
 from spynl.main.locale import SpynlTranslationString as _
-
 
 
 def get_request():
@@ -215,8 +212,7 @@ def find_view_name(request):
     if name.startswith('/'):
         name = name[1:]
 
-    if hasattr(request, 'matched_route')\
-      and request.matched_route:
+    if hasattr(request, 'matched_route') and request.matched_route:
         if name in request.matched_route.name:
             # method  name was not in the URL
             if request.method == 'POST':
@@ -298,7 +294,6 @@ def is_package_installed(package_name):
     return package_name in [i.key for i in pip.get_installed_distributions()]
 
 
-
 def get_logger(name=None):
     """Return the Logger object with the given name."""
     if not name:
@@ -339,7 +334,6 @@ def parse_value(value, class_info):
         default='"${value}" could not be parsed into any class in ${classes}',
         mapping={'value': value,
                  'classes': [cl.__name__ for cl in class_info]}))
-
 
 
 def parse_csv_list(csv_list):
