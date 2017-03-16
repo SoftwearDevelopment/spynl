@@ -43,6 +43,6 @@ def test_spynlexception(exception_app):
 
 
 def test_overridden_spynlexception(exception_app):
-    """Test regular SpynlException"""
+    """Test overridden SpynlException"""
     response = exception_app.get('/echo-raise', params={'custom': 'blah'}, expect_errors=True)
     assert response.json.get('custom') == 'blah'
