@@ -439,26 +439,44 @@ def send_exception_to_external_monitoring(user_info=None, exc_info=None,
         log.warning('Could not add user info to NewRelic on exception: %s', e)
 
 
-def log_error(exc, request, top_msg, error_type, error_msg):
+def log_error(exc, request, top_msg, error_type=None, error_msg=None):
     """
     Log the error from an error view to the log, and to external monitoring.
     Make sure the __cause__ of the exception is used.
     """
     log = get_logger()
 
-    user_info = get_user_info(request, purpose='error_view')
+    if not error_type:
+        error_type = exc.__class__.__name__
+    if error_type.endswith('Exception'):
+        error_type = error_type[:-len('Exception')]
+
+    if not error_msg:
+        try:
+            error_msg = exc.message
+        except AttributeError:
+            error_msg = str(exc)
+            if not error_msg:
+                error_msg = _('no-message-available', default="No message available.")
 
     exc_info = sys.exc_info()
+    last_traceback = exc_info[2]
+
     if hasattr(exc, '__cause__') and exc.__cause__ is not None:
-        exc_info = (exc.__cause__.__class__, exc.__cause__, sys.exc_info()[2])
+        exc_info = (exc.__cause__.__class__, exc.__cause__, last_traceback)
+
+    user_info = get_user_info(request, purpose='error_view')
+
     metadata = dict(user=user_info,
                     url=request.path_url,
-                    err_source=get_err_source(sys.exc_info()[2]),
+                    err_source=get_err_source(last_traceback),
                     detail=getattr(exc, 'detail', None))
-    log.error(top_msg, error_type, str(error_msg),
+
+    log.error(top_msg,
+              error_type,
+              str(error_msg),
               exc_info=exc_info,
-              extra=dict(meta=metadata,
-                         payload=str(request.body)[:500]))
+              extra=dict(meta=metadata, payload=str(request.body)[:500]))
 
     send_exception_to_external_monitoring(user_info=user_info,
                                           exc_info=exc_info,
