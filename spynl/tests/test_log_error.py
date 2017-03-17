@@ -6,8 +6,11 @@ from spynl.main.utils import log_error
 
 @pytest.fixture
 def logger(monkeypatch):
-    """Patch a number of things so we can return a logger and not have any
-    external things going on.
+    """
+    Patch calls to the outside.
+
+    Don't care about real user info, monitoring and we want a logger that
+    we can easily inspect.
     """
     def patched_get_user_info(*args, **kwargs):
         return dict(ipaddress='127.0.0.1')
@@ -19,9 +22,7 @@ def logger(monkeypatch):
                         patched_monitoring)
 
     class Logger:
-        """This logger will simply set an attribute to easily inspect was has
-        been passed to it.
-        """
+        """This logger will set the passed information on self.error_log"""
 
         def __init__(self):
             self.error_log = None
@@ -55,6 +56,7 @@ TOP_MSG = "TEST Error of type %s with message: '%s'."
 
 
 def test_log_error_msg(logger, fake_request):
+    """Test casting the exception to string."""
     class Error(Exception):
         def __str__(self):
             return "An error has occurred"
@@ -67,6 +69,7 @@ def test_log_error_msg(logger, fake_request):
 
 
 def test_log_error_msg_attribute(logger, fake_request):
+    """Test that the .message attr is passed correctly."""
     class Error(Exception):
         message = 'An error has occurred'
 
@@ -78,7 +81,10 @@ def test_log_error_msg_attribute(logger, fake_request):
 
 
 def test_log_exception_cause(logger, fake_request):
-    """Test that when a second exception is raised from the context of a first
+    """
+    Test exception __cause__
+
+    Test that when a second exception is raised from the context of a first
     the logger receives information about the original.
     """
 
@@ -99,9 +105,7 @@ def test_log_exception_cause(logger, fake_request):
 
 
 def test_log_exception_name(logger, fake_request):
-    """Test that when a second exception is raised from the context of a first
-    the logger receives information about the original.
-    """
+    """Test stripping of "Exception" from the name."""
 
     class SomeException(Exception):
         pass
@@ -114,8 +118,11 @@ def test_log_exception_name(logger, fake_request):
 
 
 def test_log_exception_default_message(logger, fake_request):
-    """Test that when the exception has no .message or str(Exc) returns
-    an empty string the default message is logged.
+    """
+    Test default message.
+
+    When the exception has no .message or str(Exc) returns
+    an empty string the default message should be logged.
     """
 
     try:
