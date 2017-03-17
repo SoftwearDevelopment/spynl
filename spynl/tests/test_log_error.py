@@ -143,3 +143,18 @@ def test_log_given_exc_type_and_msg(logger, fake_request):
 
         assert logger.error_log['msg'] == ("TEST Error of type Argh "
                                            "with message: 'what the hell'.")
+
+
+def test_log_debug_message(logger, fake_request):
+    """Test that the debug_message is logged."""
+
+    class SomeException(Exception):
+        debug_message = "Debug this."
+
+    try:
+        raise SomeException
+    except Exception as exc:
+        log_error(exc, fake_request, TOP_MSG)
+
+        assert (logger.error_log['kwargs']['extra']['meta']['debug_message'] ==
+                SomeException.debug_message)
