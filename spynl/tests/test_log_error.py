@@ -2,6 +2,7 @@
 import pytest
 
 from spynl.main.utils import log_error
+from spynl.main.exceptions import SpynlException
 
 
 @pytest.fixture
@@ -145,16 +146,57 @@ def test_log_given_exc_type_and_msg(logger, fake_request):
                                            "with message: 'what the hell'.")
 
 
-def test_log_debug_message(logger, fake_request):
-    """Test that the debug_message is logged."""
-
-    class SomeException(Exception):
-        debug_message = "Debug this."
+def test_log_message(logger, fake_request):
+    """Test that the default spynlmessage is logged."""
 
     try:
-        raise SomeException
+        raise SpynlException
+    except Exception as exc:
+        log_error(exc, fake_request, TOP_MSG)
+
+        assert SpynlException().message in logger.error_log['msg']
+
+
+def test_log_debug_message(logger, fake_request):
+    """Test that the default debug_message is logged."""
+
+    try:
+        raise SpynlException
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
 
         assert (logger.error_log['kwargs']['extra']['meta']['debug_message'] ==
-                SomeException.debug_message)
+                SpynlException().debug_message)
+
+
+def test_log_custom_message(logger, fake_request):
+    """Test that the debug_message is logged."""
+
+    try:
+        raise SpynlException(message="blah")
+    except Exception as exc:
+        log_error(exc, fake_request, TOP_MSG)
+
+        assert "blah" in logger.error_log['msg']
+
+
+def test_log_custom_debug_message(logger, fake_request):
+    """Test that the debug_message is logged."""
+
+    try:
+        raise SpynlException(debug_message="blah")
+    except Exception as exc:
+        log_error(exc, fake_request, TOP_MSG)
+
+        assert logger.error_log['kwargs']['extra']['meta']['debug_message'] == "blah"
+
+
+def test_log_message_equals_debug_message(logger, fake_request):
+    """Test that the default spynlmessage is logged."""
+
+    try:
+        raise SpynlException
+    except Exception as exc:
+        log_error(exc, fake_request, TOP_MSG)
+
+        logger.error_log['msg'] == logger.error_log['kwargs']['extra']['meta']['debug_message']
