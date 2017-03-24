@@ -41,7 +41,8 @@ DEFAULT_HTML_TEMPLATE = '''
 
 
 def _sendmail(request, recipient, subject, plain_body, html_body=None,
-              sender=None, attachments=None, fail_silently=False, mailer=None):
+              sender=None, attachments=None, fail_silently=True, mailer=None,
+              reply_to=None):
     """
     Send a mail using the pyramid mailer. This function also makes sure
     that if Spynl is not in a production environment, mail is sent to a dummy
@@ -82,8 +83,13 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
                     settings.get('mail.dummy_recipient'), recipient)
     subject = str(subject).rstrip()
 
+    # set Reply-To header if needed:
+    extra_headers = {}
+    if reply_to:
+        extra_headers['Reply-To'] = reply_to
     message = Message(sender=sender, recipients=recipients, subject=subject,
-                      body=plain_body, html=html_body)
+                      body=plain_body, html=html_body,
+                      extra_headers=extra_headers)
     if attachments:
         for attachment in attachments:
             message.attach(attachment)
@@ -92,18 +98,23 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
         message.validate()
         logger.info('Sending email titled "%s" to %s from %s',
                     subject, recipients, sender)
-        mailer.send_immediately(message, fail_silently=fail_silently)
+        # Always set fail_silently to false, so we can log the
+        # exception
+        mailer.send_immediately(message, fail_silently=False)
     except Exception as e:
-        logger.exception(e)
-        return False
+        if fail_silently:
+            logger.exception(e)
+            return False
+        else:
+            raise e
 
     return True
 
 
 def send_template_email(request, recipient, template_string=None,
                         template_file=None, plugin=None, replacements={},
-                        subject='', fail_silently=False, mailer=None,
-                        attachments=None, sender=None):
+                        subject='', fail_silently=True, mailer=None,
+                        attachments=None, sender=None, reply_to=None):
     """
     Send email using a html template.
 
@@ -176,7 +187,7 @@ def send_template_email(request, recipient, template_string=None,
 
     return _sendmail(request, recipient, subject, text_body, html_body,
                      fail_silently=fail_silently, mailer=mailer,
-                     attachments=attachments, sender=sender)
+                     attachments=attachments, sender=sender, reply_to=reply_to)
 
 
 def value_from_template(template_file, var, request, replacements,
