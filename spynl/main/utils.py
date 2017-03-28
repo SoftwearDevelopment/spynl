@@ -484,15 +484,6 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
                                           metadata=metadata)
 
 
-def is_production_environment(or_test=False):
-    """Return if environment is either beta/production or not."""
-    settings = get_settings()
-    allowed_envs = ['beta', 'production']
-    if or_test:
-        allowed_envs.append('test')
-    return settings.get('spynl.ops.environment') in allowed_envs
-
-
 @contextlib.contextmanager
 def chdir(dirname=None):
     """Change to this directory during this context"""

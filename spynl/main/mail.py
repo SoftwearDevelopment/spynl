@@ -5,14 +5,13 @@ import os
 
 from pyramid.renderers import render
 from pyramid_mailer import get_mailer
-from pyramid_mailer.mailer import DummyMailer
 from pyramid_mailer.message import Message
 
 from jinja2 import Environment, Template, TemplateNotFound, FileSystemLoader
 import html2text
 
-from spynl.main.utils import (get_logger, get_settings,
-                              is_production_environment)
+from spynl.main.utils import get_logger, get_settings
+
 from spynl.main.exceptions import EmailTemplateNotFound
 from .locale import TemplateTranslations, SpynlTranslationString
 
@@ -73,11 +72,10 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
 
     sender = str(sender)
     recipients = None
-    # use recipient in unit tests (mailer only writes files) or in real env
-    if recipient and (mailer.__class__ is DummyMailer or
-                      is_production_environment()):
+    # Recipient could be given as None, in which case we'll use the dummy
+    # recipient.
+    if recipient:
         recipients = [str(recipient)]
-    # otherwise (e.g. during dev) we might use dummy mail address
     elif settings.get('mail.dummy_recipient'):
         recipients = [settings.get('mail.dummy_recipient')]
         logger.info("I will send this email to %s instead of %s.",
@@ -153,12 +151,6 @@ def send_template_email(request, recipient, template_string=None,
         replacements['content'] = Template(template_string).render(
             **replacements)
 
-    # Add a line to tell where the mail would be sent in production
-    if not is_production_environment() and mailer.__class__ is not DummyMailer:
-        replacements['content'] = ("[This mail would in production be sent to"
-                                   " {}]\n".format(recipient) +
-                                   replacements['content'])
-
     # Render the base template with the content of the given template
     base_template = get_settings().get('base_email_template')
     if base_template is not None:
@@ -193,7 +185,7 @@ def value_from_template(template_file, var, request, replacements,
     Return the value of given <var> defined inside the <template_file>.
 
     Set the static_url filter for templates to construct urls for static files.
-    If plugin was given, install plugin's translations to the environment. 
+    If plugin was given, install plugin's translations to the environment.
     """
     path, filename = os.path.split(template_file)
     env = Environment(loader=FileSystemLoader(path),

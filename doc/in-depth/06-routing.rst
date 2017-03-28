@@ -19,7 +19,7 @@ Custom resource registration
 -------------------------------
 `config.add_resource`
 
-A resource class at least needs a `paths` attribute, can also have `available_in_production`.
+A resource class at least needs a `paths` attribute.
 
 Multiple paths (aliases) is possible in Spynl.
 
