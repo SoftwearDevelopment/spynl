@@ -121,3 +121,12 @@ class EmailTemplateNotFound(SpynlException):
         self.message = _('email-tmpl-not-found',
                          default='The email template <${template}> was not found.',
                          mapping={'template': template})
+
+
+class EmailRecipientNotGiven(SpynlException):
+    """Exception when there is no recipient for the email """
+
+    def __init__(self):
+        """Exception message."""
+        self.message = _('email-recipient-not-given',
+                         default='You did not give a recipient for the email.')

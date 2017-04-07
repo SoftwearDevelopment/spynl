@@ -12,7 +12,7 @@ import html2text
 
 from spynl.main.utils import get_logger, get_settings
 
-from spynl.main.exceptions import EmailTemplateNotFound
+from spynl.main.exceptions import EmailTemplateNotFound, EmailRecipientNotGiven
 from .locale import TemplateTranslations, SpynlTranslationString
 
 
@@ -77,6 +77,8 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
     # recipient.
     if recipient:
         recipients = [str(recipient)]
+    elif not fail_silently:
+        raise EmailRecipientNotGiven()
     elif settings.get('mail.dummy_recipient'):
         recipients = [settings.get('mail.dummy_recipient')]
         logger.info("I will send this email to %s instead of %s.",
