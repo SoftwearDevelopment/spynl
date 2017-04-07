@@ -103,7 +103,7 @@ def test_main_json_loads_date(config):
 
 def test_json_dumps_no_raise():
     """Test no raise (json dumps)."""
-    assert spynl_json.dumps({'a': 1}) == '{"a":1}'
+    assert spynl_json.dumps({'a': 1}) == '{"a": 1}'
 
 
 def test_json_dumps_content_type():
@@ -132,14 +132,14 @@ def test_json_dumps_str():
     Unicode a string and a unicode get dumped as one unicode without problems.
     """
     uni = {"foreigner": "H\xf6nëng"}
-    assert spynl_json.dumps(uni) == '{"foreigner":"H\xf6nëng"}'
+    assert spynl_json.dumps(uni) == '{"foreigner": "H\xf6nëng"}'
 
 
 def test_json_dumps_date(config):
     """Test date (json dumps)."""
     now = datetime.datetime.now()
     assert spynl_json.dumps({'now': now}) == \
-        '{"now":"' + date_to_str(localize_date(now)) + '"}'
+        '{"now": "' + date_to_str(localize_date(now)) + '"}'
 
 
 def test_xml_sniff_triangle():

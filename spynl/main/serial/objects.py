@@ -5,8 +5,9 @@ Furthermore, we apply (de)serialisation which plugins can define for object
 types like IDs or dates.
 """
 
+import json
+
 from pyramid import threadlocal
-import rapidjson
 
 from spynl.main.dateutils import (spynl_date_format, localize_date,
                                   date_to_str, date_from_str)
@@ -24,7 +25,6 @@ class SpynlDecoder(object):
     def __init__(self, context=None):
         """Enable the decoding functions to be context-aware."""
         self.context = context
-        self.errors = []
 
     def __call__(self, dic):
         """
@@ -42,15 +42,8 @@ class SpynlDecoder(object):
         decode_functions = settings.get('serial_decode_functions', {})
         for fieldname in dic:
             if fieldname in decode_functions:
-                # NOTE: do not raise while rapidjson uses this method because
-                # it wraps any exceptions and raises it's own error message,
-                # instead save the errors for later use
-                try:
-                    decode_functions[fieldname](dic, fieldname=fieldname,
-                                                context=self.context)
-                except Exception as error:
-                    self.errors.append(error)
-
+                decode_functions[fieldname](dic, fieldname=fieldname,
+                                            context=self.context)
         # All remaining strings: we use unicode internally
         # & we expect incoming strings to be UTF-8 encoded
         for k in dic:
@@ -74,7 +67,7 @@ def encode(obj):
         if isinstance(obj, obj_type):
             obj = encode_functions[obj_type](obj)
         elif isinstance(obj, bool):
-            obj = rapidjson.dumps(obj)
+            obj = json.dumps(obj)
 
     return str(obj)
 
