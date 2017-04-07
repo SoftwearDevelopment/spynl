@@ -9,7 +9,7 @@ from spynl.main.pkg_utils import get_config_package, get_dev_config
 from spynl.cli.utils import resolve_packages_param, package_dir
 
 
-packages_help = "Affected packages, defaults to all installed."
+packages_help = 'Affected packages, defaults to all installed.'
 
 
 @task(help={'scm-url': 'The URL needed to clone the repo, either for '
@@ -37,7 +37,7 @@ def install(ctx, scm_url=None, developing=True, revision=None,
         raise Exit("[spynl dev.install] Please give the --scm-url parameter.")
     scm_url = scm_url.strip('/')
     # set scm_type
-    scm_type = (scm_url.endswith('.git') or '.git@' in scm_url) and "git" or "hg"
+    scm_type = (scm_url.endswith('.git') or '.git@' in scm_url) and 'git' or 'hg'
     if not os.path.exists(src_path):
         os.mkdir(src_path)
     repo_name = scm_url.split('/')[-1]
@@ -81,21 +81,28 @@ def install(ctx, scm_url=None, developing=True, revision=None,
             ctx.run('./setup.sh --post-install')
 
 
-@task
-def serve(ctx):
-    '''
+@task(help={'ini-file': 'Optional location of an ini-file you want to use to '
+                        'serve spynl with, if you do not want to use the '
+                        'default.'})
+def serve(ctx, ini_file=None):
+    """
     Run a local server. The ini-file development.ini is searched for in
     installed Spynl plugins. If there is none, minimal.ini is used.
-    '''
-    config_package = get_config_package(require='development.ini')
-    if config_package is None:
-        print('[spynl dev.serve] No config package found. '
-              'Serving with minimal.ini ...')
-        path2spynl = os.path.dirname(__file__) + '/../../..'
-        ini_location = '%s/minimal.ini' % path2spynl
-    else:
-        ini_location = '%s/development.ini' % config_package.location
+    """
+    if ini_file:
+        ini_location = ini_file
         print('[spynl dev.serve] Serving with %s ...' % ini_location)
+    else:
+        config_package = get_config_package(require='development.ini')
+        if config_package is None:
+            print('[spynl dev.serve] No config package found. '
+                  'Serving with minimal.ini ...')
+            path2spynl = os.path.dirname(__file__) + '/../../..'
+            ini_location = '%s/minimal.ini' % path2spynl
+        else:
+            ini_location = '%s/development.ini' % config_package.location
+            print('[spynl dev.serve] Serving with %s ...' % ini_location)
+
     with package_dir('spynl'):
         ctx.run('pserve %s --reload' % ini_location, pty=True)
 
@@ -109,9 +116,9 @@ def serve(ctx):
                        '(requires a few extra packages, '
                        'e.g. for pycoverage).'})
 def test(ctx, packages='_all', called_standalone=True, reports=False):
-    '''
+    """
     Perfom tests in one or more spynl plugins.
-    '''
+    """
     for package_name in resolve_packages_param(packages):
         print("[spynl dev.test] Testing package: {}".format(package_name))
         with package_dir(package_name):
@@ -133,13 +140,13 @@ def test(ctx, packages='_all', called_standalone=True, reports=False):
                       'and update the .po files for the selected languages). '
                       'Defaults to "compile".'})
 def translate(ctx, packages='_all', languages=None, action='compile'):
-    '''
+    """
     Ensure that translations files are up-to-date w.r.t. to the code. If action
     is set to compile (default), this will compile the catalogs for all selected
     languages. If action is set to refresh, this will extract messages from the
     source code and update the .po files for the selected languages (will
     initialize if necessary).
-    '''
+    """
     if action == 'compile':
         refresh = False
     elif action == 'refresh':
@@ -157,7 +164,6 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
                        'Cannot determine which catalogues to work on.')
     if isinstance(languages, str):
         languages = [lang for lang in languages.split(',') if lang != '']
-
     for package_name in resolve_packages_param(packages):
         with package_dir(package_name):
             if package_name == 'spynl':
@@ -197,7 +203,8 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
                         ctx.run('python setup.py init_catalog -l {lang} '
                                 '-i {lp}/locale/messages.pot '
                                 '-d {lp}/locale -D {pn}'
-                                .format(lp=locale_path, pn=package_name, lang=lang))
+                                .format(lp=locale_path, pn=package_name,
+                                        lang=lang))
                     # update if not init
                     else:
                         print('[spynl dev.translate] update the %s catalog'
@@ -205,7 +212,8 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
                         ctx.run('python setup.py update_catalog -N --no-wrap '
                                 '-l {lang} -i {lp}/locale/messages.pot '
                                 '-d {lp}/locale -D {pn}'
-                                .format(lp=locale_path, pn=package_name, lang=lang))
+                                .format(lp=locale_path, pn=package_name,
+                                        lang=lang))
                 # if not refresh, compile
                 elif os.path.exists(path2po):
                     ctx.run('python setup.py compile_catalog --domain {pn} '

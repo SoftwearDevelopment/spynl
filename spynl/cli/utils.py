@@ -27,9 +27,9 @@ def resolve_packages_param(packages_param, complain_not_installed=True,
     else:
         packages = installed_packages
     if to == 'scm-urls':
-        return [p.scm_url for p in installed_packages]
+        return [p.scm_url for p in packages]
     else:
-        return [p.project_name for p in installed_packages]
+        return [p.project_name for p in packages]
 
 
 @contextlib.contextmanager
