@@ -8,39 +8,21 @@ from spynl.main.serial.exceptions import UndeterminedContentTypeException
 from spynl.main.serial.exceptions import UnsupportedContentTypeException
 
 
-CONTENT_TYPE_HANDLERS = {
-    'application/json': {
-        'dump': json.dumps,
-        'load': json.loads,
-        'sniff': json.sniff
-    },
-    'application/x-yaml': {
-        'dump': yaml.dumps,
-        'load': yaml.loads,
-        'sniff': yaml.sniff
-    },
-    'application/xml': {
-        'dump': xml.dumps,
-        'load': xml.loads,
-        'sniff': xml.sniff
-    },
-    'text/xml': {
-        'dump': xml.dumps,
-        'load': xml.loads,
-        'sniff': xml.sniff
-    },
-    'text/csv': {
-        'dump': csv.dumps,
-        'load': csv.loads,
-        'sniff': csv.sniff
-    },
-    'text/html': {
-        'dump': html.dumps
-    },
-    'text/x-python': {
-        'dump': py.dumps
-    }
-}
+handlers = {'application/json': {'dump': json.dumps,
+                                 'load': json.loads,
+                                 'sniff': json.sniff},
+            'application/xml': {'dump': xml.dumps,
+                                'load': xml.loads,
+                                'sniff': xml.sniff},
+            'application/x-yaml': {'dump': yaml.dumps,
+                                   'load': yaml.loads,
+                                   'sniff': yaml.sniff},
+            'text/csv': {'dump': csv.dumps,
+                         'load': csv.loads,
+                         'sniff': csv.sniff},
+            'text/html': {'dump': html.dumps},
+            'text/x-python': {'dump': py.dumps}}
+handlers['text/xml'] = handlers['application/xml']
 
 
 def negotiate_request_content_type(request):
@@ -54,18 +36,17 @@ def negotiate_request_content_type(request):
     (but the request method is POST|PUT).
     """
     content_type = request.content_type
-    if not content_type or content_type not in CONTENT_TYPE_HANDLERS:
-        for type_, handlers in CONTENT_TYPE_HANDLERS.items():
-            if 'sniff' in handlers and handlers['sniff'](request.text):
-                return type_
+    if not content_type or content_type not in handlers:
+        for key, values in handlers.items():
+            if 'sniff' in values and values['sniff'](request.text):
+                return key
 
     if not content_type:
         if not request.body:
             return None
         raise UndeterminedContentTypeException()
 
-    if content_type not in CONTENT_TYPE_HANDLERS and \
-            request.method in ('POST', 'PUT'):
+    if content_type not in handlers and request.method in ('POST', 'PUT'):
         raise UnsupportedContentTypeException(content_type)
 
     return content_type
@@ -109,4 +90,4 @@ def negotiate_response_content_type(request):
 
 def supported_types():
     """Return the types supported for serialisation"""
-    return list(CONTENT_TYPE_HANDLERS.keys())
+    return list(handlers.keys())

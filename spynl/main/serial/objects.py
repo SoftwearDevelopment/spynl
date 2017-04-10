@@ -4,12 +4,8 @@ Here, we do text/unicode(utf-8) conversions.
 Furthermore, we apply (de)serialisation which plugins can define for object
 types like IDs or dates.
 """
-
-import json
-
 from pyramid import threadlocal
-
-from spynl.main.dateutils import (spynl_date_format, localize_date,
+from spynl.main.dateutils import (date_format_str, localize_date,
                                   date_to_str, date_from_str)
 from spynl.main.utils import get_settings, get_logger
 from spynl.main.locale import SpynlTranslationString as _
@@ -44,6 +40,7 @@ class SpynlDecoder(object):
             if fieldname in decode_functions:
                 decode_functions[fieldname](dic, fieldname=fieldname,
                                             context=self.context)
+
         # All remaining strings: we use unicode internally
         # & we expect incoming strings to be UTF-8 encoded
         for k in dic:
@@ -66,8 +63,6 @@ def encode(obj):
     for obj_type in encode_functions:
         if isinstance(obj, obj_type):
             obj = encode_functions[obj_type](obj)
-        elif isinstance(obj, bool):
-            obj = json.dumps(obj)
 
     return str(obj)
 
@@ -96,7 +91,8 @@ def add_encode_function(config, function, obj_type):
     """
     Add the specified function to the types in the serial_encode_functions
     dictionary.
-    example serial_decode_functions: {datetime: encode_datetime}
+    example serial_decode_functions: {bool: encode_boolean, datetime:
+    encode_datetime}
     """
     log = get_logger('spynl.main.serial')
     settings = config.get_settings()
@@ -119,7 +115,12 @@ def decode_date(dic, fieldname, context):
             default="The value '${value}' for key '${key}' does not seem to "
                     "be a valid date string that conforms to ${format}.",
             mapping={'value': dic[fieldname], 'key': fieldname,
-                     'format': spynl_date_format()}))
+                     'format': date_format_str()}))
+
+
+def encode_boolean(obj):
+    """lower the case to get a json/js boolean"""
+    return str(obj).lower()
 
 
 def encode_date(obj):

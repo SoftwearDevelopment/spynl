@@ -18,12 +18,13 @@ def loads(body, headers=None, context=None):
 
 def dumps(body, pretty=False):
     """Return JSON body as string."""
-    indent = None if pretty is False else 4
+    indent = None
+    if pretty:
+        indent = 4
 
     class JSONEncoder(json.JSONEncoder):
         def default(self, obj):  # pylint: disable=method-hidden
             return objects.encode(obj)
-
     return json.dumps(body, indent=indent, ensure_ascii=False, cls=JSONEncoder)
 
 

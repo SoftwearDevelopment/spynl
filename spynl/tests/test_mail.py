@@ -13,7 +13,7 @@ import os
 from uuid import uuid4
 
 import pytest
-from pyramid import testing
+from pyramid.testing import DummyRequest
 
 from spynl.main.mail import _sendmail as sendmail, send_template_email
 
@@ -49,7 +49,7 @@ def template(tmpdir):
 @pytest.fixture
 def dummy_request():
     """Return a testing DummyRequest for tests to use."""
-    dummy_request = testing.DummyRequest()
+    dummy_request = DummyRequest()
     return dummy_request
 
 
@@ -77,7 +77,7 @@ def test_missing_recipient(dummy_request, mailer):
     assert email.body == "Hey Nic! It's me, Nic."
 
 
-def test_custom_html_template_mail(config, dummy_request, mailer, template):
+def test_custom_html_template_mail(dummy_request, mailer, template):
     """The custom template is correctly used."""
     with open(template, 'w') as fob:
         fob.write("""{{% set default_subject = "Nic Test" %}}<!--CUSSSTOM-->
@@ -97,8 +97,7 @@ def test_custom_html_template_mail(config, dummy_request, mailer, template):
     assert email.sender == 'blah@blah.com'
 
 
-def test_custom_jinja_expressions_template_mail(config, dummy_request, mailer,
-                                                template):
+def test_custom_jinja_expressions_template_mail(dummy_request, mailer, template):
     """The custom jinja template is correctly used, both in subject and body"""
     replacements = {
         'subject_content': 'replaced subject content',
@@ -121,8 +120,7 @@ def test_custom_jinja_expressions_template_mail(config, dummy_request, mailer,
             'bbb ---100--- aaa') in mailer.outbox[0].html
 
 
-def test_custom_jinja_control_logic_template_mail(config, dummy_request,
-                                                  mailer, template):
+def test_custom_jinja_control_logic_template_mail(dummy_request, mailer, template):
     """Jinja control logic is handled in subject and body"""
     replacements = dict(a=True, b=[1, 2, 3])
     with open(template, 'w') as fob:
@@ -164,7 +162,7 @@ def test_send_template_email_with_none_recipient(dummy_request, mailer):
                                    replacements={}, mailer=mailer)
 
 
-def test_send_template_email_with_empty_subject(config, dummy_request, mailer,
+def test_send_template_email_with_empty_subject(dummy_request, mailer,
                                                 template):
     """Subject has to be given explicitly."""
     with open(template, 'w') as fob:
@@ -175,8 +173,7 @@ def test_send_template_email_with_empty_subject(config, dummy_request, mailer,
     assert mailer.outbox[0].subject == ''
 
 
-def test_send_template_email_when_template_doesnt_exist(config, dummy_request,
-                                                        mailer):
+def test_send_template_email_when_template_doesnt_exist(dummy_request, mailer):
     """When no template is found, default one should be used."""
     with pytest.raises(EmailTemplateNotFound):
         send_template_email(dummy_request, 'test_recipient',
@@ -185,8 +182,8 @@ def test_send_template_email_when_template_doesnt_exist(config, dummy_request,
     assert mailer.outbox == []
 
 
-def test_send_template_email_when_template_exists(config, dummy_request,
-                                                  mailer, template):
+def test_send_template_email_when_template_exists(dummy_request, mailer,
+                                                  template):
     """Ensure that the existent template will be used instead of default."""
     with open(template, 'w') as fob:
         fob.write('{% set default_subject = "FIRST EMAIL SUBJECT" %}\n')
@@ -201,8 +198,9 @@ def test_send_template_email_when_template_exists(config, dummy_request,
         mailer.outbox[0].html
 
 
-def test_send_template_email_with_non_ascii_character(config, dummy_request,
-                                                      mailer, tmpdir):
+
+def test_send_template_email_with_non_ascii_character(dummy_request, mailer,
+                                                      tmpdir):
     """Non ascii characters should be encoded to UTF-8."""
     temp_file = tmpdir.mkdir('sub').join('my_template.jinja2')
     temp_file.write("ⓢⓢⓢ".encode(), mode='wb')
