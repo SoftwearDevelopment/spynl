@@ -50,7 +50,7 @@ def main(config):
     config.add_endpoint(hello, None, context=AboutResource,
                         permission=NO_PERMISSION_REQUIRED)
     config.add_endpoint(versions, 'versions', context=AboutResource,
-                        permission=permission)
+                        permission=Authenticated)
     config.add_endpoint(build, 'build', context=AboutResource,
                         permission=NO_PERMISSION_REQUIRED)
     config.add_endpoint(environment, 'environment', context=AboutResource,
