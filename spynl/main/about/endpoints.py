@@ -18,7 +18,7 @@ from spynl.main.dateutils import now, date_to_str
 from spynl.main.docs.settings import ini_doc, ini_description
 from spynl.main.docs.documentation import HIDE_TRYITOUT_IDS
 from spynl.main.pkg_utils import (get_spynl_packages,
-                                  lookup_scm_commit)
+                                  lookup_scm_commit, lookup_scm_commit_describe)
 
 
 def hello(request):
@@ -151,8 +151,10 @@ def versions(request):
         status    | string | 'ok' or 'error'\n
         spynl_version | string | The version of this Spynl instance.\n
         spynl_commit  | string | The git commit id this Spynl instance.\n
-        plugins   | dict   | {spynl-plugin: {commit: SCM commit id,
-        version: package version}} for each Spynl plugin.\n
+        plugins   | dict   | {spynl-plugin: {commit: SCM commit id of the HEAD,
+        version: package version, scmVersion: state of the working directory,
+        will show version and commit, and dirty if the working directory
+        contains uncommited changes}} for each Spynl plugin.\n
         time      | string | time in format: $setting[spynl.date_format]\n
     """
     response = {}
@@ -165,7 +167,8 @@ def versions(request):
     packages = get_spynl_packages()
     for package in packages:
         pinfo = dict(version=package.version,
-                     commit=lookup_scm_commit(package.location))
+                     commit=lookup_scm_commit(package.location),
+                     scmVersion=lookup_scm_commit_describe(package.location))
         response['plugins'][package.project_name] = pinfo
     return response
 
