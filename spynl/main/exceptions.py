@@ -16,9 +16,13 @@ class SpynlException(Exception):
     """
     http_escalate_as = HTTPBadRequest
 
-    def __init__(self, message='an internal error has occured', debug_message=None):
+    def __init__(self,
+                 message='an internal error has occured',
+                 debug_message=None,
+                 developer_message=None):
         self.message = message
         self.debug_message = debug_message or self.message
+        self.developer_message = developer_message or self.message
 
     def make_response(self):
         """
@@ -37,7 +41,8 @@ class SpynlException(Exception):
         response = {
             'status': 'error',
             'type': self.__class__.__name__,
-            'message': self.message
+            'message': self.message,
+            'developer_message': self.developer_message
         }
 
         return response

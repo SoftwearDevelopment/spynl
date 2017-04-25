@@ -46,3 +46,15 @@ def test_overridden_spynlexception(exception_app):
     """Test overridden SpynlException"""
     response = exception_app.get('/echo-raise', params={'custom': 'blah'}, expect_errors=True)
     assert response.json.get('custom') == 'blah'
+
+
+def test_spynlexception_developer_message():
+    """Test SpynlException dev message"""
+    e = SpynlException(developer_message='blah')
+    assert e.make_response()['developer_message'] == 'blah'
+
+
+def test_spynlexception_debug_message():
+    """Test SpynlException debug message"""
+    e = SpynlException(debug_message='blah')
+    assert 'debug_message' not in e.make_response()
