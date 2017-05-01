@@ -13,16 +13,22 @@ class SpynlException(Exception):
     can treat it differently, e.g. show its message.
     You can also specify with which HTTP exception it should be
     escalated.
+
+    param message: A message for the enduser. Exposed, should NOT contain
+                   sensitive data.
+    param developer_message: A message for 3rd party users of our API.
+                             Exposed, should NOT contain sensitive data.
+    param debug_message: A message for internal use when debugging.
     """
     http_escalate_as = HTTPBadRequest
 
     def __init__(self,
                  message='an internal error has occured',
-                 debug_message=None,
-                 developer_message=None):
+                 developer_message=None,
+                 debug_message=None):
         self.message = message
-        self.debug_message = debug_message or self.message
         self.developer_message = developer_message or self.message
+        self.debug_message = debug_message or self.message
 
     def make_response(self):
         """
