@@ -48,7 +48,9 @@ class SpynlException(Exception):
             'status': 'error',
             'type': self.__class__.__name__,
             'message': self.message,
-            'developer_message': self.developer_message
+            'developer_message': getattr(self,
+                                         'developer_message',
+                                         self.message)
         }
 
         return response
