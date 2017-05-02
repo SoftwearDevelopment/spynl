@@ -34,7 +34,8 @@ def loads(body, headers={}, context=None):
             if str(err) == 'Could not determine delimiter':
                 dialect = csv.Sniffer().sniff(body[:6000], delimiters=',\t|')
             else:
-                raise MalformedRequestException('text/csv', str(err))
+                raise MalformedRequestException('text/csv',
+                                                error_cause=str(err))
 
         if not delimiter:
             delimiter = dialect.delimiter

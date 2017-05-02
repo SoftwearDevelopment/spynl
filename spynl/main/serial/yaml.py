@@ -27,5 +27,6 @@ def loads(body, headers=None):
     """return body as YAML"""
     try:
         return yaml.load(body)
-    except ValueError as e:
-        raise MalformedRequestException('application/x-yaml', str(e))
+    except ValueError as err:
+        raise MalformedRequestException('application/x-yaml',
+                                        error_cause=str(err))

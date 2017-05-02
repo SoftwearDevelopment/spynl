@@ -467,11 +467,13 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
 
     user_info = get_user_info(request, purpose='error_view')
 
-    metadata = dict(user=user_info,
-                    url=request.path_url,
-                    debug_message=getattr(exc, 'debug_message', 'No debug message'),
-                    err_source=get_err_source(last_traceback),
-                    detail=getattr(exc, 'detail', None))
+    metadata = dict(
+        user=user_info,
+        url=request.path_url,
+        debug_message=getattr(exc, 'debug_message', 'No debug message'),
+        err_source=get_err_source(last_traceback),
+        detail=getattr(exc, 'detail', None)
+    )
 
     log.error(top_msg,
               error_type,
