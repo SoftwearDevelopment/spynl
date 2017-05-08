@@ -26,17 +26,18 @@ class SpynlTranslationString(object):
     custom encoder for this class to supplement the JSONEncoder.
     """
     # TODO: should we add __slots__ = ('translation_string')?
-    def __init__(self, msgid, default=None, mapping=None, context=None):
+    def __init__(self, msgid, default=None, mapping=None, context=None, domain=None):
         """
         Initialize a TranslationString, using the correct domain.
         """
         # Determine the domain, use spynl.main if no domain can be determined:
-        try:
-            call_stack = inspect.stack()[1]
-            calling_plugin = inspect.getmodule(call_stack[0])
-            domain = '.'.join(calling_plugin.__name__.split('.')[:2])
-        except Exception:
-            domain = 'spynl.main'
+        if domain is None:
+            try:
+                call_stack = inspect.stack()[1]
+                calling_plugin = inspect.getmodule(call_stack[0])
+                domain = '.'.join(calling_plugin.__name__.split('.')[:2])
+            except Exception:
+                domain = 'spynl.main'
         # loop over mapping dictionary to check for translation strings:
         # (In principle mappings shouldn't be translation strings, but this
         #  may be unavoidable when e.g. a broad exception gets a more detailed
@@ -80,7 +81,7 @@ class SpynlTranslationString(object):
             else:
                 localizer = request.localizer
         return localizer.translate(self.translation_string)
-    
+
 
 class TemplateTranslations(GetTextWrapper):
 
