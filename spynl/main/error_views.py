@@ -32,7 +32,7 @@ def error400(exc, request):
     Handle all HTTPErrors.
 
     We collect information about the original error as best as possible.
-    We log informaton and return a typical Spynl response.
+    We log information and return a typical Spynl response.
     """
     # Set response meta data
     request.response.status = exc.status

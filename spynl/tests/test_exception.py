@@ -1,7 +1,9 @@
 """Test functions from spynl.main."""
 import pytest
 
-from spynl.main.exceptions import SpynlException
+from pyramid.httpexceptions import HTTPConflict
+
+from spynl.main.exceptions import SpynlException, catch_mapped_exceptions
 
 
 @pytest.fixture
@@ -26,7 +28,10 @@ def exception_app(app_factory, settings, monkeypatch):
                 raise CustomException
             raise SpynlException
 
+        config.add_view_deriver(catch_mapped_exceptions)
+
         config.add_endpoint(echo_raise, 'echo-raise')
+        config.add_endpoint(buggy_endpoint, 'buggy-endpoint')
 
     # monkeypatch spynl.main.plugins.main as it is a simple entry point without
     # internal logic where normally external plugins would get included.
@@ -34,6 +39,49 @@ def exception_app(app_factory, settings, monkeypatch):
     app = app_factory(settings)
 
     return app
+
+
+class ToBeMapped(Exception):
+    """
+    dummy exception that stands in for an exception from spynl.models
+    """
+    def __init__(self, extra):
+        self.extra = extra
+
+    def __str__(self):
+        return 'An external message'
+
+
+@SpynlException.register_external_exception(ToBeMapped)
+class Mapped(SpynlException):
+    """
+    corresponding SpynlException exception to ToBeMapped
+    """
+    http_excalate_as = HTTPConflict
+
+    def __init__(self):
+        message = 'This is a Spynl message'
+        super().__init__(message=message)
+        self.extra = ''
+
+    def make_response(self):
+        """ Return the standard response, but add the extra information. """
+        response = super().make_response()
+        response.update({'extra': self.extra})
+        return response
+
+    def set_external_exception(self, external_exception):
+        super().set_external_exception(external_exception)
+        self.debug_message = str(self._external_exception)
+        self.extra = self._external_exception.extra
+
+
+def buggy_endpoint(request):
+    """
+    This endpoint only raises an external exception that needs to be mapped
+    to a SpynlException
+    """
+    raise ToBeMapped(extra='extra info')
 
 
 def test_spynlexception(exception_app):
@@ -44,7 +92,8 @@ def test_spynlexception(exception_app):
 
 def test_overridden_spynlexception(exception_app):
     """Test overridden SpynlException"""
-    response = exception_app.get('/echo-raise', params={'custom': 'blah'}, expect_errors=True)
+    response = exception_app.get('/echo-raise', params={'custom': 'blah'},
+                                 expect_errors=True)
     assert response.json.get('custom') == 'blah'
 
 
@@ -58,3 +107,13 @@ def test_spynlexception_debug_message():
     """Test SpynlException debug message"""
     e = SpynlException(debug_message='blah')
     assert 'debug_message' not in e.make_response()
+
+
+def test_exception_mapping(exception_app):
+    """
+    Test that the ToBeMapped exception gets mapped to the correct SpynlException
+    """
+    response = exception_app.post_json('/buggy-endpoint', status=409,
+                                       expect_errors=True)
+    assert response.json_body['extra'] == 'extra info'
+    assert response.json_body['message'] == 'This is a Spynl message'
