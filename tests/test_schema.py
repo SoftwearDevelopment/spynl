@@ -2,8 +2,8 @@
 """Tests for JSON schema validation of Spynl request and response data."""
 
 
+import sys
 import json
-import os
 from copy import deepcopy
 import pytest
 
@@ -25,7 +25,7 @@ PING_SCHEMA = {"$schema": "http://json-schema.org/schema#",
 def patch_validation_file_path(tmpdir, monkeypatch):
     """Patch schemas directory."""
     tmpdir.mkdir('spynl-schemas')
-    monkeypatch.setenv('VIRTUAL_ENV', tmpdir.strpath)
+    monkeypatch.setattr(sys, 'prefix', tmpdir.strpath)
 
 
 @pytest.fixture

@@ -1,14 +1,14 @@
 # Translations template for spynl.main.
-# Copyright (C) 2016 Softwear BV
+# Copyright (C) 2017 "Softwear BV"
 # This file is distributed under the same license as the spynl.main project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2017.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: spynl.main 5.49.rc1\n"
+"Project-Id-Version: spynl.main 6.0.5\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-11-23 14:26+0100\n"
+"POT-Creation-Date: 2017-06-16 13:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,79 +17,75 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
 
-#: spynl/main/endpoints.py:41
-msgid "pong"
+#: spynl/main/about/endpoints.py:55
+msgid "about-message"
 msgstr ""
 
-#: spynl/main/error_views.py:47
+#: spynl/main/error_views.py:44
 msgid "no-endpoint-for-path"
 msgstr ""
 
-#: spynl/main/error_views.py:53
+#: spynl/main/error_views.py:50
 msgid "permission-denial"
 msgstr ""
 
-#: spynl/main/error_views.py:62 spynl/main/error_views.py:110
+#: spynl/main/error_views.py:59 spynl/main/error_views.py:94
 msgid "internal-server-error"
 msgstr ""
 
-#: spynl/main/error_views.py:100
-msgid "no-message-available"
-msgstr ""
-
-#: spynl/main/exceptions.py:36
+#: spynl/main/exceptions.py:141
 msgid "bad-origin"
 msgstr ""
 
-#: spynl/main/exceptions.py:55
+#: spynl/main/exceptions.py:158
 msgid "missing-parameter"
 msgstr ""
 
-#: spynl/main/exceptions.py:65
+#: spynl/main/exceptions.py:169
 msgid "illegal-parameter"
 msgstr ""
 
-#: spynl/main/exceptions.py:75
+#: spynl/main/exceptions.py:182
 msgid "bad-validation-instructions"
 msgstr ""
 
-#: spynl/main/exceptions.py:86 spynl/main/validation.py:121
+#: spynl/main/exceptions.py:196 spynl/main/validation.py:124
 msgid "invalid-response"
 msgstr ""
 
-#: spynl/main/exceptions.py:96
+#: spynl/main/exceptions.py:209
 msgid "email-tmpl-not-found"
 msgstr ""
 
-#: spynl/main/mail.py:167
-msgid "mail-template-file-string"
+#: spynl/main/exceptions.py:221
+msgid "email-recipient-not-given"
 msgstr ""
 
-#: spynl/main/serial/exceptions.py:13
+#: spynl/main/serial/exceptions.py:14
 msgid "undetermined-content-type-exception"
 msgstr ""
 
-#: spynl/main/serial/exceptions.py:23
+#: spynl/main/serial/exceptions.py:24
 msgid "unsupported-content-type-exception"
 msgstr ""
 
-#: spynl/main/serial/exceptions.py:33
+#: spynl/main/serial/exceptions.py:36
 msgid "deserialization-unsupported-exception"
 msgstr ""
 
-#: spynl/main/serial/exceptions.py:44
+#: spynl/main/serial/exceptions.py:48
 msgid "serialization-unsupported-exception"
 msgstr ""
 
-#: spynl/main/serial/exceptions.py:56
+#: spynl/main/serial/exceptions.py:61
 msgid "malformed-request-exception-type"
 msgstr ""
 
-#: spynl/main/serial/exceptions.py:60
+#: spynl/main/serial/exceptions.py:66
 msgid "malformed-request-exception"
 msgstr ""
 
-#: spynl/main/serial/objects.py:117
+#: spynl/main/serial/objects.py:118
 msgid "date-decode-value-error"
 msgstr ""
 
@@ -97,35 +93,39 @@ msgstr ""
 msgid "unexpected-end-of-input"
 msgstr ""
 
-#: spynl/main/utils.py:310
+#: spynl/main/utils.py:315
 msgid "parse-value-exception-as-class"
 msgstr ""
 
-#: spynl/main/utils.py:318
+#: spynl/main/utils.py:323
 msgid "parse-value-exception-not-class"
 msgstr ""
 
-#: spynl/main/utils.py:327
+#: spynl/main/utils.py:332
 msgid "parse-value-exception-any-class"
 msgstr ""
 
-#: spynl/main/validation.py:67
+#: spynl/main/utils.py:460
+msgid "no-message-available"
+msgstr ""
+
+#: spynl/main/validation.py:70
 msgid "validations-is-not-list"
 msgstr ""
 
-#: spynl/main/validation.py:74
+#: spynl/main/validation.py:77
 msgid "bad-validation-instructions-missing-field"
 msgstr ""
 
-#: spynl/main/validation.py:79
+#: spynl/main/validation.py:82
 msgid "bad-validation-instructions-setting-in"
 msgstr ""
 
-#: spynl/main/validation.py:126
+#: spynl/main/validation.py:129
 msgid "bad-validation-instructions-bad-schema"
 msgstr ""
 
-#: spynl/main/validation.py:132
+#: spynl/main/validation.py:135
 msgid "bad-validation-instructions-schema-not-found"
 msgstr ""
 

@@ -2,8 +2,7 @@
 Translation logic.
 Kept in its own module so it can be imported by any Spynl code.
 """
-import inspect
-from pyramid.i18n import TranslationString, make_localizer
+from pyramid.i18n import TranslationString
 from pyramid import threadlocal
 from pyramid_jinja2.i18n import GetTextWrapper
 
@@ -26,18 +25,12 @@ class SpynlTranslationString(object):
     custom encoder for this class to supplement the JSONEncoder.
     """
     # TODO: should we add __slots__ = ('translation_string')?
-    def __init__(self, msgid, default=None, mapping=None, context=None, domain=None):
+    def __init__(self, msgid, default=None, mapping=None, context=None,
+                 domain='spynl.main'):
         """
         Initialize a TranslationString, using the correct domain.
         """
-        # Determine the domain, use spynl.main if no domain can be determined:
-        if domain is None:
-            try:
-                call_stack = inspect.stack()[1]
-                calling_plugin = inspect.getmodule(call_stack[0])
-                domain = '.'.join(calling_plugin.__name__.split('.')[:2])
-            except Exception:
-                domain = 'spynl.main'
+
         # loop over mapping dictionary to check for translation strings:
         # (In principle mappings shouldn't be translation strings, but this
         #  may be unavoidable when e.g. a broad exception gets a more detailed
@@ -77,7 +70,7 @@ class SpynlTranslationString(object):
         if not localizer:
             request = threadlocal.get_current_request()
             if request is None:  # we cannot find out locale of the user, so
-                return str(self) # we'll use the interpolated default
+                return str(self)  # we'll use the interpolated default
             else:
                 localizer = request.localizer
         return localizer.translate(self.translation_string)

@@ -1,7 +1,5 @@
 """The main package of Spynl."""
 
-from pkg_resources import iter_entry_points  # pylint: disable=E0611
-
 from pyramid.config import Configurator
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.viewderivers import INGRESS

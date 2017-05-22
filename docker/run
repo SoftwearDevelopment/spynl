@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Prepend the environment to the domain if not in production.
+# For example test.softwearconnect.nl
+if [ -n "$SPYNL_ENVIRONMENT" -a "$SPYNL_ENVIRONMENT" != "production" ]; then
+    SPYNL_DEV_DOMAIN=$SPYNL_ENVIRONMENT.$SPYNL_DEV_DOMAIN
+fi
+
+export WEB_CONCURRENCY=${WEB_CONCURRENCY:-2}
+
+# Render environmental values in the ini templates.
+python -c "from os.path import expandvars; ini = open('production.ini.template').read(); print(expandvars(ini))" > production.ini
+
+printf "[PRODUCTION.INI]" >> /logs/spynl.log
+cat production.ini >> /logs/spynl.log
+printf "[PRODUCTION.INI END]" >> /logs/spynl.log
+
+COMMAND="gunicorn --paste $PWD/production.ini --error-logfile /logs/gerr.log"
+if [ -n "$NEWRELIC_KEY" ]; then
+    export $NEW_RELIC_CONFIG_FILE=$PWD/newrelic.ini
+    python -c "from os.path import expandvars; ini = open('rewrelic.ini.template').read(); print(expandvars(ini))" > $NEW_RELIC_CONFIG_FILE
+    COMMAND="newrelic-admin run-program ""$COMMAND"
+fi
+
+cp supervisord.conf /etc/supervisord.conf
+echo "command=""$COMMAND" >> /etc/supervisord.conf
+supervisord --nodaemon -c /etc/supervisord.conf

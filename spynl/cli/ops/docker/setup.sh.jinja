@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# setup SSH authentication for getting the code from bitbucket
+mkdir -p /root/.ssh
+mv /root/deployment-key /root/.ssh/deployment-key
+chmod -R 700 /root/.ssh/deployment-key
+touch /root/.ssh/known_hosts
+ssh -o StrictHostKeyChecking=no hg@bitbucket.org uptime
+eval "$(ssh-agent)"
+ssh-add /root/.ssh/deployment-key
+
+# make sure we never install recommended packages
+cat > /etc/apt/apt.conf.d/01norecommend << EOF
+APT::Install-Recommends "0";
+APT::Install-Suggests "0";
+EOF
+
+# sudo apt-get install --no-install-recommends
+
+# Make a Python3 virtualenv
+pip3 install virtualenv
+virtualenv --python=python3.5 venv
+source venv/bin/activate
+
+pip install gunicorn
+pip install paste pastedeploy
+
+pip install -e {{ spynl_main_repo }}
+{% for repo in repos %}
+spynl dev.install --scm-url {{ repo }}
+{% endfor %}
+
+spynl dev.translate
+
+echo "root:rootpass" | chpasswd
+
+# no need to keep this key in image layers from here on
+rm /root/.ssh/deployment-key

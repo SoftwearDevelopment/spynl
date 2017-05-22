@@ -9,3 +9,9 @@
 spynl/main/docs/docson/schemas/
 spynl/main/docs/swagger-ui/spynl.json
 doc/_build/
+repo_state.txt
+
+build
+dist
+
+deployment-key*

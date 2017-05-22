@@ -2,6 +2,7 @@
 support checking Spynl request or response data against schemas
 """
 
+import sys
 import os
 import json
 from functools import wraps
@@ -23,6 +24,7 @@ def validate_json_schema(endpoint, info):
     """
     if info.options.get('is_error_view', False) is True:
         return endpoint  # no need to validate (again)
+
     @wraps(endpoint)
     def validate(context, request):
         """Function wrapping our endpoint."""
@@ -31,8 +33,7 @@ def validate_json_schema(endpoint, info):
         if yaml_doc and 'validations' in yaml_doc:
             validations = yaml_doc['validations']
         # try to validate request body
-        if request.content_type == 'application/json'\
-            and hasattr(request, 'args'):
+        if request.content_type == 'application/json' and hasattr(request, 'args'):
             interprete_validation_instructions(request.args, validations,
                                                'request')
         # execute view function
@@ -43,6 +44,7 @@ def validate_json_schema(endpoint, info):
                                                validations, 'response')
         return response
     return validate
+
 
 validate_json_schema.options = ('is_error_view',)
 
@@ -104,8 +106,7 @@ def apply_schema(data, schema_name):
     # get schema location
     logger = get_logger(__name__)
     settings = get_settings()
-    p2s = '%s/%s' % (os.environ.get('VIRTUAL_ENV', ''),
-                     settings.get('spynl.schemas', '').strip())
+    p2s = os.path.join(sys.prefix, settings.get('spynl.schemas', '').strip())
     schema_path = os.path.join(p2s, schema_name)
     if os.path.exists(schema_path):
         schema_str = open(schema_path, 'r').read()

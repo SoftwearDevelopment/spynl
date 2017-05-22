@@ -16,10 +16,10 @@ The main utility functions of this module are parse_post_data and renderer,
 they are added to config in main.
 """
 
+import os
 from datetime import datetime
 
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.settings import asbool
 
 from spynl.main.serial.typing import handlers
 from spynl.main.serial.typing import negotiate_response_content_type
@@ -54,7 +54,6 @@ def renderer(values, system):
     Spynl endpoints usually return dictionaries as responses, which
     this module renders in the content type set on the request
     (see parse_post_data).
-    If spynl.pretty is set, formatting (pretty-printing) is done.
     """
     r = system['request']
     if not isinstance(system['context'], Exception):
@@ -64,7 +63,7 @@ def renderer(values, system):
        and 'status' not in values:
         values['status'] = 'ok'
 
-    pretty = asbool(r.registry.settings.get('spynl.pretty'))
+    pretty = os.environ.get('SPYNL_ENVIRONMENT', '').lower() != 'production'
     try:
         response = dumps(values, r.response.content_type, pretty=pretty)
     except UnsupportedContentTypeException as e:

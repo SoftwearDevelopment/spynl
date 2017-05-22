@@ -4,32 +4,19 @@ Utils to get info about Spynl packages
 
 import os
 import configparser
-from collections import namedtuple
 import subprocess
 
 from pkg_resources import iter_entry_points, get_distribution  # pylint: disable=E0611
 
 from spynl.main.utils import chdir
-from spynl.main.exceptions import SpynlException
-
-
-# mocking some package info pip.get_distributed_packages provides
-Package = namedtuple('Package', ['project_name', 'version', 'location',
-                                 'scm_url'])
 
 
 SPYNL_DISTRIBUTION = get_distribution(__package__.split('.')[0])
 
 
-def read_setup_py(path):
-    """return contents of setup.py"""
-    with open('%s/setup.py' % path, 'r') as setup:
-        return ''.join(setup.readlines())
-
-
-def get_spynl_packages(include_scm_urls=False, include_spynl=True):
+def get_spynl_packages():
     """
-    Return the (locally) installed spynl-plugin packages.
+    Return the (locally) installed spynl packages.
     The term 'package' is the preferred term, synonymous with 'distribution':
     https://packaging.python.org/glossary/#term-distribution-package
     We ask for packages in a separate pip process, so we catch latest
@@ -39,32 +26,10 @@ def get_spynl_packages(include_scm_urls=False, include_spynl=True):
     SCM Url of each package and stores it as "scm_url".
     """
     packages = {
-        Package(
-            plugin.dist.project_name,
-            plugin.dist.version,
-            plugin.dist.location,
-            lookup_scm_url(plugin.dist.location) if include_scm_urls else None
-
-        ) for plugin in iter_entry_points('spynl.plugins')
+        plugin.dist for plugin in iter_entry_points('spynl.plugins')
     }
-
-    if include_spynl:
-        packages.add(Package(
-            SPYNL_DISTRIBUTION.project_name,
-            SPYNL_DISTRIBUTION.version,
-            SPYNL_DISTRIBUTION.location,
-            lookup_scm_url(SPYNL_DISTRIBUTION.location) if include_scm_urls else None
-        ))
-
+    packages.add(SPYNL_DISTRIBUTION)
     return packages
-
-
-def get_spynl_package(name, packages=None):
-    """Return the installed spynl package."""
-    if packages is None:
-        packages = get_spynl_packages()
-    return next(filter(lambda p: p.project_name == name, packages),
-                None)
 
 
 def lookup_scm_url(package_location):
@@ -113,34 +78,27 @@ def lookup_scm_commit_describe(package_location):
         return cmd_result.stdout.strip()
 
 
-def get_config_package(require=None):
+def get_ini_files(packages=None):
     """
     Return the config package. Complain if several packages have the
     .ini files.
     """
-    config_package = None
-    if require is None:
-        require = ('development.ini', 'production.ini')
-    if not isinstance(require, (list, tuple,)):
-        require = (require,)
-    packages = get_spynl_packages()
-    for package in packages:
-        plisting = os.listdir(package.location)
-        if all([ini in plisting for ini in require]):
-            if config_package is not None:
-                emsg = ("Two packages have configurations (development.ini "
-                        "and production.ini): %s and %s. unsure which to use!"
-                        % (config_package.project_name, package.project_name))
-                raise SpynlException(emsg)
-            config_package = package
-    return config_package
+
+    ini_files = []
+
+    for package in packages or get_spynl_packages():
+        ini = os.path.join(package.location, 'development.ini')
+        if os.path.exists(ini):
+            ini_files.append(ini)
+
+    return ini_files
 
 
-def get_dev_config():
-    """Return the ConfigParser for development.ini"""
-    config = configparser.ConfigParser()
-    config_package = get_config_package()
-    if config_package is None:
-        return {}
-    config.read('%s/development.ini' % config_package.location)
-    return config['app:main']
+# def get_dev_config(packages=None):
+#     """Return the ConfigParser for development.ini"""
+#     config = configparser.ConfigParser()
+#     config_package = get_ini_files()
+#     if config_package is None:
+#         return {}
+#     config.read('%s/development.ini'  % config_package.location)
+#     return config['app:main']

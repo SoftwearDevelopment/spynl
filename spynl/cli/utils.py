@@ -1,63 +1,87 @@
 import os
-import contextlib
-from invoke.exceptions import Exit
+# import contextlib
+import subprocess
+import shlex
 
-from spynl.main.pkg_utils import get_spynl_package, get_spynl_packages
+import click
+
+from spynl.main.pkg_utils import get_spynl_packages, SPYNL_DISTRIBUTION, \
+    get_ini_files
 
 
-def resolve_packages_param(packages_param, complain_not_installed=True,
-                           to='package-names', include_spynl=True):
+def exit(msg):
+    click.get_current_context().fail(msg)
+
+
+def run_command(command, **kwargs):
+    print(command)
+    return subprocess.run(shlex.split(command), **kwargs)
+
+def resolve_packages(ctx, param, value):
     """
-    Resolve "packages" string parameter (a CSV list) into a list
-    of installed package names, or alternatively their SCM url
-    (if to=='scm-urls').
-
-    The param has the special value "_all" in which case we return
-    all installed spynl packages.
+    Callback that resolves the value into a set of packages.
     """
-    installed_packages = get_spynl_packages(include_scm_urls=to=='scm-urls',
-                                            include_spynl=include_spynl)
-    if packages_param != '_all':
-        pnames = [pn.strip() for pn in packages_param.split(',')]
-        for name in pnames:
-            if (name != 'spynl'
-                and name not in [p.project_name for p in installed_packages]):
-                if complain_not_installed:
-                    raise Exit("Package %s is not installed. Exiting ..." % name)
-        packages = [p for p in installed_packages if p.project_name in pnames]
+    value = {v.lower() for v in value}
+
+    packages = get_spynl_packages()
+
+    if value:
+        not_installed = value - {p.project_name.lower() for p in packages}
+        if not_installed:
+            msg = '{} is/are not installed. Exiting ...'.format(
+                    ', '.join(not_installed))
+            exit(msg)
+
+        packages = list(filter(lambda p: p.project_name.lower() in value, packages))
+    return packages
+
+
+def check_ini(ctx, param, value):
+    if value:
+        return value
+
+    ini_files = get_ini_files()
+
+    if len(ini_files) == 1:
+        value = ini_files[0]
+
+    elif len(ini_files) > 1:
+        click.echo('\n'.join([
+            '{}:\t{}'.format(i + 1, ini) for i, ini in enumerate(ini_files)
+        ]))
+        i = click.prompt('Which ini file should be used', type=int, default=0)
+        try:
+            value = ini_files[i - 1]
+        except IndexError:
+            raise click.BadParameter('Choices are between 1 and {}'.format(len(ini_files)))
     else:
-        packages = installed_packages
-    if to == 'scm-urls':
-        return [p.scm_url for p in packages]
-    else:
-        return [p.project_name for p in packages]
+        value = os.path.join(SPYNL_DISTRIBUTION.location, 'minimal.ini')
+
+    return value
 
 
-@contextlib.contextmanager
-def package_dir(package_name=None):
-    """Change to this package's directory during this context"""
-    curdir = os.getcwd()
-    try:
-        if package_name is not None:
-            package = get_spynl_package(package_name)
-            if package is not None:
-                os.chdir(package.location)
-        yield
-    finally:
-        os.chdir(curdir)
+# @contextlib.contextmanager
+# def package_dir(package):
+#     """Change to this package's directory during this context"""
+#     curdir = os.getcwd()
+#     try:
+#         os.chdir(package.location)
+#         yield
+#     finally:
+#         os.chdir(curdir)
 
 
-def assert_response_code(response, exp_code):
-    """
-    Make it easy to expect one or more HTTP status codes
-    in a requests library response.
-    """
-    code = response.status_code
-    if isinstance(exp_code, tuple):
-        if not code in exp_code:
-            raise Exit("Code %s is not in %s when testing %s"
-                       % (code, exp_code, response.request.url))
-    else:
-        if not code == exp_code:
-            raise Exit("Code %s was expected to be %s when testing %s "
-                       % (code, exp_code, response.request.url))
+# def assert_response_code(response, exp_code):
+#     """
+#     Make it easy to expect one or more HTTP status codes
+#     in a requests library response.
+#     """
+#     code = response.status_code
+#     if isinstance(exp_code, tuple):
+#         if code not in exp_code:
+#             raise Exit("Code %s is not in %s when testing %s"
+#                        % (code, exp_code, response.request.url))
+#     else:
+#         if not code == exp_code:
+#             raise Exit("Code %s was expected to be %s when testing %s "
+#                        % (code, exp_code, response.request.url))

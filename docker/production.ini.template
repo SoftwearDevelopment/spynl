@@ -1,0 +1,44 @@
+[app:main]
+use = egg:spynl
+spynl.pretty = 1
+
+spynl.ops.build_number = ${SPYNL_BUILD_NR}
+spynl.ops.build_time = ${SPYNL_BUILD_TIME}
+
+spynl.session = Pyramid
+
+[server:main]
+use = egg:gunicorn#main
+host = 0.0.0.0
+port = 6543
+workers = ${WEB_CONCURRENCY}
+timeout = 180
+max_requests = 1000
+
+# see http://pythonpaste.org/deploy/class-paste.deploy.config.PrefixMiddleware.html
+[filter:reverse-proxy]
+use = egg:PasteDeploy#prefix
+prefix = /
+scheme = https
+
+[loggers]
+keys = root
+
+[logger_root]
+level = NOTSET
+handlers = console
+
+[handlers]
+keys = console
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = WARN
+formatter = generic
+
+[formatters]
+keys = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
