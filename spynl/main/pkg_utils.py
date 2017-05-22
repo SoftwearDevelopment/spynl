@@ -7,13 +7,22 @@ import configparser
 from collections import namedtuple
 import subprocess
 
+from pkg_resources import iter_entry_points, get_distribution  # pylint: disable=E0611
+
 from spynl.main.utils import chdir
 from spynl.main.exceptions import SpynlException
 
 
+# mocking some package info pip.get_distributed_packages provides
+Package = namedtuple('Package', ['project_name', 'version', 'location',
+                                 'scm_url'])
+
+
+SPYNL_DISTRIBUTION = get_distribution(__package__.split('.')[0])
+
+
 def read_setup_py(path):
     """return contents of setup.py"""
-    content = ''
     with open('%s/setup.py' % path, 'r') as setup:
         return ''.join(setup.readlines())
 
@@ -29,28 +38,24 @@ def get_spynl_packages(include_scm_urls=False):
     If include_scm_urls is True, this function also looks up the
     SCM Url of each package and stores it as "scm_url".
     """
-    # mocking some package info pip.get_distributed_packages provides
-    Package = namedtuple('Package', ['project_name', 'version', 'location',
-                                     'scm_url'])
-    installed_packages = []
-    # --format json does not return locations :(
-    plist = subprocess.run('pip list -l --format columns',
-                           shell=True, stdout=subprocess.PIPE,
-                           universal_newlines=True)
-    for pinfo in [line for line in plist.stdout.split("\n")[2:]
-                  if line.strip() != ""]:
-        pinfo = pinfo.split()
-        pname = pinfo[0]
-        if len(pinfo) > 2:  # we need a location
-            pversion = pinfo[1]
-            plocation = pinfo[2]
-            purl = None
-            if include_scm_urls:
-                purl = lookup_scm_url(plocation)
-            package = Package(pname, pversion, plocation, purl)
-            if 'spynl.plugins' in read_setup_py(plocation):
-                installed_packages.append(package)
-    return installed_packages
+    packages = {
+        Package(
+            plugin.dist.project_name,
+            plugin.dist.version,
+            plugin.dist.location,
+            lookup_scm_url(plugin.dist.location) if include_scm_urls else None
+
+        ) for plugin in iter_entry_points('spynl.plugins')
+    }
+
+    packages.add(Package(
+        SPYNL_DISTRIBUTION.project_name,
+        SPYNL_DISTRIBUTION.version,
+        SPYNL_DISTRIBUTION.location,
+        lookup_scm_url(SPYNL_DISTRIBUTION.location) if include_scm_urls else None
+    ))
+
+    return packages
 
 
 def get_spynl_package(name, packages=None):
@@ -136,5 +141,5 @@ def get_dev_config():
     config_package = get_config_package()
     if config_package is None:
         return {}
-    config.read('%s/development.ini'  % config_package.location)
+    config.read('%s/development.ini' % config_package.location)
     return config['app:main']
