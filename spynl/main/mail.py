@@ -5,6 +5,7 @@ import os
 
 from pyramid.renderers import render
 from pyramid_mailer import get_mailer
+from pyramid_mailer.message import Attachment
 from pyramid_mailer.message import Message
 
 from jinja2 import Environment, Template, TemplateNotFound, FileSystemLoader
@@ -171,10 +172,12 @@ def send_template_email(request, recipient, template_string=None,
     else:
         html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
     html_body = html_body.replace('\n', '')
-
     text_maker = html2text.HTML2Text()
     text_maker.ignore_images = True
     text_body = text_maker.handle(html_body)
+    html_body = Attachment(data=html_body, transfer_encoding="base64",
+                           content_type="text/html; charset=UTF-8",
+                           disposition='inline')
 
     if not text_body and not html_body:
         str_replacements = '\n'.join(['{}: {}'.format(key, value)

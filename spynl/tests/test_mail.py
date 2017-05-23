@@ -89,11 +89,11 @@ def test_custom_html_template_mail(dummy_request, mailer, template):
                                mailer=mailer, sender='blah@blah.com')
     email = mailer.outbox[0]
     assert email.subject == 'Nic Test'
-    assert "<p>Hey Nic!</p>" in email.html
-    assert "<p>It's me, Nic</p>" in email.html
+    assert "<p>Hey Nic!</p>" in email.html.data
+    assert "<p>It's me, Nic</p>" in email.html.data
     assert "<p><a href={url}>{url}</a></p>"\
-           .format(url='http://spynl.softwearconnect.com') in email.html
-    assert "<!--CUSSSTOM-->" in email.html
+           .format(url='http://spynl.softwearconnect.com') in email.html.data
+    assert "<!--CUSSSTOM-->" in email.html.data
     assert email.sender == 'blah@blah.com'
 
 
@@ -117,7 +117,7 @@ def test_custom_jinja_expressions_template_mail(dummy_request, mailer, template)
                         subject='', mailer=mailer)
     assert mailer.outbox[0].subject == 'EMAIL SUBJECT: replaced subject content'
     assert ('aaa ---replaced content--- bbbaaa ---I is child content--- bbb'
-            'bbb ---100--- aaa') in mailer.outbox[0].html
+            'bbb ---100--- aaa') in mailer.outbox[0].html.data
 
 
 def test_custom_jinja_control_logic_template_mail(dummy_request, mailer, template):
@@ -134,7 +134,7 @@ def test_custom_jinja_control_logic_template_mail(dummy_request, mailer, templat
                         mailer=mailer)
     assert mailer.outbox[0].subject == 'I saw A.'
     for val in ("I:1", "I:2", "I:3"):
-        assert val in mailer.outbox[0].html
+        assert val in mailer.outbox[0].html.data
 
 
 def test_send_template_email_with_string_as_template(dummy_request, mailer):
@@ -195,7 +195,7 @@ def test_send_template_email_when_template_exists(dummy_request, mailer,
                         mailer=mailer)
     assert mailer.outbox[0].subject == 'FIRST EMAIL SUBJECT'
     assert 'aaa ---Some replacement to be replaced.--- bbb' in \
-        mailer.outbox[0].html
+        mailer.outbox[0].html.data
 
 
 
