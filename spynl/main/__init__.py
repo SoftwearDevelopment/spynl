@@ -6,20 +6,12 @@ from pyramid.config import Configurator
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.viewderivers import INGRESS
 
-from spynl.main import (
-    serial,
-    about,
-    plugins,
-    routing,
-    events,
-    endpoints,
+from spynl.main import serial, about, plugins, routing, events, endpoints, \
     session,
-)
-from spynl.main.utils import (
-    renderer_factory,
-    check_origin,
+
+from spynl.main.utils import renderer_factory, check_origin, \
     handle_pre_flight_request,
-)
+
 from spynl.main.exceptions import SpynlException
 from spynl.main.error_views import spynl_error, error400, error500
 from spynl.main.validation import validate_json_schema
