@@ -58,8 +58,8 @@ pip3 install virtualenv
 virtualenv-3.5 venv
 source venv/bin/activate
 
+pip3 install --upgrade setuptools pip
 pip3 install invoke==0.14.0
-pip3 install --upgrade setuptools
 
 pip install -e .
 
