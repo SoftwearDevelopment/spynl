@@ -27,7 +27,7 @@ def read_setup_py(path):
         return ''.join(setup.readlines())
 
 
-def get_spynl_packages(include_scm_urls=False):
+def get_spynl_packages(include_scm_urls=False, include_spynl=True):
     """
     Return the (locally) installed spynl-plugin packages.
     The term 'package' is the preferred term, synonymous with 'distribution':
@@ -48,12 +48,13 @@ def get_spynl_packages(include_scm_urls=False):
         ) for plugin in iter_entry_points('spynl.plugins')
     }
 
-    packages.add(Package(
-        SPYNL_DISTRIBUTION.project_name,
-        SPYNL_DISTRIBUTION.version,
-        SPYNL_DISTRIBUTION.location,
-        lookup_scm_url(SPYNL_DISTRIBUTION.location) if include_scm_urls else None
-    ))
+    if include_spynl:
+        packages.add(Package(
+            SPYNL_DISTRIBUTION.project_name,
+            SPYNL_DISTRIBUTION.version,
+            SPYNL_DISTRIBUTION.location,
+            lookup_scm_url(SPYNL_DISTRIBUTION.location) if include_scm_urls else None
+        ))
 
     return packages
 

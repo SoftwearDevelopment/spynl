@@ -6,7 +6,7 @@ from spynl.main.pkg_utils import get_spynl_package, get_spynl_packages
 
 
 def resolve_packages_param(packages_param, complain_not_installed=True,
-                           to='package-names'):
+                           to='package-names', include_spynl=True):
     """
     Resolve "packages" string parameter (a CSV list) into a list
     of installed package names, or alternatively their SCM url
@@ -15,7 +15,8 @@ def resolve_packages_param(packages_param, complain_not_installed=True,
     The param has the special value "_all" in which case we return
     all installed spynl packages.
     """
-    installed_packages = get_spynl_packages(include_scm_urls=to=='scm-urls')
+    installed_packages = get_spynl_packages(include_scm_urls=to=='scm-urls',
+                                            include_spynl=include_spynl)
     if packages_param != '_all':
         pnames = [pn.strip() for pn in packages_param.split(',')]
         for name in pnames:

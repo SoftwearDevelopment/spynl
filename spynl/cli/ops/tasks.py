@@ -15,7 +15,7 @@ from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
                                   get_config_package, lookup_scm_url,
                                   lookup_scm_commit, get_spynl_packages)
 from spynl.cli.utils import (resolve_packages_param, get_spynl_package,
-                             package_dir, assert_response_code) 
+                             package_dir, assert_response_code)
 from spynl.cli.dev import tasks as dev_tasks
 
 
@@ -57,7 +57,9 @@ def start_build(ctx, packages='_all', revision='', fallbackrevision='',
           "/buildWithParameters?delay=0sec"\
           .format(jscheme=jurl_parts.scheme, juser=jenkins_user,
                   jpw=os.environ['JENKINS_PASSWORD'], jloc=jurl_parts.netloc)
-    installed_packages_urls = resolve_packages_param(packages, to='scm-urls')
+    installed_packages_urls = resolve_packages_param(packages,
+                                                     to='scm-urls',
+                                                     include_spynl=False)
     params = dict(scm_urls=','.join(installed_packages_urls),
                   revision=revision, fallbackrevision=fallbackrevision,
                   spynlbranch=spynlbranch, task=task)
@@ -265,7 +267,7 @@ def smoke_test(ctx, packages="_all", url=None, task='dev'):
 
     for package_name in resolve_packages_param(packages):
         with package_dir(package_name):
-            package = get_spynl_package(package_name) 
+            package = get_spynl_package(package_name)
             if os.path.exists('%s/smoke-test.py' % package.location):
                 print("[spynl ops.smoke_test] Running %s/smoke-test.py ..."
                       % package.location)
