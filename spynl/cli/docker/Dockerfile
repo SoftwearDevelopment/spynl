@@ -36,8 +36,8 @@ ARG BUILD_NR
 ENV SPYNL_BUILD_NR=${BUILD_NR:-"Missing buildnr"}
 
 ARG VERSION=master
-RUN pip3 install git+https://github.com/SoftwearDevelopment/spynl@${VERSION}#egg=spynl[server] && \
-    spynl dev translate
+RUN pip3 install git+https://github.com/SoftwearDevelopment/spynl@${VERSION}#egg=spynl[server]
+RUN spynl dev translate
 
 EXPOSE 6543
 CMD ["./run.sh"]

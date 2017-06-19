@@ -26,7 +26,7 @@ class SpynlTranslationString(object):
     """
     # TODO: should we add __slots__ = ('translation_string')?
     def __init__(self, msgid, default=None, mapping=None, context=None,
-                 domain='spynl.main'):
+                 domain='spynl'):
         """
         Initialize a TranslationString, using the correct domain.
         """

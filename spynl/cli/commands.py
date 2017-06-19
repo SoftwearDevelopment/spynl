@@ -1,5 +1,4 @@
 import urllib
-import sys
 import os
 import subprocess
 import pprint
@@ -11,14 +10,8 @@ import click
 
 from spynl.main.version import __version__ as spynl_version
 from spynl.cli.utils import resolve_packages, check_ini, run_command, exit
-from spynl.main.utils import chdir
 from spynl.main.dateutils import now
-from spynl.main.pkg_utils import (
-    lookup_scm_url,
-    # lookup_scm_commit,
-    # get_spynl_packages,
-    SPYNL_DISTRIBUTION,
-)
+from spynl.main.pkg_utils import lookup_scm_url, SPYNL_DISTRIBUTION
 
 
 @click.group()
@@ -104,25 +97,75 @@ def serve(ini):
 def translate(packages, languages, action):
     """Perform translation tasks."""
 
-    command = sys.executable + ' setup.py '
-    translate = command + '{cmd} -l {lang} '
-
     for package in packages:
+        domain = package.key
+
         os.chdir(package.location)
 
+        for path, dirs, _ in os.walk(package.location):
+            if 'locale' in dirs:
+                locale_path = path
+                output_dir = os.path.join(locale_path, 'locale')
+                output_file = os.path.join(output_dir, 'messages.pot')
+
+                break
+        else:
+            click.echo('Could not find locale folder for {}'
+                       .package.project_name)
+
         if action == 'refresh':
-            run_command(command + 'extract_messages --version ' + spynl_version)
+            run_command(
+                'pybabel extract '
+                '--no-wrap '
+                '--sort-by-file '
+                '--output-file {output_file} '
+                '--project {domain} '
+                '--copyright-holder "Softwear BV" '
+                '--version {version} '
+                '--no-location '
+                '{path}'
+                .format(
+                    output_file=output_file,
+                    domain=domain,
+                    version=spynl_version
+                )
+            )
 
         for lang in languages:
             if action == 'refresh':
+                common = (
+                    '--no-wrap '
+                    '--input-file {output_file} '
+                    '--output-dir {output_dir} '
+                    '--domain {domain} '
+                    '-l {lang}'
+                    .format(
+                        output_dir=output_dir,
+                        output_file=output_file,
+                        domain=domain,
+                        lang=lang,
+                    )
+                )
                 try:
-                    run_command(translate.format(cmd='update_catalog', lang=lang),
-                                check=True)
+                    run_command(
+                        'pybabel update --no-fuzzy-matching ' + common,
+                        check=True
+                    )
                 except subprocess.CalledProcessError:
-                    run_command(translate.format(cmd='init_catalog', lang=lang))
+                    run_command('pybabel init ' + common)
 
             elif action == 'compile':
-                run_command(translate.format(cmd='compile_catalog', lang=lang))
+                run_command(
+                    'pybabel compile '
+                    '--directory {output_dir} '
+                    '--domain {domain} '
+                    '-l {lang}'
+                    .format(
+                        output_dir=output_dir,
+                        domain=domain,
+                        lang=lang,
+                    )
+                )
 
             else:
                 exit('error')
@@ -204,49 +247,39 @@ def jenkins(packages, branch, task, user, password, url, revision, fallback_revi
         click.echo('Jenkins responded with: {0!s}'.format(response))
 
 
-# @ops.command(name='repo-state')
-# @package_option
-# @click.option('-o', '--output-file',
-#               help='Where to write output.',
-#               default=os.path.join(SPYNL_DISTRIBUTION.location, 'repo_state.txt'),
-#               type=click.Path())
-# def repo_state(packages, output_file):
-#     """Collect repo information about spynl and spynl.plugins."""
-#     with open(output_file, 'w') as f:
-#         for package in packages:
-#             origin = lookup_scm_url(package.location)
-#             commit = lookup_scm_commit(package.location)
-
-#             click.echo('{name} has origin {origin} and is at commit {commit}'
-#                        .format(name=package.project_name,
-#                                origin=origin,
-#                                commit=commit))
-
-#             f.write('{} {}\n'.format(origin, commit))
-
-
 @ops.command()
-@task_option
-@click.option('--profile', '-p',
-              help='AWS profile',
-              default='default')
 @click.option('--build-nr', '-b', required=True)
-def deploy(profile, task, build_nr):
+@click.option('--revision', '-r', default='master')
+def build(build_nr, revision):
     """Build a Spynl Docker image and deploy it."""
 
-    with chdir(os.path.join(SPYNL_DISTRIBUTION.location, 'docker')):
-        command = ("docker build -t {project}:{version} "
-                   "--build-arg BUILD_TIME=\"{datetime!s}\" "
-                   "--build-arg BUILD_NR={build_nr} "
-                   "--build-arg DOMAIN={domain} ."
-                   .format(
-                       project=SPYNL_DISTRIBUTION.project_name,
-                       version=spynl_version,
-                       datetime=now(),
-                       build_nr=build_nr,
-                       domain='localhost'
-                   ))
-        run_command(command, check=True)
+    run_command(
+        'docker build -t spynl '
+        '--build-arg BUILD_NR={build_nr} '
+        '--build-arg BUILD_TIME=\"{build_time}\" '
+        '--build-arg VERSION={version} '
+        '{path}'
+        .format(
+            build_nr=build_nr,
+            build_time=now(),
+            version=revision,
+            path=os.path.join(os.path.dirname(__file__), 'docker')
+        )
+    )
+
+    # with chdir(os.path.join(SPYNL_DISTRIBUTION.location, 'docker')):
+    #     command = ("docker build -t {project}:{version} "
+    #                "--build-arg BUILD_TIME=\"{datetime!s}\" "
+    #                "--build-arg BUILD_NR={build_nr} "
+    #                "--build-arg DOMAIN={domain} ."
+    #                .format(
+    #                    project=SPYNL_DISTRIBUTION.project_name,
+    #                    version=spynl_version,
+    #                    datetime=now(),
+    #                    build_nr=build_nr,
+    #                    domain='localhost'
+    #                ))
+    #     run_command(command, check=True)
 
 #     ctx.run('mv repo-state.txt spynl/cli/ops/docker')
 #     # --- put production.ini into the docker build directory
