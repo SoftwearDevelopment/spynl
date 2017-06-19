@@ -49,6 +49,7 @@ def fake_request():
     class FakeRequest:
         path_url = '/fake'
         body = 'fake request'
+        path = ''
 
     return FakeRequest()
 

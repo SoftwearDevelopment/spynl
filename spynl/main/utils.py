@@ -483,7 +483,8 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
 
     send_exception_to_external_monitoring(user_info=user_info,
                                           exc_info=exc_info,
-                                          metadata=metadata)
+                                          metadata=metadata,
+                                          endpoint=request.path)
 
 
 @contextlib.contextmanager
