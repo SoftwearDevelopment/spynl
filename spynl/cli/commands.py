@@ -8,6 +8,7 @@ from pkg_resources import iter_entry_points  # pylint: disable=E0611
 import requests
 import click
 
+import spynl
 from spynl.main.version import __version__ as spynl_version
 from spynl.cli.utils import resolve_packages, check_ini, run_command, exit
 from spynl.main.dateutils import now
@@ -82,6 +83,17 @@ def serve(ini):
     run_command('pserve {} --reload'.format(ini))
 
 
+translation_options = {}
+
+
+def register_translation_options(distribution, package, domain):
+    translation_options[distribution] = package.__path__[0], domain
+
+
+register_translation_options(SPYNL_DISTRIBUTION,
+                             spynl.main, SPYNL_DISTRIBUTION.key)
+
+
 # TODO pick up languages from ini
 @dev.command()
 @package_option
@@ -90,30 +102,24 @@ def serve(ini):
               default=['nl'],
               help='One or more language codes such as "nl". '
                    ' defaults to the setting spynl.languages.')
-@click.option('--action', '-a',
-              type=click.Choice(['compile', 'refresh']),
-              default='compile',
-              help='Compile translations or refresh the translations calalogs.')
-def translate(packages, languages, action):
+@click.option('--refresh', '-r',
+              help='Refresh the translations calalogs.',
+              is_flag=True)
+def translate(packages, languages, refresh):
     """Perform translation tasks."""
 
     for package in packages:
-        domain = package.key
+        if package not in translation_options:
+            click.echo('Could not find locale options for {}'
+                       .format(package.project_name))
+            continue
 
-        os.chdir(package.location)
+        path = translation_options[package][0]
+        output_dir = os.path.join(path, 'locale')
+        pot_file = os.path.join(output_dir, 'messages.pot')
+        domain = translation_options[package][1]
 
-        for path, dirs, _ in os.walk(package.location):
-            if 'locale' in dirs:
-                locale_path = path
-                output_dir = os.path.join(locale_path, 'locale')
-                output_file = os.path.join(output_dir, 'messages.pot')
-
-                break
-        else:
-            click.echo('Could not find locale folder for {}'
-                       .package.project_name)
-
-        if action == 'refresh':
+        if refresh:
             run_command(
                 'pybabel extract '
                 '--no-wrap '
@@ -125,50 +131,48 @@ def translate(packages, languages, action):
                 '--no-location '
                 '{path}'
                 .format(
-                    output_file=output_file,
+                    output_file=pot_file,
                     domain=domain,
-                    version=spynl_version
+                    version=spynl_version,
+                    path=path,
                 )
             )
 
-        for lang in languages:
-            if action == 'refresh':
-                common = (
+            for lang in languages:
+                common_options = (
                     '--no-wrap '
-                    '--input-file {output_file} '
+                    '--input-file {input_file} '
                     '--output-dir {output_dir} '
                     '--domain {domain} '
                     '-l {lang}'
                     .format(
                         output_dir=output_dir,
-                        output_file=output_file,
+                        input_file=pot_file,
                         domain=domain,
                         lang=lang,
                     )
                 )
                 try:
                     run_command(
-                        'pybabel update --no-fuzzy-matching ' + common,
+                        'pybabel update --no-fuzzy-matching ' + common_options,
                         check=True
                     )
+                # If the po file does not exists we initialize.
                 except subprocess.CalledProcessError:
-                    run_command('pybabel init ' + common)
+                    run_command('pybabel init ' + common_options)
 
-            elif action == 'compile':
-                run_command(
-                    'pybabel compile '
-                    '--directory {output_dir} '
-                    '--domain {domain} '
-                    '-l {lang}'
-                    .format(
-                        output_dir=output_dir,
-                        domain=domain,
-                        lang=lang,
-                    )
+        for lang in languages:
+            run_command(
+                'pybabel compile '
+                '--directory {output_dir} '
+                '--domain {domain} '
+                '-l {lang}'
+                .format(
+                    output_dir=output_dir,
+                    domain=domain,
+                    lang=lang,
                 )
-
-            else:
-                exit('error')
+            )
 
 
 @cli.group()
