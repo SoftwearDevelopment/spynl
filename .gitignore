@@ -1,17 +1,12 @@
 *.pyc
-.cache/
-.eggs/
-*.egg-info/
-
-# ignore compiled translations
-*.mo
+__pycache__
+.cache
+.eggs
+*.egg-info
 
 spynl/main/docs/docson/schemas/
 spynl/main/docs/swagger-ui/spynl.json
 doc/_build/
-repo_state.txt
 
 build
 dist
-
-deployment-key*
