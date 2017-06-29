@@ -2,6 +2,7 @@ import urllib
 import os
 import subprocess
 import pprint
+import sys
 
 from pkg_resources import iter_entry_points  # pylint: disable=E0611
 
@@ -12,7 +13,8 @@ import spynl
 from spynl.main.version import __version__ as spynl_version
 from spynl.cli.utils import resolve_packages, check_ini, run_command, exit
 from spynl.main.dateutils import now
-from spynl.main.pkg_utils import lookup_scm_url, SPYNL_DISTRIBUTION
+from spynl.main.pkg_utils import lookup_scm_url, SPYNL_DISTRIBUTION, \
+    get_spynl_packages
 
 
 @click.group()
@@ -53,7 +55,7 @@ task_option = click.option(
 @click.option('--non-interactive', is_flag=True)
 def test(packages, reports, non_interactive):
     """Run tests."""
-    cmd = 'py.test'
+    cmd = sys.executable + ' -m pytest '
 
     for i, pkg in enumerate(packages):
         if reports:
@@ -100,8 +102,8 @@ register_translation_options(SPYNL_DISTRIBUTION,
 @click.option('-l', '--languages',
               multiple=True,
               default=['nl'],
-              help='One or more language codes such as "nl". '
-                   ' defaults to the setting spynl.languages.')
+              help='Comma seperated list of one or more language codes such'
+              'as "nl".')
 @click.option('--refresh', '-r',
               help='Refresh the translations calalogs.',
               is_flag=True)
@@ -180,96 +182,101 @@ def ops():
     """entry point for ops commands."""
 
 
-DEFAULT_PASSWORD_PROMPT = '*****'
-
-
-def retrieve_password_from_environment(ctx, param, value):
-    if value == DEFAULT_PASSWORD_PROMPT:
-        value = os.environ.get('JENKINS_PASSWORD', '')
-    return value
-
-
 @ops.command()
-@package_option
-@task_option
-@click.option('-b', '--branch',
-              help='The branch for the spynl.main',
-              default='master')
-@click.option('--user', '-u',
-              prompt=True,
-              default=lambda: os.environ.get('JENKINS_USER'))
-@click.option('--password', '-p',
-              prompt=True,
-              hide_input=True,
-              default=DEFAULT_PASSWORD_PROMPT,
-              callback=retrieve_password_from_environment)
-@click.option('--url', '-h',
-              prompt=True,
-              default=lambda: os.environ.get('JENKINS_URL'),
-              callback=lambda c, p, v: urllib.parse.urlparse(v))
-@click.option('--revision', '-r',
-              default='master',
-              help='Which branch or tag to checkout for the plugins.')
-@click.option('--fallback-revision', '-f',
-              default='master',
-              help=('Which branch or tag to checkout for the plugins '
-                    'if the specified revision does not exists.'))
-def jenkins(packages, branch, task, user, password, url, revision, fallback_revision):
-    """Trigger a spynl build on Jenkins."""
-
-    # we do not care about the main spynl package here
-    packages.remove(SPYNL_DISTRIBUTION)
-
-    url = ('{scheme}://{user}:{pw}@{loc}/job/Spynl/buildWithParameters?delay=0sec'
-           .format(
-               scheme=url.scheme,
-               user=user,
-               pw=password,
-               loc=url.netloc,
-           ))
-
-    params = dict(
-        scm_urls=','.join([lookup_scm_url(p.location) for p in packages]),
-        spynlbranch=branch,
-        task=task,
-        revision=revision,
-        fallbackrevision=fallback_revision,
-    )
-
-    click.echo(
-        'Starting a build at with the following packages: {plugins!s}.\n'
-        'Calling Jenkins at {url} with the following parameters:\n{params}'
-        .format(
-            url=url,
-            plugins=[p.project_name for p in packages],
-            params=pprint.pformat(params)
-        )
-    )
-
-    if click.confirm('Do you wish to proceed?'):
-        response = requests.post(url, params)
-        click.echo('Jenkins responded with: {0!s}'.format(response))
+def tag():
+    pass
 
 
-@ops.command()
-@click.option('--build-nr', '-b', required=True)
-@click.option('--revision', '-r', default='master')
-def build(build_nr, revision):
-    """Build a Spynl Docker image and deploy it."""
+# DEFAULT_PASSWORD_PROMPT = '*****'
 
-    run_command(
-        'docker build -t spynl '
-        '--build-arg BUILD_NR={build_nr} '
-        '--build-arg BUILD_TIME=\"{build_time}\" '
-        '--build-arg VERSION={version} '
-        '{path}'
-        .format(
-            build_nr=build_nr,
-            build_time=now(),
-            version=revision,
-            path=os.path.join(os.path.dirname(__file__), 'docker')
-        )
-    )
+
+# def retrieve_password_from_environment(ctx, param, value):
+#     if value == DEFAULT_PASSWORD_PROMPT:
+#         value = os.environ.get('JENKINS_PASSWORD', '')
+#     return value
+
+
+# @ops.command()
+# @package_option
+# @task_option
+# @click.option('-b', '--branch',
+#               help='The branch for the spynl.main',
+#               default='master')
+# @click.option('--user', '-u',
+#               prompt=True,
+#               default=lambda: os.environ.get('JENKINS_USER'))
+# @click.option('--password', '-p',
+#               prompt=True,
+#               hide_input=True,
+#               default=DEFAULT_PASSWORD_PROMPT,
+#               callback=retrieve_password_from_environment)
+# @click.option('--url', '-h',
+#               prompt=True,
+#               default=lambda: os.environ.get('JENKINS_URL'),
+#               callback=lambda c, p, v: urllib.parse.urlparse(v))
+# @click.option('--revision', '-r',
+#               default='master',
+#               help='Which branch or tag to checkout for the plugins.')
+# @click.option('--fallback-revision', '-f',
+#               default='master',
+#               help=('Which branch or tag to checkout for the plugins '
+#                     'if the specified revision does not exists.'))
+# def jenkins(packages, branch, task, user, password, url, revision, fallback_revision):
+#     """Trigger a spynl build on Jenkins."""
+
+#     # we do not care about the main spynl package here
+#     packages.remove(SPYNL_DISTRIBUTION)
+
+#     url = ('{scheme}://{user}:{pw}@{loc}/job/Spynl/buildWithParameters?delay=0sec'
+#            .format(
+#                scheme=url.scheme,
+#                user=user,
+#                pw=password,
+#                loc=url.netloc,
+#            ))
+
+#     params = dict(
+#         scm_urls=','.join([lookup_scm_url(p.location) for p in packages]),
+#         spynlbranch=branch,
+#         task=task,
+#         revision=revision,
+#         fallbackrevision=fallback_revision,
+#     )
+
+#     click.echo(
+#         'Starting a build at with the following packages: {plugins!s}.\n'
+#         'Calling Jenkins at {url} with the following parameters:\n{params}'
+#         .format(
+#             url=url,
+#             plugins=[p.project_name for p in packages],
+#             params=pprint.pformat(params)
+#         )
+#     )
+
+#     if click.confirm('Do you wish to proceed?'):
+#         response = requests.post(url, params)
+#         click.echo('Jenkins responded with: {0!s}'.format(response))
+
+
+# @ops.command()
+# @click.option('--build-nr', '-b', required=True)
+# @click.option('--revision', '-r', default='master')
+# def build(build_nr, revision):
+#     """Build a Spynl Docker image and deploy it."""
+
+#     run_command(
+#         'docker build -t spynl '
+#         '--build-arg BUILD_NR={build_nr} '
+#         '--build-arg BUILD_TIME=\"{build_time}\" '
+#         '--build-arg VERSION={version} '
+#         '{path}'
+#         .format(
+#             build_nr=build_nr,
+#             build_time=now(),
+#             version=revision,
+#             path=os.path.join(os.path.dirname(__file__), 'docker')
+#         )
+#     )
 
     # with chdir(os.path.join(SPYNL_DISTRIBUTION.location, 'docker')):
     #     command = ("docker build -t {project}:{version} "

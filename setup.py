@@ -29,14 +29,13 @@ install_requires = [
     'tld',
     'click',
     'babel',
+    'pytest',
+    'pytest-raisesregexp',
+    'pytest-runner',
+    'webtest',
+    'sphinx',
+    'gunicorn'
 ]
-
-extras_require = {
-    'tests': ['pytest', 'pytest-raisesregexp', 'pytest-runner', 'webtest'],
-    'docs': ['sphinx'],
-    'server': ['gunicorn'],
-}
-
 
 def find_version(*file_paths):
     """ get the version string from a file path."""
@@ -66,7 +65,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=install_requires,
-    extras_require=extras_require,
     test_suite="spynl",
     entry_points={
         "paste.app_factory": ["main = spynl.main:main"],

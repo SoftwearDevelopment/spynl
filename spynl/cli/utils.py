@@ -14,8 +14,8 @@ def exit(msg):
 
 
 def run_command(command, **kwargs):
-    print(command)
     return subprocess.run(shlex.split(command), **kwargs)
+
 
 def resolve_packages(ctx, param, value):
     """
@@ -58,30 +58,3 @@ def check_ini(ctx, param, value):
         value = os.path.join(SPYNL_DISTRIBUTION.location, 'minimal.ini')
 
     return value
-
-
-# @contextlib.contextmanager
-# def package_dir(package):
-#     """Change to this package's directory during this context"""
-#     curdir = os.getcwd()
-#     try:
-#         os.chdir(package.location)
-#         yield
-#     finally:
-#         os.chdir(curdir)
-
-
-# def assert_response_code(response, exp_code):
-#     """
-#     Make it easy to expect one or more HTTP status codes
-#     in a requests library response.
-#     """
-#     code = response.status_code
-#     if isinstance(exp_code, tuple):
-#         if code not in exp_code:
-#             raise Exit("Code %s is not in %s when testing %s"
-#                        % (code, exp_code, response.request.url))
-#     else:
-#         if not code == exp_code:
-#             raise Exit("Code %s was expected to be %s when testing %s "
-#                        % (code, exp_code, response.request.url))
