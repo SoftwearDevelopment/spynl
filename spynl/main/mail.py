@@ -175,6 +175,7 @@ def send_template_email(request, recipient, template_string=None,
 
     text_maker = html2text.HTML2Text()
     text_maker.ignore_images = True
+    text_maker.wrap_links = False
     text_body = text_maker.handle(html_body)
 
     text_body = Attachment(data=text_body, transfer_encoding="base64",
