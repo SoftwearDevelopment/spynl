@@ -24,6 +24,7 @@ def settings():
             'pyramid.reload_templates': 'true',
             'spynl.domain': 'localhost',
             'spynl.languages': 'en,nl',
+            'default_locale_name': 'nl',
             'spynl.schemas': 'spynl-schemas',
             'pyramid.debug_notfound': 'false',
             'pyramid.debug_templates': 'true',

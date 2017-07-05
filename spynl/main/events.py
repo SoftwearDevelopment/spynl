@@ -10,7 +10,7 @@ from pyramid.events import (NewRequest, BeforeTraversal, ContextFound,
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 
 from spynl.main.utils import (unify_args, get_logger, is_origin_allowed,
-                              get_settings)
+                              validate_locale)
 from spynl.main.serial.typing import negotiate_request_content_type
 from spynl.main.serial.exceptions import UnsupportedContentTypeException
 
@@ -33,7 +33,7 @@ def prepare_content_types(event):
     # Overwrite the HTML assumption made by the browsers
     # about response type with the Spynl default, views can overwrite
     if request.response.content_type == 'text/html'\
-      and '/static' not in request.path_url:
+            and '/static' not in request.path_url:
         request.response.content_type = 'application/json'
 
 
@@ -84,33 +84,11 @@ def store_accepted_lang(event):
     3. The first of the supported languages (spynl.languages)
     4. We fall back to "en", which is the language the code uses
     """
-    request = event.request
-    settings = get_settings()
 
-    language = None
-
-    def langcode(langstr):
-        """return only up to the first two characters"""
-        if len(langstr) < 2:
-            return langstr
-        return langstr[:2]
-
-    supported_languages = [langcode(lang.strip()) for lang in
-                           settings.get('spynl.languages', '').split(',')]
-    preferred_language = supported_languages[0]
-
-    if 'lang' in request.cookies:
-        language = langcode(request.cookies['lang'])
-    elif request.accept_language:
-        language = langcode(request.accept_language\
-                                   .best_match(supported_languages,
-                                               preferred_language))
-    if language is None or language not in supported_languages:
-        language = preferred_language
-    if language is None:
-        language = 'en'
-    # pylint: disable=W0212
-    request._LOCALE_ = language
+    try:
+        event.request._LOCALE_ = validate_locale(event.request.cookies['lang'])
+    except KeyError:
+        event.request._LOCALE_ = validate_locale(event.request.accept_language)
 
 
 def parse_args_and_log_request(event):

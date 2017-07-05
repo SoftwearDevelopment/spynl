@@ -46,7 +46,7 @@ def test_get_req_dont_parse_body(app):
 
 def test_contenttype_unsupported(app):
     """Raise exception when conttenttype is unsupported."""
-    with pytest.raises_regexp(AppError, 'Unsupported content type'):
+    with pytest.raises_regexp(AppError, 'Content type is niet ondersteund'):
         app.post('/request_echo', 'wtf',
                  headers={'Content-Type': 'text/plain'})
 
