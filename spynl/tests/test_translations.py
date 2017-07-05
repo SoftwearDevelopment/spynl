@@ -16,8 +16,8 @@ def reset_app(app):
 
 
 @pytest.mark.parametrize("method,language", [
-    (None, 'en'),
-    ('cookie', 'nl'),
+    (None, 'nl'),
+    ('cookie', 'en'),
     ('header', 'nl'),
     ('setting', 'nl')
 ])
@@ -25,9 +25,9 @@ def test_response_message(app, app_factory, method, language, settings):
     """Test /about, with various methods of specifying the language"""
     headers = {}
     if method == 'cookie':
-        app.set_cookie('lang', 'nl-nl')
+        app.set_cookie('_LOCALE_', 'en-GB')
     elif method == 'header':
-        headers = {'Accept-language': 'nl'}
+        headers = {'Accept-Language': 'nl'}
     elif method == 'setting':
         settings['spynl.languages'] = 'nl,en'
         app = app_factory(settings)

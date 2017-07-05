@@ -60,6 +60,23 @@ def check_origin(endpoint, info):
     return wrapper_view
 
 
+def validate_locale(locale):
+    """Validate a locale against our supported languages."""
+    supported_languages = [
+        lang.strip() for lang in
+        get_settings().get('spynl.languages', 'en').split(',')
+    ]
+    language = None
+
+    if not locale:
+        return
+
+    # we're only looking for languages here, not dialects.
+    language = str(locale)[:2]
+    if language in supported_languages:
+        return language
+
+
 def handle_pre_flight_request(endpoint, info):
     """
     "pre-flight-request": return custom response with some information on
