@@ -63,7 +63,7 @@ def check_origin(endpoint, info):
 def validate_locale(locale):
     """Validate a locale against our supported languages."""
     supported_languages = [
-        lang.strip() for lang in
+        lang.strip().lower() for lang in
         get_settings().get('spynl.languages', 'en').split(',')
     ]
     language = None
@@ -72,7 +72,7 @@ def validate_locale(locale):
         return
 
     # we're only looking for languages here, not dialects.
-    language = str(locale)[:2]
+    language = str(locale)[:2].lower()
     if language in supported_languages:
         return language
 
