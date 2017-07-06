@@ -172,9 +172,14 @@ def send_template_email(request, recipient, template_string=None,
     else:
         html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
     html_body = html_body.replace('\n', '')
+
     text_maker = html2text.HTML2Text()
     text_maker.ignore_images = True
     text_body = text_maker.handle(html_body)
+
+    text_body = Attachment(data=text_body, transfer_encoding="base64",
+                           content_type="text/plain; charset=UTF-8",
+                           disposition='inline')
     html_body = Attachment(data=html_body, transfer_encoding="base64",
                            content_type="text/html; charset=UTF-8",
                            disposition='inline')

@@ -147,7 +147,7 @@ def test_send_template_email_with_string_as_template(dummy_request, mailer):
     email = mailer.outbox[0]
     assert email.subject == ''
     assert email.sender == 'sender'
-    assert 'Here is some content' in email.body
+    assert 'Here is some content' in email.body.data
 
 
 def test_send_template_email_with_empty_recipient(dummy_request, mailer):
@@ -207,4 +207,4 @@ def test_send_template_email_with_non_ascii_character(dummy_request, mailer,
     send_template_email(dummy_request, 'recipient',
                         template_file=temp_file.strpath,
                         subject='test subject', mailer=mailer, sender='sender')
-    assert 'ⓢⓢⓢ' in mailer.outbox[0].body
+    assert 'ⓢⓢⓢ' in mailer.outbox[0].body.data
