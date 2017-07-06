@@ -79,14 +79,14 @@ def store_accepted_lang(event):
     "en-gb" will be treated as "en".
 
     We look for information about the locale in this order:
-    1. The "_LOCALE_" cookie
+    1. The "lang" cookie
     2. The request header Accept-language
     3. The first of the supported languages (spynl.languages)
     4. We fall back to "en", which is the language the code uses
     """
 
     try:
-        event.request._LOCALE_ = validate_locale(event.request.cookies['_LOCALE_'])
+        event.request._LOCALE_ = validate_locale(event.request.cookies['lang'])
     except KeyError:
         event.request._LOCALE_ = validate_locale(event.request.accept_language)
 

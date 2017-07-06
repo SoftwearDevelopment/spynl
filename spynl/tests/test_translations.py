@@ -25,7 +25,7 @@ def test_response_message(app, app_factory, method, language, settings):
     """Test /about, with various methods of specifying the language"""
     headers = {}
     if method == 'cookie':
-        app.set_cookie('_LOCALE_', 'en-GB')
+        app.set_cookie('lang', 'en-GB')
     elif method == 'header':
         headers = {'Accept-Language': 'nl'}
     elif method == 'setting':
