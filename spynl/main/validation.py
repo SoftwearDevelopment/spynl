@@ -120,8 +120,7 @@ def apply_schema(data, schema_name):
                                "against a schema", data)
             jsonschema.validate(data, schema)
         except (KeyError, jsonschema.ValidationError) as val_exc:
-            raise InvalidResponse(_('invalid-response',
-                                    default=val_exc.message))
+            raise InvalidResponse(val_exc.message)
         except (AttributeError, jsonschema.SchemaError) as sch_exc:
             logger.error("The schema %s is not valid: %s.",
                          schema_path, str(sch_exc))
