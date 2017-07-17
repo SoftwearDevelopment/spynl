@@ -68,7 +68,7 @@ def renderer(values, system):
     try:
         response = dumps(values, r.response.content_type, pretty=pretty)
     except UnsupportedContentTypeException as e:
-        raise UndeterminedContentTypeException(str(e))
+        raise UndeterminedContentTypeException()
 
     return response
 
