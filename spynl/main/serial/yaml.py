@@ -7,20 +7,17 @@ import yaml
 from spynl.main.serial.exceptions import MalformedRequestException
 
 
-expression = re.compile(r'^\s*\-')
+EXPRESSION = re.compile(r'^\s*\-')
 
 
 def sniff(body):
     """Sniff body content, return True if YAML detected"""
-    return bool(re.match(expression, body))
+    return bool(re.match(EXPRESSION, body))
 
 
 def dumps(body, pretty=False):
     """return YAML body as string"""
-    if pretty:
-        return yaml.dump(body, indent=4)
-    else:
-        return yaml.dump(body)
+    return yaml.dump(body, indent=4) if pretty else yaml.dump(body)
 
 
 def loads(body, headers=None):

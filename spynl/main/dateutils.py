@@ -25,7 +25,7 @@ def date_to_str(when):
 
 
 def date_from_str(dstr):
-    """"
+    """
     Parses a string to a date/time and adds current timezone if no timezone
     information is present.
     """

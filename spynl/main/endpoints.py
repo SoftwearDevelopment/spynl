@@ -78,16 +78,16 @@ def request_echo(request):
     return request.args
 
 
-def request_check(r):
+def request_check(request):
     """return a valid json response with meta data from request"""
-    request = {'status': 'ok'}
-    if r.args.get('data'):
-        request['data'] = r.args.get('data')
-    if r.args.get('method'):
-        request['method'] = r.args.get('method')
-    if r.args.get('resource'):
-        request['resource'] = r.args.get('resource')
-    return request
+    response = {'status': 'ok'}
+    if request.args.get('data'):
+        response['data'] = request.args.get('data')
+    if request.args.get('method'):
+        response['method'] = request.args.get('method')
+    if request.args.get('resource'):
+        response['resource'] = request.args.get('resource')
+    return response
 
 
 def main(config):
