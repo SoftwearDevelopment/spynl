@@ -15,12 +15,15 @@ def logger(monkeypatch):
     """
     def patched_get_user_info(*args, **kwargs):
         return dict(ipaddress='127.0.0.1')
-    monkeypatch.setattr('spynl.main.utils.get_user_info', patched_get_user_info)
+    monkeypatch.setattr('spynl.main.utils.get_user_info',
+                        patched_get_user_info)
 
     def patched_monitoring(*args, **kwargs):
         pass
-    monkeypatch.setattr('spynl.main.utils.send_exception_to_external_monitoring',
-                        patched_monitoring)
+    monkeypatch.setattr(
+        'spynl.main.utils.send_exception_to_external_monitoring',
+        patched_monitoring
+    )
 
     class Logger:
         """This logger will set the passed information on self.error_log"""
@@ -67,7 +70,8 @@ def test_log_error_msg(logger, fake_request):
         raise Error
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
-        assert logger.error_log['msg'] == TOP_MSG % ('Error', 'An error has occurred')
+        assert logger.error_log['msg'] == TOP_MSG % ('Error',
+                                                     'An error has occurred')
 
 
 def test_log_error_msg_attribute(logger, fake_request):
@@ -79,7 +83,8 @@ def test_log_error_msg_attribute(logger, fake_request):
         raise Error
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
-        assert logger.error_log['msg'] == TOP_MSG % ('Error', 'An error has occurred')
+        assert logger.error_log['msg'] == TOP_MSG % ('Error',
+                                                     'An error has occurred')
 
 
 def test_log_exception_cause(logger, fake_request):
@@ -165,9 +170,8 @@ def test_log_debug_message(logger, fake_request):
         raise SpynlException
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
-
-        assert (logger.error_log['kwargs']['extra']['meta']['debug_message'] ==
-                SpynlException().debug_message)
+        msg = logger.error_log['kwargs']['extra']['meta']['debug_message']
+        assert msg == SpynlException().debug_message
 
 
 def test_log_custom_message(logger, fake_request):

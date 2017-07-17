@@ -1,15 +1,18 @@
+"""Main tasks for spynl like intall, server etc."""
+
 import os
 from invoke import task
 from invoke.exceptions import Exit
-import pip
 
 from spynl.main.version import __version__ as spynl_version
 from spynl.main.utils import chdir
-from spynl.main.pkg_utils import get_config_package, get_dev_config
+from spynl.main.pkg_utils import get_config_package
 from spynl.cli.utils import resolve_packages_param, package_dir
 
+from .utils import get_or_create_locale_path, languages_from_dev_config
 
-packages_help = 'Affected packages, defaults to all installed.'
+
+PACKAGES_HELP = 'Affected packages, defaults to all installed.'
 
 
 @task(help={'scm-url': 'The URL needed to clone the repo, either for '
@@ -31,46 +34,56 @@ def install(ctx, scm_url=None, developing=True, revision=None,
     Clone a repo, update to revision or fallbackrevision
     and install the Spynl package.
     """
-    ctx.run('pip install --upgrade setuptools')  # make sure we have the latest
-    src_path = src_path or os.environ['VIRTUAL_ENV'] + '/src'
     if scm_url is None:
         raise Exit("[spynl dev.install] Please give the --scm-url parameter.")
+    virtualenv_path = os.environ['VIRTUAL_ENV']
+    ctx.run('pip install --upgrade setuptools')  # make sure we have the latest
     scm_url = scm_url.strip('/')
-    # set scm_type
-    scm_type = (scm_url.endswith('.git') or '.git@' in scm_url) and 'git' or 'hg'
+
+    vcs_is_git = scm_url.endswith('.git') or '.git@' in scm_url
+    vcs = 'git' if vcs_is_git else 'hg'
+    repo_name = scm_url.split('/')[-1]
+    if vcs_is_git and repo_name.endswith('.git'):
+        repo_name = repo_name[:-4]
+
+    src_path = src_path or (virtualenv_path + '/src')
+    repo_path = src_path + '/' + repo_name
+
     if not os.path.exists(src_path):
         os.mkdir(src_path)
-    repo_name = scm_url.split('/')[-1]
-    if scm_type == 'git' and repo_name.endswith('.git'):
-        repo_name = repo_name[:-4]
-    repo_path = src_path + '/' + repo_name
-    if not os.path.exists(repo_path):
-        with chdir(src_path):
-            print("[spynl dev.install] CLONING from %s" % scm_url)
-            ctx.run('%s clone %s %s' % (scm_type, scm_url, repo_name))
+        path = src_path
+        msg = "[spynl dev.install] CLONING from %s" % scm_url
+        cmd = '{} clone {} {}'.format(vcs, scm_url, repo_name)
     else:
-        print("[spynl dev.install] UPDATING {}".format(repo_name))
-        with chdir(repo_path):
-            cmd = scm_type == 'git' and 'git pull' or 'hg pull --update'
-            ctx.run(cmd)
+        msg = "[spynl dev.install] UPDATING {}".format(repo_name)
+        cmd = '{} pull {}'.format(vcs, '' if vcs_is_git else '--update')
+        path = repo_path
+
+    with chdir(path):
+        print(msg)
+        ctx.run(cmd)
+
     with chdir(repo_path):
         if revision is not None:
-            cmd = scm_type == 'git' and 'git checkout' or 'hg update'
             print('[spynl dev.install] Using revision %s ...' % revision)
             # this might not work for mercurial anymore:
+            checkout_cmd = ' checkout' if vcs_is_git else ' update'
             try:
-                ctx.run('{} {}'.format(cmd, revision), warn=True)
-            except:
-                def_branch = 'master' if scm_type == 'git' else 'default'
-                print('[spynl dev.install] Updating to fallback revision %s ...'
-                        % fallbackrevision if fallbackrevision else def_branch)
-                ctx.run('{} {}'.format(cmd, fallbackrevision))
+                ctx.run(vcs + checkout_cmd, warn=True)
+            except Exception:
+                default_branch = 'master' if vcs_is_git else 'default'
+                print(
+                    '[spynl dev.install] Updating to fallback revision %s ...'
+                    % fallbackrevision or default_branch
+                )
+                cmd = vcs + checkout_cmd + ' ' + default_branch
+                ctx.run(cmd)
+
         if os.path.isfile('./setup.sh'):
-            pre_cmd = './setup.sh --pre-install '\
-                        '--virtualenv=%s' % os.environ['VIRTUAL_ENV']
-            if install_deps:
-                pre_cmd += ' --install-dependencies'
-            ctx.run(pre_cmd)
+            pre_cmd = './setup.sh --pre-install --virtualenv={}'
+            pre_cmd += ' --install-dependencies' if install_deps else ''
+            ctx.run(pre_cmd.format(virtualenv_path))
+
         if developing:
             print("[spynl dev.install] DEVELOPING {}".format(repo_name))
             ctx.run('python setup.py develop')
@@ -108,7 +121,7 @@ def serve(ctx, ini_file=None):
 
 
 @task(aliases=('tests',),
-      help={'packages': packages_help,
+      help={'packages': PACKAGES_HELP,
             'called-standalone': 'If False, this task is a pre-task and the '
                                  'user gets to cancel the task flow when '
                                  'tests fail.',
@@ -125,14 +138,19 @@ def test(ctx, packages='_all', called_standalone=True, reports=False):
             if not reports:
                 result = ctx.run('py.test', warn=True)
             else:
-                result = ctx.run('py.test --junit-xml=pytests.xml --cov %s '
-                                 ' --cov-report xml --cov-append' % package_name)
-            if not result.ok and called_standalone is False\
-               and input("[spynl dev.test] Tests failed. Continue anyway? Y/n") not in ('y', 'Y'):
+                result = ctx.run(
+                    'py.test --junit-xml=pytests.xml --cov %s --cov-report xml'
+                    ' --cov-append' % package_name
+                )
+            if result.ok or called_standalone:
+                continue
+
+            question = "[spynl dev.test] Tests failed. Continue anyway? Y/n"
+            if input(question) not in ('y', 'Y'):
                 raise Exit("[spynl dev.test] Aborting at user request.")
 
 
-@task(help={'packages': packages_help,
+@task(help={'packages': PACKAGES_HELP,
             'languages': 'An iterable of language codes (e.g. ("nl",). '
                          'Defaults to the setting "spynl.languages".',
             'action': 'Either "compile" (compile selected languages) or '
@@ -142,48 +160,31 @@ def test(ctx, packages='_all', called_standalone=True, reports=False):
 def translate(ctx, packages='_all', languages=None, action='compile'):
     """
     Ensure that translations files are up-to-date w.r.t. to the code. If action
-    is set to compile (default), this will compile the catalogs for all selected
-    languages. If action is set to refresh, this will extract messages from the
-    source code and update the .po files for the selected languages (will
-    initialize if necessary).
+    is set to compile (default), this will compile the catalogs for all
+    selected languages. If action is set to refresh, this will extract messages
+    from the source code and update the .po files for the selected languages
+    (will initialize if necessary).
     """
-    if action == 'compile':
-        refresh = False
-    elif action == 'refresh':
-        refresh = True
-    else:
+    refresh = dict(compile=False, refresh=True).get(action)
+    if refresh is None:
         raise Exit("[spynl dev.translate] action should be 'compile' or "
                    "'refresh'.")
 
+    languages = languages_from_dev_config() if languages is None else languages
     if languages is None:
-        config = get_dev_config()
-        languages = config.get('spynl.languages', None)
-        if languages is None:
-            raise Exit('[spynl dev.translate] No languages set '
-                       'and also no spynl.languages setting found. '
-                       'Cannot determine which catalogues to work on.')
-    if isinstance(languages, str):
-        languages = [lang for lang in languages.split(',') if lang != '']
+        raise Exit('[spynl dev.translate] No languages set and also no '
+                   'spynl.languages setting found. Cannot determine which '
+                   'catalogues to work on.')
+
     for package_name in resolve_packages_param(packages):
         with package_dir(package_name):
             if package_name == 'spynl':
                 package_name = 'spynl.main'
             print("[spynl dev.translate] Package: %s ..." % package_name)
-            locale_path = ''
-            for path, dirs, files in os.walk(os.path.abspath(os.getcwd())):
-                if 'locale' in dirs:
-                    locale_path = path
-                    break
-            # make locale folder if it doesn't exist already:
-            if locale_path == '':
-                print("[spynl dev.translate] Creating locale folder ...")
-                os.mkdir('locale')
-                locale_path = '.'
-            else:
-                print("[spynl dev.translate] Located locale folder in %s ..."
-                      % locale_path)
-            if refresh:
-                # Extract messages from source:
+
+            locale_path = get_or_create_locale_path()
+
+            if refresh:  # Extract messages from source:
                 ctx.run('python setup.py extract_messages '
                         '--output-file {lp}/locale/messages.pot --no-wrap '
                         '--sort-by-file --input-dirs {lp} --project {project} '
@@ -192,37 +193,39 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
                                 v=spynl_version))
 
             for lang in languages:
-                path2po = '%s/locale/%s/LC_MESSAGES/%s.po' % (locale_path, lang,
+                path2po = '%s/locale/%s/LC_MESSAGES/%s.po' % (locale_path,
+                                                              lang,
                                                               package_name)
-                # update if refresh
-                if refresh:
-                    # init if needed:
-                    if not os.path.exists(path2po):
-                        print('[spynl dev.translate] File %s does not exist.'
-                              ' Initializing.' % path2po)
-                        ctx.run('python setup.py init_catalog -l {lang} '
-                                '-i {lp}/locale/messages.pot '
-                                '-d {lp}/locale -D {pn}'
-                                .format(lp=locale_path, pn=package_name,
-                                        lang=lang))
-                    # update if not init
-                    else:
-                        print('[spynl dev.translate] update the %s catalog'
-                              % lang)
-                        ctx.run('python setup.py update_catalog -N --no-wrap '
-                                '-l {lang} -i {lp}/locale/messages.pot '
-                                '-d {lp}/locale -D {pn}'
-                                .format(lp=locale_path, pn=package_name,
-                                        lang=lang))
-                # if not refresh, compile
-                elif os.path.exists(path2po):
-                    ctx.run('python setup.py compile_catalog --domain {pn} '
-                            '--directory {lp}/locale --domain {pn} '
-                            '--locale {lang}'
-                            .format(lp=locale_path, pn=package_name, lang=lang))
-                else:
-                    print('[spynl dev.translate] File %s does not exist.'
-                          ' Update the package first.' % path2po)
-
+                command = get_translation_command(lang, path2po, refresh)
+                command = command.format(lp=locale_path, pn=package_name,
+                                         lang=lang)
+                if command:
+                    ctx.run(command)
                 print("[spynl dev.translate] Done with language %s." % lang)
                 print("--------------------------------------------------")
+
+
+def get_translation_command(lang, po_file, refresh):
+    """Translate package with the given language."""
+    msg, command = '', ''
+    # update if refresh
+    if refresh and not os.path.exists(po_file):  # init if needed:
+        msg = ('[spynl dev.translate] File %s does not exist.'
+               ' Initializing.' % po_file)
+        command = ('python setup.py init_catalog -l {lang} '
+                   '-i {lp}/locale/messages.pot -d {lp}/locale -D {pn}')
+    elif refresh:  # update if not init
+        msg = '[spynl dev.translate] update the %s catalog' % lang
+        command = ('python setup.py update_catalog -N --no-wrap -l {lang} '
+                   '-i {lp}/locale/messages.pot -d {lp}/locale -D {pn}')
+    # if not refresh, compile
+    elif os.path.exists(po_file):
+        command = ('python setup.py compile_catalog --domain {pn} '
+                   '--directory {lp}/locale --domain {pn} --locale {lang}')
+    else:
+        msg = ('[spynl dev.translate] File %s does not exist.'
+               ' Update the package first.' % po_file)
+
+    if msg:
+        print(msg)
+    return command

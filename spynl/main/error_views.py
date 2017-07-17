@@ -52,7 +52,8 @@ def error400(exc, request):
                 default="Permission to '${permission}' ${context} was denied.",
                 mapping={'context': request.context.__class__.__name__,
                          'permission': exc.result.permission})
-            emeta = exc.result  # TODO: log this as detail info
+            # TODO: log this as detail info
+            # emeta = exc.result
         else:
             message = exc.result.msg
     elif isinstance(exc, HTTPInternalServerError):

@@ -3,9 +3,9 @@
 import os
 import json
 from datetime import datetime, timedelta
-import pytz
 from urllib.parse import urlparse
 
+import pytz
 import requests
 from invoke import task
 from invoke.exceptions import Exit
@@ -14,12 +14,13 @@ from spynl.main.utils import chdir
 from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
                                   get_config_package, lookup_scm_url,
                                   lookup_scm_commit, get_spynl_packages)
-from spynl.cli.utils import (resolve_packages_param, get_spynl_package,
-                             package_dir, assert_response_code)
+from spynl.cli.utils import (resolve_packages_param, package_dir,
+                             assert_response_code)
 from spynl.cli.dev import tasks as dev_tasks
+from spynl.cli.ops.utils import docker_tag_and_push
 
 
-@task(help={'packages': dev_tasks.packages_help,
+@task(help={'packages': dev_tasks.PACKAGES_HELP,
             'revision': 'The code revision (e.g. branch name or tag, '
                         'applicable across repositories). '
                         'Defaults to "master" on git and "default" on '
@@ -37,8 +38,7 @@ from spynl.cli.dev import tasks as dev_tasks
 def start_build(ctx, packages='_all', revision='', fallbackrevision='',
                 spynlbranch='master', task=''):
     """Make a new Spynl build: call the SPYNL job on Jenkins."""
-    config = get_dev_config()
-    jenkins_url = config.get('spynl.ops.jenkins_url', '').strip()
+    jenkins_url = get_dev_config().get('spynl.ops.jenkins_url', '').strip()
     if not jenkins_url:
         raise Exit('[spynl ops.start_build] No spynl.ops.jenkins_url '
                    'setting found! Exiting ...')
@@ -58,7 +58,7 @@ def start_build(ctx, packages='_all', revision='', fallbackrevision='',
           .format(jscheme=jurl_parts.scheme, juser=jenkins_user,
                   jpw=os.environ['JENKINS_PASSWORD'], jloc=jurl_parts.netloc)
     installed_packages_urls = resolve_packages_param(packages,
-                                                     to='scm-urls',
+                                                     resolve_to='scm-urls',
                                                      include_spynl=False)
     params = dict(scm_urls=','.join(installed_packages_urls),
                   revision=revision, fallbackrevision=fallbackrevision,
@@ -76,7 +76,7 @@ def start_build(ctx, packages='_all', revision='', fallbackrevision='',
         print('[spynl ops.start_build] Got response: %s' % response)
 
 
-@task(help={'packages': dev_tasks.packages_help})
+@task(help={'packages': dev_tasks.PACKAGES_HELP})
 def mk_repo_state(ctx, packages='_all'):
     """
     Go through all packages (spynl&spynl-plugins) and collect the commit IDs
@@ -118,9 +118,8 @@ def deploy(ctx, buildnr=None, task=None):
     # --- put repo-state.txt into the docker build directory
     ctx.run('mv repo-state.txt spynl/cli/ops/docker')
     # --- put production.ini into the docker build directory
-    config_package = get_config_package()
     ctx.run('cp %s/production.ini spynl/cli/ops/docker'
-            % config_package.location)
+            % get_config_package().location)
 
     # check ECR configuration
     config = get_dev_config()
@@ -134,65 +133,59 @@ def deploy(ctx, buildnr=None, task=None):
     if task == 'production' and not prod_ecr_uri:
         raise Exit('[spynl ops.deploy] ECR for production is not configured. '
                    'Exiting ...')
-    dev_domain = config.get('spynl.ops.dev_domain', '')
 
     # --- build Docker image
     with chdir('spynl/cli/ops/docker'):
-        result = ctx.run('./build-image.sh %s %s' % (buildnr, dev_domain))
+        cmd = ('./build-image.sh {} {}'
+               .format(buildnr, config.get('spynl.ops.dev_domain', '')))
+        result = ctx.run(cmd)
         if not result:
             raise Exit("[spynl ops.deploy] Building docker image failed: %s"
                        % result.stderr)
         # report the Spynl version from the code we just built
         spynl_version = ctx.run('cat built.spynl.version').stdout.strip()
         ctx.run('rm -f built.spynl.version')  # clean up
-        print('[spynl ops.deploy] Built Spynl version {}'.format(spynl_version))
+        print('[spynl ops.deploy] Built Spynl version {}'
+              .format(spynl_version))
 
     if task == 'production':
-        get_login_cmd = ctx.run('aws ecr --profile %s get-login '
-                                '--region eu-west-1' % prod_ecr_profile)
-        ctx.run(get_login_cmd.stdout.strip())
-        # tag & push image with spynl_version & buildnr as tag
-        ctx.run('docker tag spynl:v{v} {aws_uri}/spynl:v{v}_b{bnr}'
-                .format(v=spynl_version, aws_uri=prod_ecr_uri, bnr=buildnr))
-        ctx.run('docker push {aws_uri}/spynl:v{v}_b{bnr}'
-                .format(v=spynl_version, aws_uri=prod_ecr_uri, bnr=buildnr))
-    else:
-        get_login_cmd = ctx.run('aws ecr --profile %s get-login '
-                                '--region eu-west-1' % dev_ecr_profile)
-        ctx.run(get_login_cmd.stdout.strip())
+        docker_tag_and_push(ctx, prod_ecr_profile, prod_ecr_uri, spynl_version,
+                            build_num=buildnr)
+        ctx.run('docker logout')
+        return None
 
-        ctx.run('docker tag spynl:v{v} {aws_uri}/spynl:v{v}'
-                .format(v=spynl_version, aws_uri=dev_ecr_uri))
-        ctx.run('docker push {aws_uri}/spynl:v{v}'
-                .format(v=spynl_version, aws_uri=dev_ecr_uri))
+    docker_tag_and_push(ctx, dev_ecr_profile, dev_ecr_uri, spynl_version)
 
-        # tag the image for being used in one of our defined Tasks
-        if task:
-            ecr_dev_tasks = [t.strip() for t in config
-                             .get('spynl.ops.ecr.dev_tasks', '')
-                             .split(',')]
-            for t in task.split(","):
-                t = t.strip()
-                if t not in ecr_dev_tasks:
-                    raise Exit("Task: %s not found in %s. Aborting ..."
-                               % (t, ecr_dev_tasks))
-                print("[spynl ops.deploy] Deploying the new image for task "
-                      "%s ..." % t)
-                ctx.run('docker tag spynl:v{v} {aws_uri}/spynl:{task}'
-                        .format(v=spynl_version, aws_uri=dev_ecr_uri, task=t))
-                ctx.run('docker push {aws_uri}/spynl:{task}'
-                        .format(aws_uri=dev_ecr_uri, task=t))
+    if not task:
+        ctx.run('docker logout')
+        return None
 
-                # stop the task (so ECS restarts it and grabs new image)
-                tasks = ctx.run('aws ecs list-tasks --cluster spynl '
-                                '--service-name spynl-%s' % t)
-                for task_id in json.loads(tasks.stdout)['taskArns']:
-                    ctx.run('aws ecs stop-task --cluster spynl --task %s'
-                            % task_id)
+    # tag the image for being used in one of our defined Tasks
+    ecr_dev_tasks = [
+        t.strip()
+        for t in config .get('spynl.ops.ecr.dev_tasks', '').split(',')
+    ]
+    for tsk in task.split(","):
+        tsk = tsk.strip()
+        if tsk not in ecr_dev_tasks:
+            raise Exit("Task: %s not found in %s. Aborting ..."
+                       % (tsk, ecr_dev_tasks))
+        print("[spynl ops.deploy] Deploying the new image for task "
+              "%s ..." % tsk)
+        ctx.run('docker tag spynl:v{v} {aws_uri}/spynl:{task}'
+                .format(v=spynl_version, aws_uri=dev_ecr_uri, task=tsk))
+        ctx.run('docker push {aws_uri}/spynl:{task}'
+                .format(aws_uri=dev_ecr_uri, task=tsk))
+
+        # stop the task (so ECS restarts it and grabs new image)
+        tasks = ctx.run('aws ecs list-tasks --cluster spynl '
+                        '--service-name spynl-%s' % tsk)
+        for task_id in json.loads(tasks.stdout)['taskArns']:
+            ctx.run('aws ecs stop-task --cluster spynl --task %s' % task_id)
     ctx.run('docker logout')
 
 
-@task(help={'packages': dev_tasks.packages_help})
+@task(help={'packages': dev_tasks.PACKAGES_HELP})
 def prepare_docker_run(ctx, packages='_all'):
     """
     Give repos a chance to make configuration changes just when the
@@ -203,7 +196,8 @@ def prepare_docker_run(ctx, packages='_all'):
     If the packages provide a script called "prepare-docker-run.sh",
     this task will run it.
     """
-    print("[spynl ops.prepare_docker_run] Will check packages %s ..." % packages)
+    print("[spynl ops.prepare_docker_run] Will check packages %s ..."
+          % packages)
     for package_name in resolve_packages_param(packages):
         package = get_spynl_package(package_name)
         print("[spynl ops.prepare_docker_run] Checking package %s at %s ..."
@@ -215,7 +209,7 @@ def prepare_docker_run(ctx, packages='_all'):
                 ctx.run('%s/prepare-docker-run.sh' % package.location)
 
 
-@task(help={'packages': dev_tasks.packages_help,
+@task(help={'packages': dev_tasks.PACKAGES_HELP,
             'task': 'Spynl task, used to find out at which URL to test Spynl. '
                     ' One of the tasks specified by the ini-setting '
                     ' "spynl.ops.dev_url". For tasks other than "dev", the '

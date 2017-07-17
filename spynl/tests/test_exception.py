@@ -9,7 +9,6 @@ from spynl.main.exceptions import SpynlException, catch_mapped_exceptions
 @pytest.fixture
 def exception_app(app_factory, settings, monkeypatch):
     """Plugin an endpoint that always raises and echo's back information."""
-
     def patched_plugin_main(config):
         def echo_raise(request):
             """
@@ -45,7 +44,9 @@ class ToBeMapped(Exception):
     """
     dummy exception that stands in for an exception from spynl.models
     """
+
     def __init__(self, extra):
+        super().__init__()
         self.extra = extra
 
     def __str__(self):
@@ -57,6 +58,7 @@ class Mapped(SpynlException):
     """
     corresponding SpynlException exception to ToBeMapped
     """
+
     http_excalate_as = HTTPConflict
 
     def __init__(self):
@@ -111,7 +113,7 @@ def test_spynlexception_debug_message():
 
 def test_exception_mapping(exception_app):
     """
-    Test that the ToBeMapped exception gets mapped to the correct SpynlException
+    ToBeMapped exception should get mapped to the correct SpynlException
     """
     response = exception_app.post_json('/buggy-endpoint', status=409,
                                        expect_errors=True)
