@@ -1,4 +1,5 @@
 import urllib
+import json
 import os
 import subprocess
 import pprint
@@ -14,6 +15,8 @@ from spynl.main.version import __version__ as spynl_version
 from spynl.cli.utils import resolve_packages, check_ini, run_command, exit
 from spynl.main.dateutils import now
 from spynl.main.pkg_utils import lookup_scm_url, SPYNL_DISTRIBUTION, \
+    lookup_scm_commit, \
+    lookup_scm_commit_describe, \
     get_spynl_packages
 
 
@@ -47,6 +50,28 @@ task_option = click.option(
     type=click.Choice(['dev', 'latest']),
     default='dev'
 )
+
+
+@dev.command()
+def versions():
+    """Generate a human readable json file specifiying the versions in use."""
+    versions = {'plugins': {}}
+    for package in get_spynl_packages():
+        info = {
+            package.project_name: {
+                'version': package.version,
+                'commit': lookup_scm_commit(package.location),
+                'scmVersion': lookup_scm_commit_describe(package.location)
+            }
+        }
+        if package == SPYNL_DISTRIBUTION:
+            versions.update(info)
+        else:
+            versions['plugins'].update(info)
+
+    print(versions)
+    with open('versions.json', 'w') as f:
+        print(json.dumps(versions, indent=4), file=f)
 
 
 @dev.command()
