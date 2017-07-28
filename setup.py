@@ -17,7 +17,7 @@ install_requires = ['webob==1.6.3', 'pyramid>=1.7,<1.8', 'invoke>=0.14,<0.15', '
                     'pytz', 'pbkdf2', 'python-dateutil', 'html2text',
                     'beaker', 'waitress', 'gunicorn', 'jsonschema',
                     'sphinx', 'pyyaml', 'tld', 'babel',
-                    'webtest', 'pytest', 'pytest-raisesregexp']
+                    'webtest', 'pytest', 'pytest-raisesregexp', 'dnspython']
 
 
 def find_version(*file_paths):
