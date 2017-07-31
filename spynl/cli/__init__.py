@@ -7,7 +7,7 @@ from spynl.cli.dev import tasks as dev_tasks
 from spynl.cli.ops import tasks as ops_tasks
 
 
-NAMESPACE = Collection()
-NAMESPACE.add_collection(dev_tasks, 'dev')
-NAMESPACE.add_collection(ops_tasks, 'ops')
-PROGRAM = Program(version=spynl_version, namespace=NAMESPACE)
+namespace = Collection()
+namespace.add_collection(dev_tasks, 'dev')
+namespace.add_collection(ops_tasks, 'ops')
+program = Program(version=spynl_version, namespace=namespace)
