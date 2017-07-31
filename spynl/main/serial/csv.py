@@ -14,17 +14,16 @@ from spynl.main.serial import json as spynl_json
 from spynl.main.serial.exceptions import MalformedRequestException
 
 
-def loads(body, headers=None, context=None):
+def loads(body, headers={}, context=None):
     """
     Parse CSV input. Header fields can contain delimiter and quotechar info.
     Search queries need to remain powerful in structure, so we test for JSON
     first (this can go later, when SWPY-295 is done).
     """
     if spynl_json.sniff(body):
-        return spynl_json.loads(body)
+        return spynl_json.loads(body, headers)
 
     # check x-spynl headers
-    headers = {} if headers is None else headers
     delimiter = headers.get('x-spynl-delimiter')
     quotechar = headers.get('x-spynl-quotechar')
     # if not given, sniff delimiter and quotechar

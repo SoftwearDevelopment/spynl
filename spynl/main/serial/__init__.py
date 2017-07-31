@@ -37,10 +37,8 @@ from spynl.main.locale import SpynlTranslationString
 
 def parse_post_data(request):
     """Parse data according to the requests content type."""
-    context = None
-    if hasattr(request, 'context') and request.context:
-        context = request.context
     try:
+        context = hasattr(request, 'context') and request.context or None
         parsed_body = loads(request.text, request.content_type,
                             request.headers, context)
     except MalformedRequestException as e:
@@ -69,7 +67,7 @@ def renderer(values, system):
     pretty = asbool(r.registry.settings.get('spynl.pretty'))
     try:
         response = dumps(values, r.response.content_type, pretty=pretty)
-    except UnsupportedContentTypeException:
+    except UnsupportedContentTypeException as e:
         raise UndeterminedContentTypeException()
 
     return response
@@ -108,7 +106,7 @@ def loads(body, content_type, headers=None, context=None):
     except AttributeError:
         raise DeserializationUnsupportedException(content_type)
 
-    return load(body, headers=headers, context=context)
+    return load(body, headers, context)
 
 
 def main(config):

@@ -1,5 +1,3 @@
-"""Helper functions."""
-
 import os
 import contextlib
 from invoke.exceptions import Exit
@@ -8,32 +6,31 @@ from spynl.main.pkg_utils import get_spynl_package, get_spynl_packages
 
 
 def resolve_packages_param(packages_param, complain_not_installed=True,
-                           resolve_to='package-names', include_spynl=True):
+                           to='package-names', include_spynl=True):
     """
     Resolve "packages" string parameter (a CSV list) into a list
     of installed package names, or alternatively their SCM url
-    (if resolve_to=='scm-urls').
+    (if to=='scm-urls').
 
     The param has the special value "_all" in which case we return
     all installed spynl packages.
     """
-    include_scm_urls = resolve_to == 'scm-urls'
-    installed_packages = get_spynl_packages(include_scm_urls=include_scm_urls,
+    installed_packages = get_spynl_packages(include_scm_urls=to=='scm-urls',
                                             include_spynl=include_spynl)
     if packages_param != '_all':
         pnames = [pn.strip() for pn in packages_param.split(',')]
-        project_names = [p.project_name for p in installed_packages]
         for name in pnames:
-            if (name != 'spynl' and name not in project_names and
-                    complain_not_installed):
-                raise Exit("Package %s is not installed. Exiting ..." % name)
+            if (name != 'spynl'
+                and name not in [p.project_name for p in installed_packages]):
+                if complain_not_installed:
+                    raise Exit("Package %s is not installed. Exiting ..." % name)
         packages = [p for p in installed_packages if p.project_name in pnames]
     else:
         packages = installed_packages
-    if resolve_to == 'scm-urls':
+    if to == 'scm-urls':
         return [p.scm_url for p in packages]
-
-    return [p.project_name for p in packages]
+    else:
+        return [p.project_name for p in packages]
 
 
 @contextlib.contextmanager
@@ -57,7 +54,7 @@ def assert_response_code(response, exp_code):
     """
     code = response.status_code
     if isinstance(exp_code, tuple):
-        if code not in exp_code:
+        if not code in exp_code:
             raise Exit("Code %s is not in %s when testing %s"
                        % (code, exp_code, response.request.url))
     else:

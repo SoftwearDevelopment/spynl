@@ -25,10 +25,8 @@ class SpynlTranslationString(object):
     Because we have a class here that inherits from object, we can add a
     custom encoder for this class to supplement the JSONEncoder.
     """
-
     # TODO: should we add __slots__ = ('translation_string')?
-    def __init__(self, msgid, default=None, mapping=None, context=None,
-                 domain=None):
+    def __init__(self, msgid, default=None, mapping=None, context=None, domain=None):
         """
         Initialize a TranslationString, using the correct domain.
         """
@@ -86,7 +84,6 @@ class SpynlTranslationString(object):
 
 
 class TemplateTranslations(GetTextWrapper):
-    """Templates should know where their translations live(via domain arg)."""
 
     def gettext(self, *args, **kwargs):
         """Implements jinja.ext.i18n `gettext` function."""

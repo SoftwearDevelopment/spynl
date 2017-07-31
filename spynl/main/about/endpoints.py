@@ -4,6 +4,7 @@ This module provides information for version, db, build and enviroment.
 
 import sys
 import os
+from subprocess import check_output
 import pip
 
 from pyramid.renderers import render
@@ -17,8 +18,7 @@ from spynl.main.dateutils import now, date_to_str
 from spynl.main.docs.settings import ini_doc, ini_description
 from spynl.main.docs.documentation import HIDE_TRYITOUT_IDS
 from spynl.main.pkg_utils import (get_spynl_packages,
-                                  lookup_scm_commit,
-                                  lookup_scm_commit_describe)
+                                  lookup_scm_commit, lookup_scm_commit_describe)
 
 
 def hello(request):
@@ -201,9 +201,8 @@ def build(request):
     response['time'] = date_to_str(now())
     response['build_time'] = spynl_settings.get('spynl.ops.build_time', None)
     response['start_time'] = spynl_settings.get('spynl.ops.start_time', None)
+    response['build_number'] = spynl_settings.get('spynl.ops.build_number', None)
     response['spynl_function'] = spynl_settings.get('spynl.ops.function', None)
-    response['build_number'] = spynl_settings.get('spynl.ops.build_number',
-                                                  None)
 
     return response
 

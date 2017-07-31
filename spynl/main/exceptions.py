@@ -32,7 +32,6 @@ class SpynlException(Exception):
                  message='an internal error has occured',
                  developer_message=None,
                  debug_message=None):
-        super().__init__(*self.args)
         # set messages
         self.message = message
         self.developer_message = developer_message

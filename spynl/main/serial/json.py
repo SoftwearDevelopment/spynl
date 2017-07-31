@@ -7,7 +7,7 @@ from spynl.main.serial import objects
 from spynl.main.serial.exceptions import MalformedRequestException
 
 
-def loads(body, context=None, **kwargs):
+def loads(body, headers=None, context=None):
     """Return body as JSON."""
     try:
         decoder = objects.SpynlDecoder(context)
@@ -19,14 +19,13 @@ def loads(body, context=None, **kwargs):
 
 def dumps(body, pretty=False):
     """Return JSON body as string."""
-    indent = 4 if pretty else None
+    indent = None
+    if pretty:
+        indent = 4
 
     class JSONEncoder(json.JSONEncoder):
-        """Custom JSONEncoder to encode the object."""
-
         def default(self, obj):  # pylint: disable=method-hidden
             return objects.encode(obj)
-
     return json.dumps(body, indent=indent, ensure_ascii=False, cls=JSONEncoder)
 
 

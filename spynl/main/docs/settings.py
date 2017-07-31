@@ -43,9 +43,9 @@ ini_doc = [{'name': 'spynl.date_systemtz',
             'info': 'A csv string describing the languages supported by the '
                     'application (other than english). Spynl has no dialect '
                     'support, so only two-letter language codes should be '
-                    'provided. The first language is considered to be the '
-                    'preferred language. This setting can affect which '
-                    'langauge Spynl picks for a request and also how the task '
+                    'provided. The first language is considered to be the preferred '
+                    'language. This setting can affect which langauge '
+                    'Spynl picks for a request and also how the task '
                     '<spynl dev.translate> works.'},
 
            {'name': 'spynl.domain',
@@ -196,3 +196,5 @@ def check_required_settings(config):
                    'please change this for setting: {}'
                    .format(setting['name']))
             raise SpynlException(msg)
+
+

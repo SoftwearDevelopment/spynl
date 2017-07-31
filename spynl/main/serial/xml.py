@@ -8,7 +8,7 @@ from spynl.main.serial import objects
 from spynl.main.serial.exceptions import MalformedRequestException
 
 
-EXPRESSION = re.compile(r'^\s*\<')
+expression = re.compile(r'^\s*\<')
 
 
 def loads(body, headers=None, context=None):
@@ -26,7 +26,7 @@ def loads(body, headers=None, context=None):
 
 def __loads(element, force_dict=False):
     """Recurse through etree node, return parsed structure"""
-    if element and element.get('type') != 'collection' or force_dict:
+    if len(element) and element.get('type') != 'collection' or force_dict:
         # this is a mapping (dict)
         result = {}
         for field in element:
@@ -68,7 +68,7 @@ def __dumps(value):
             result.extend(__dumps(item))
             result.append('</item>')
     elif isinstance(value, dict):
-        for field, val in value.items():
+        for field, value in value.items():
             if field.startswith('$'):  # e.g. query operators
                 field = field[1:]
 
@@ -77,13 +77,13 @@ def __dumps(value):
             start_tag = '<' + (field if alpha else 'item')
             if not alpha:
                 start_tag += ' key="{}"'.format(field)
-            if isinstance(val, (list, tuple)):
+            if isinstance(value, (list, tuple)):
                 start_tag += ' type="collection"'
             start_tag += '>'
             end_tag = '</{}>' if alpha else '</item>'
 
             result.append(start_tag.format(field))
-            result.extend(__dumps(val))
+            result.extend(__dumps(value))
             result.append(end_tag.format(field))
     else:
         if isinstance(value, str):
@@ -95,13 +95,14 @@ def __dumps(value):
 
 def sniff(body):
     """sniff to see if body is xml"""
-    return bool(re.match(EXPRESSION, body))
+    return bool(re.match(expression, body))
 
 
 def prettify_xml(xmlstr):
     """add indentation to create pretty xml"""
     indent = 1
-    for i, item in enumerate(xmlstr):
+    for i in range(len(xmlstr)):
+        item = xmlstr[i]
         if item.startswith('</'):
             indent -= 1
             tag = xmlstr[i - 1].startswith('<')
