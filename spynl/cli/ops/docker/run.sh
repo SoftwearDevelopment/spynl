@@ -23,21 +23,15 @@ sed -e 's#^\(workers =\).*$#\1 '$WEB_CONCURRENCY'#' /production.ini > /productio
 sed -e 's#^\(spynl.ops.function =\).*$#\1 '$SPYNL_FUNCTION'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
 # should we pretty-print?
-if [[ "$SPYNL_ENVIRONMENT" == "" || "$SPYNL_ENVIRONMENT" == "test" ]]; then
+if [[ "$SPYNL_ENVIRONMENT" != "production" ]]; then
     sed -e 's#^\(spynl.pretty =\).*$#\1 1#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 fi
 
-# adapt spynl.domain
-if [[ "$SPYNL_ENVIRONMENT" != "" ]]; then
-    if [[ "$SPYNL_ENVIRONMENT" != "production" ]]; then
-        # add SPYNL_ENVIRONMENT before existing spynl.domain setting
-        sed -e "s/^\(spynl.domain =\)\([[:space:]]\)\(.*$\)/\1 $SPYNL_ENVIRONMENT.\3/" /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
-    fi
-else
-    # use SPYNL_DEV_DOMAIN for spynl.domain
-    sed -e 's#^\(spynl.domain =\).*$#\1 '$SPYNL_DEV_DOMAIN'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
-    SPYNL_ENVIRONMENT='UnknownEnvironment'
+DOMAIN=${SPYNL_DOMAIN-:softwearconnect.com}
+if [ -n "$SPYNL_ENVIRONMENT" ]; then
+    DOMAIN="$SPYNL_ENVIRONMENT"."$DOMAIN"
 fi
+sed -e 's#^\(spynl.domain =\).*$#\1 '$DOMAIN'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
 # set SPYNL_ENVIRONMENT in production.ini
 sed -e 's#^\(spynl.ops.environment =\).*$#\1 '$SPYNL_ENVIRONMENT'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini

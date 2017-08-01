@@ -13,11 +13,6 @@ if [ "$BUILDNR" == "" ]; then
 fi
 echo "[build_spynl_docker_image] Building new SPYNL image for build number $BUILDNR ..."
 
-SPYNL_DEV_DOMAIN=$2
-if [ "$SPYNL_DEV_DOMAIN" == "" ]; then
-  echo "[build_spynl_docker_image] No SPYNL_DEV_DOMAIN argument given - leaving empty, cookies might not work"
-fi
-
 if [ ! -f "repo-state.txt" ]; then
     echo "[build_spynl_docker_image] No file repo-state.txt found. Exiting ..."
     exit
@@ -53,15 +48,11 @@ for line in "${REPOSTATE[@]}"; do
 done
 echo "[build_spynl_docker_image] INSTALL CMD: $INSTALL_CMD"
 sed -e "s|#spynl dev.install --scm-url <some-url>|$INSTALL_CMD|" setup.sh > setup.sh.tmp && mv setup.sh.tmp setup.sh
- 
+
 
 # --- insert build number to spynl's .ini (via setup.sh)
 echo "Inserting $BUILDNR as BUILDNR var in setup.sh ..."
 sed -e 's#^\(BUILDNR=\).*$#\1'$BUILDNR'#' setup.sh > setup.sh.tmp && mv setup.sh.tmp setup.sh
-
-# --- insert the dev domain in run.sh so dev containers will set cookies correctly
-echo "Inserting $SPYNL_DEV_DOMAIN as SPYNL_DEV_DOMAIN var in run.sh ..."
-sed -e 's#^\(SPYNL_DEV_DOMAIN=\).*$#\1'$SPYNL_DEV_DOMAIN'#' run.sh > run.sh.tmp && mv run.sh.tmp run.sh
 
 chmod +x setup.sh
 chmod +x run.sh

@@ -134,11 +134,10 @@ def deploy(ctx, buildnr=None, task=None):
     if task == 'production' and not prod_ecr_uri:
         raise Exit('[spynl ops.deploy] ECR for production is not configured. '
                    'Exiting ...')
-    dev_domain = config.get('spynl.ops.dev_domain', '')
 
     # --- build Docker image
     with chdir('spynl/cli/ops/docker'):
-        result = ctx.run('./build-image.sh %s %s' % (buildnr, dev_domain))
+        result = ctx.run('./build-image.sh %s' % (buildnr))
         if not result:
             raise Exit("[spynl ops.deploy] Building docker image failed: %s"
                        % result.stderr)
