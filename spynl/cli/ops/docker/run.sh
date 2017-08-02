@@ -27,7 +27,7 @@ if [[ "$SPYNL_ENVIRONMENT" != "production" ]]; then
     sed -e 's#^\(spynl.pretty =\).*$#\1 1#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 fi
 
-DOMAIN=${SPYNL_DOMAIN-:softwearconnect.com}
+DOMAIN=${SPYNL_DOMAIN:-softwearconnect.com}
 if [ -n "$SPYNL_ENVIRONMENT" ]; then
     DOMAIN="$SPYNL_ENVIRONMENT"."$DOMAIN"
 fi
