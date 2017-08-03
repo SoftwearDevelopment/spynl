@@ -1,23 +1,21 @@
-import urllib
 import json
 import os
 import subprocess
-import pprint
 import sys
 
-from pkg_resources import iter_entry_points  # pylint: disable=E0611
+from pkg_resources import iter_entry_points
 
-import requests
 import click
 
 import spynl
 from spynl.main.version import __version__ as spynl_version
 from spynl.cli.utils import resolve_packages, check_ini, run_command, exit
-from spynl.main.dateutils import now
-from spynl.main.pkg_utils import lookup_scm_url, SPYNL_DISTRIBUTION, \
-    lookup_scm_commit, \
-    lookup_scm_commit_describe, \
-    get_spynl_packages
+from spynl.main.pkg_utils import (
+    SPYNL_DISTRIBUTION,
+    lookup_scm_commit,
+    lookup_scm_commit_describe,
+    get_spynl_packages,
+)
 
 
 @click.group()
@@ -69,7 +67,7 @@ def versions():
         else:
             versions['plugins'].update(info)
 
-    print(versions)
+    os.chdir(sys.prefix)
     with open('versions.json', 'w') as f:
         print(json.dumps(versions, indent=4), file=f)
 
