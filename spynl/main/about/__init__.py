@@ -7,8 +7,8 @@ from pyramid.settings import asbool
 from pyramid.security import Allow, Authenticated, DENY_ALL
 
 from spynl.main.routing import Resource
-from spynl.main.about.endpoints import (hello, versions, build, environment,
-                                        endpoint_doc, schemas, ini)
+from spynl.main.about.endpoints import (hello, versions, build, endpoint_doc,
+                                        schemas, ini)
 
 
 class AboutResource(Resource):
@@ -53,8 +53,6 @@ def main(config):
                         permission=Authenticated)
     config.add_endpoint(build, 'build', context=AboutResource,
                         permission=NO_PERMISSION_REQUIRED)
-    config.add_endpoint(environment, 'environment', context=AboutResource,
-                        permission=permission)
     config.add_endpoint(endpoint_doc, 'doc', context=AboutResource,
                         permission=Authenticated)  # TODO: deprecate
     config.add_endpoint(endpoint_doc, 'endpoints', context=AboutResource,

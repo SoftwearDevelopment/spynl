@@ -14,11 +14,13 @@ These are the settings that can be added to the ini file under the heading
 and Pyramid Mail configuration should also be put in [app:main], but are not
 listed here.  Spynl will not start if one of the required settings is not
 present in the ini file. <br>
+If a value shows '****', it means the actual value is obfuscated for security.
+<br>
 The pyramid asbool function returns the boolean value True if the case-lowered
 value of string input s is any of t, true, y, on, or 1, otherwise return the
 boolean value False. If s is the value None, return False. If s is already one
 of the boolean values True or False, return it. <br>
-N.B. It is not possible to add comments after the setting,
+N.B. It is not possible to add comments after the setting in the ini file,
 comments should be on their own line.
 '''
 
@@ -149,6 +151,7 @@ ini_doc = [{'name': 'spynl.date_systemtz',
            {'name': 'spynl.sentry.key',
             'plugin': '',
             'required': 'no',
+            'hidden': True,
             'default': '',
             'info': 'The key used to connect to Sentry. Leave empty if '
                     'you are not using Sentry.'},
@@ -162,6 +165,7 @@ ini_doc = [{'name': 'spynl.date_systemtz',
            {'name': 'spynl.newrelic.key',
             'plugin': '',
             'required': 'no',
+            'hidden': True,
             'default': '',
             'info': 'The key used to connect to NewRelic. Leave empty if '
                     'you are not usig NewRelic.'}
@@ -196,5 +200,3 @@ def check_required_settings(config):
                    'please change this for setting: {}'
                    .format(setting['name']))
             raise SpynlException(msg)
-
-
