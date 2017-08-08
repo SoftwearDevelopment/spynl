@@ -24,7 +24,7 @@
 </head>
 <body>
 <h1>Ini Settings Used in Spynl</h1>
-<p>{{description}}</p>
+<p>{{description|safe}}</p>
 <table border="1" style="width:100%">
   <tr>
     <th>Name</th>
@@ -36,7 +36,13 @@
   {% for row in settings %}
   <tr>
     <td>{{row['name']}}</td>
-    <td>{{row['value']}}</td>
+    <td>
+      {% if 'hidden' in row and row['hidden'] %}
+        ****
+      {% else %}
+        {{row['value']}}
+      {% endif %}
+    </td>
     <td>{{row['required']}}</td>
     <td>{{row['default']}}</td>
     <td>{{row['info']}}</td>

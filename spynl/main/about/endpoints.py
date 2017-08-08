@@ -2,10 +2,7 @@
 This module provides information for version, db, build and enviroment.
 """
 
-import sys
 import os
-from subprocess import check_output
-import pip
 
 from pyramid.renderers import render
 from pyramid.httpexceptions import HTTPFound
@@ -203,38 +200,6 @@ def build(request):
     response['start_time'] = spynl_settings.get('spynl.ops.start_time', None)
     response['build_number'] = spynl_settings.get('spynl.ops.build_number', None)
     response['spynl_function'] = spynl_settings.get('spynl.ops.function', None)
-
-    return response
-
-
-def environment(request):
-    """
-    All software packages installed by pip for this instance.
-
-    ---
-    get:
-      tags:
-        - about
-      description: >
-        Requires 'read' permission for the 'about' resource.
-
-        ####Response
-
-        JSON keys | Content Type | Description\n
-        --------- | ------------ | -----------\n
-        status    | string | 'ok' or 'error'\n
-        time      | string | time in format: $setting[spynl.date_format]\n
-        python    | string | Python version\n
-        pip-installed-packages | dict | "name":"version" for each package.\n
-    """
-    response = dict(time=date_to_str(now()))
-    vi = sys.version_info
-    response['python'] = "%s.%s.%s" % (vi.major, vi.minor, vi.micro)
-    response['pip-installed-packages'] = {}
-    installed_packages = pip.get_installed_distributions()
-    for package in [p for p in installed_packages
-                    if not p.key.startswith('spynl')]:
-        response['pip-installed-packages'][package.key] = package.version
 
     return response
 
