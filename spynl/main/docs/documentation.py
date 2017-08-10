@@ -212,13 +212,20 @@ def insert_ini_settings(config, description):
     while match is not None:
         setting_name = match.group('setting_name')
         setting = settings.get(setting_name)
+        setting_doc = get_ini_doc_setting(setting_name)
         if setting is not None:
+            # We don't know if the setting might be sensitive, so
+            # we do nothing:
+            if not setting_doc:
+                return description
+            # hide the value of the setting
+            if setting_doc.get('hidden'):
+                setting = '****'
             description = re.sub(r'\$setting\[' + setting_name + r'\]',
                                  str(setting) + r' (the ' + setting_name +
                                  ' for this Spynl instance)', description)
         else:
             default = None
-            setting_doc = get_ini_doc_setting(setting_name)
             if setting_doc is not None:
                 default = get_ini_doc_setting(setting_name).get('default')
             if default is not None:
