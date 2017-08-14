@@ -152,26 +152,25 @@ def send_template_email(request, recipient, template_string=None,
 
     if template_file is not None:
         try:
-            replacements['content'] = render(template_file, replacements,
-                                             request=request)
+            html_body = render(template_file + '.jinja2', replacements,
+                               request=request)
+            if not subject:
+                subject = render(template_file + '.subject.jinja2',
+                                 replacements, request=request)
+                subject = subject.replace('\n', '')
         except TemplateNotFound:
+            # todo: change message in error:
             raise EmailTemplateNotFound(template_file)
-
-        if not subject:  # update with possible subject defined in template
-            subject = value_from_template(template_file, 'default_subject',
-                                          request, replacements, plugin)
-            replacements.update(subject=subject)
     else:
         replacements['content'] = Template(template_string).render(
             **replacements)
-
-    # Render the base template with the content of the given template
-    base_template = get_settings().get('base_email_template')
-    if base_template is not None:
-        html_body = render(base_template, replacements, request=request)
-    else:
-        html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
-    html_body = html_body.replace('\n', '')
+        # Render the base template with the content of the given template
+        base_template = get_settings().get('base_email_template')
+        if base_template is not None:
+            html_body = render(base_template, replacements, request=request)
+        else:
+            html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
+        html_body = html_body.replace('\n', '')
 
     text_maker = html2text.HTML2Text()
     text_maker.ignore_images = True
@@ -199,24 +198,3 @@ def send_template_email(request, recipient, template_string=None,
     return _sendmail(request, recipient, subject, text_body, html_body,
                      fail_silently=fail_silently, mailer=mailer,
                      attachments=attachments, sender=sender, reply_to=reply_to)
-
-
-def value_from_template(template_file, var, request, replacements,
-                        plugin=None):
-    """
-    Return the value of given <var> defined inside the <template_file>.
-
-    Set the static_url filter for templates to construct urls for static files.
-    If plugin was given, install plugin's translations to the environment.
-    """
-    path, filename = os.path.split(template_file)
-    env = Environment(loader=FileSystemLoader(path),
-                      extensions=['jinja2.ext.i18n'])
-    env.filters['static_url'] = request.static_url
-    if plugin is not None:
-        translations = TemplateTranslations(plugin)
-        env.install_gettext_translations(translations)
-
-    template = env.get_template(filename)
-    template_module = template.make_module(vars=replacements)
-    return getattr(template_module, var, '')
