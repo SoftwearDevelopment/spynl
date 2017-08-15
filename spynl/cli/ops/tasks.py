@@ -1,7 +1,6 @@
 """Tasks for operations around building and deploying Spynl"""
 
 import os
-import json
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
@@ -10,6 +9,7 @@ import requests
 from invoke import task
 from invoke.exceptions import Exit
 
+from spynl.main.version import __version__ as SPYNL_VERSION
 from spynl.main.utils import chdir
 from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
                                   get_config_package, lookup_scm_url,
@@ -17,7 +17,8 @@ from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
 from spynl.cli.utils import (resolve_packages_param, package_dir,
                              assert_response_code)
 from spynl.cli.dev import tasks as dev_tasks
-from spynl.cli.ops.utils import docker_tag_and_push
+from spynl.cli.ops.utils import (validate_tasks, trigger_aws_ecr_tasks,
+                                 get_ecr_profile_and_uri)
 
 
 @task(help={'packages': dev_tasks.PACKAGES_HELP,
@@ -109,9 +110,25 @@ def mk_repo_state(ctx, packages='_all'):
                     'to the tag. With the latter, the image will be pushed '
                     'to the development AWS ECR. It will be tagged with the '
                     'task name and the task in the AWS ECS will be restarted, '
-                    'so the new image will be live.'})
-def deploy(ctx, buildnr=None, task=None):
+                    'so the new image will be live.',
+            'rollback': 'Rollback to the last successful image of the given'
+                        ' task(environment).'})
+def deploy(ctx, buildnr=None, task=None, rollback=False):
     """Build a Spynl Docker image and deploy it."""
+    ecr_profile, ecr_uri = get_ecr_profile_and_uri(task)
+    get_login_cmd = ctx.run('aws ecr --profile %s get-login '
+                            '--region eu-west-1' % ecr_profile)
+    ctx.run(get_login_cmd.stdout.strip())
+
+    if rollback:
+        # push the latest successful image to AWS for the given task
+        aws_image = '{}/spynl:{}'.format(ecr_uri, task)
+        ctx.run('docker tag spynl:{}_success {}'.format(task, aws_image))
+        ctx.run('docker push {}'.format(aws_image))
+        trigger_aws_ecr_tasks(ctx, task)
+        ctx.run('docker logout {}'.format(ecr_uri))
+        return
+
     # --- make sure we have repostate.txt
     if not os.path.exists('repo-state.txt'):
         mk_repo_state(ctx)
@@ -121,66 +138,47 @@ def deploy(ctx, buildnr=None, task=None):
     ctx.run('cp %s/production.ini spynl/cli/ops/docker'
             % get_config_package().location)
 
-    # check ECR configuration
-    config = get_dev_config()
-    dev_ecr_profile, dev_ecr_uri =\
-        config.get('spynl.ops.ecr.dev_url', '').split('@')
-    if task != 'production' and not dev_ecr_uri:
-        raise Exit('[spynl ops.deploy] ECR for development is not configured. '
-                   'Exiting ...')
-    prod_ecr_profile, prod_ecr_uri =\
-        config.get('spynl.ops.ecr.prod_url', '').split('@')
-    if task == 'production' and not prod_ecr_uri:
-        raise Exit('[spynl ops.deploy] ECR for production is not configured. '
-                   'Exiting ...')
-
     # --- build Docker image
     with chdir('spynl/cli/ops/docker'):
         result = ctx.run('./build-image.sh %s' % (buildnr))
         if not result:
+            ctx.run('docker logout {}'.format(ecr_uri))
             raise Exit("[spynl ops.deploy] Building docker image failed: %s"
                        % result.stderr)
         # report the Spynl version from the code we just built
         spynl_version = ctx.run('cat built.spynl.version').stdout.strip()
         ctx.run('rm -f built.spynl.version')  # clean up
-        print('[spynl ops.deploy] Built Spynl version {}'
-              .format(spynl_version))
+        print('[spynl ops.deploy] Built Spynl version ', spynl_version)
+
+    version_tag = 'v' + str(spynl_version)
+    spynl_image = 'spynl:' + version_tag
+    aws_image = ecr_uri + '/spynl:{tag}'
 
     if task == 'production':
-        docker_tag_and_push(ctx, prod_ecr_profile, prod_ecr_uri, spynl_version,
-                            build_num=buildnr)
-        ctx.run('docker logout')
-        return None
-
-    docker_tag_and_push(ctx, dev_ecr_profile, dev_ecr_uri, spynl_version)
+        tag = version_tag + '_b' + buildnr
+        new_image = aws_image.format(tag=tag)
+        ctx.run('docker tag {} {}'.format(spynl_image, new_image))
+        ctx.run('docker push {}'.format(new_image))
+        ctx.run('docker logout {}'.format(ecr_uri))
+        return
+    else:
+        new_image = aws_image.format(tag=version_tag)
+        ctx.run('docker tag {} {}'.format(spynl_image, new_image))
+        ctx.run('docker push {}'.format(new_image))
 
     if not task:
-        ctx.run('docker logout')
-        return None
+        ctx.run('docker logout {}'.format(ecr_uri))
+        return
 
     # tag the image for being used in one of our defined Tasks
-    ecr_dev_tasks = [
-        t.strip()
-        for t in config .get('spynl.ops.ecr.dev_tasks', '').split(',')
-    ]
-    for tsk in task.split(","):
-        tsk = tsk.strip()
-        if tsk not in ecr_dev_tasks:
-            raise Exit("Task: %s not found in %s. Aborting ..."
-                       % (tsk, ecr_dev_tasks))
-        print("[spynl ops.deploy] Deploying the new image for task "
-              "%s ..." % tsk)
-        ctx.run('docker tag spynl:v{v} {aws_uri}/spynl:{task}'
-                .format(v=spynl_version, aws_uri=dev_ecr_uri, task=tsk))
-        ctx.run('docker push {aws_uri}/spynl:{task}'
-                .format(aws_uri=dev_ecr_uri, task=tsk))
-
-        # stop the task (so ECS restarts it and grabs new image)
-        tasks = ctx.run('aws ecs list-tasks --cluster spynl '
-                        '--service-name spynl-%s' % tsk)
-        for task_id in json.loads(tasks.stdout)['taskArns']:
-            ctx.run('aws ecs stop-task --cluster spynl --task %s' % task_id)
-    ctx.run('docker logout')
+    tasks = task.split(',')
+    validate_tasks(*tasks)
+    for tsk in tasks:
+        new_image = aws_image.format(tag=tsk)
+        ctx.run('docker tag {} {}'.format(spynl_image, new_image))
+        ctx.run('docker push {}'.format(new_image))
+    trigger_aws_ecr_tasks(ctx, *tasks)
+    ctx.run('docker logout {}'.format(ecr_uri))
 
 
 @task(help={'packages': dev_tasks.PACKAGES_HELP})
@@ -265,5 +263,9 @@ def smoke_test(ctx, packages="_all", url=None, task='dev'):
                       % package.location)
                 ctx.run('python %s/smoke-test.py --spynl-url %s'
                         % (package.location, spynl_url))
+
+    # smoke tests succedded so tag spynl image as successful
+    ctx.run('docker tag spynl:v{} spynl:{}_success'
+            .format(SPYNL_VERSION, task))
 
     print('[spynl ops.smoke_test] Spynl presence checked successfully!')
