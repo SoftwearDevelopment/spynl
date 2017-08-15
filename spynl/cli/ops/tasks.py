@@ -110,13 +110,25 @@ def mk_repo_state(ctx, packages='_all'):
                     'to the tag. With the latter, the image will be pushed '
                     'to the development AWS ECR. It will be tagged with the '
                     'task name and the task in the AWS ECS will be restarted, '
-                    'so the new image will be live.'})
-def deploy(ctx, buildnr=None, task=None):
+                    'so the new image will be live.',
+            'rollback': 'Rollback to the last successful image of the given'
+                        ' task(environment).'})
+def deploy(ctx, buildnr=None, task=None, rollback=False):
     """Build a Spynl Docker image and deploy it."""
     ecr_profile, ecr_uri = get_ecr_profile_and_uri(task)
     get_login_cmd = ctx.run('aws ecr --profile %s get-login '
                             '--region eu-west-1' % ecr_profile)
     ctx.run(get_login_cmd.stdout.strip())
+
+    if rollback:
+        # push the latest successful image to AWS for the given task
+        aws_image = '{}/spynl:{}'.format(ecr_uri, task)
+        ctx.run('docker tag spynl:{}_success {}'.format(task, aws_image))
+        ctx.run('docker push {}'.format(aws_image))
+        trigger_aws_ecr_tasks(ctx, task)
+        ctx.run('docker logout {}'.format(ecr_uri))
+        return
+
     # --- make sure we have repostate.txt
     if not os.path.exists('repo-state.txt'):
         mk_repo_state(ctx)

@@ -36,10 +36,21 @@ node {
 
     // Run smoke test to see if Spynl actually arrived
     stage('Smoke Tests') {
-      if (task != "production" ){
-        sleep time:90, unit:'SECONDS'
-        checkout scm
-        sh "source venv/bin/activate && spynl ops.smoke_test --task $task"
+      try {
+        if (task != "production" ){
+          sleep time:90, unit:'SECONDS'
+          checkout scm
+          sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision"
+          sh "source venv/bin/activate && spynl ops.smoke_test --task $task"
+        }
+      } catch (e) {  // Rollback to latest successful spynl image
+        try {
+            sh "source venv/bin/activate && spynl ops.deploy --task $task --rollback"
+        } catch(rollback_error) {
+            slackNotify("Rollback failed, <$task> is down")
+            throw rollback_error
+        }
+        throw e  // rollback succeeded, throw the error from smoke tests
       }
     }
 
