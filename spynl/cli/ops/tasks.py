@@ -9,6 +9,7 @@ import requests
 from invoke import task
 from invoke.exceptions import Exit
 
+from spynl.main.version import __version__ as SPYNL_VERSION
 from spynl.main.utils import chdir
 from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
                                   get_config_package, lookup_scm_url,
@@ -250,5 +251,9 @@ def smoke_test(ctx, packages="_all", url=None, task='dev'):
                       % package.location)
                 ctx.run('python %s/smoke-test.py --spynl-url %s'
                         % (package.location, spynl_url))
+
+    # smoke tests succedded so tag spynl image as successful
+    ctx.run('docker tag spynl:v{} spynl:{}_success'
+            .format(SPYNL_VERSION, task))
 
     print('[spynl ops.smoke_test] Spynl presence checked successfully!')
