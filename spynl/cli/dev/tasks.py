@@ -66,9 +66,9 @@ def install(ctx, scm_url=None, developing=True, revision=None,
         if revision is not None:
             print('[spynl dev.install] Using revision %s ...' % revision)
             # this might not work for mercurial anymore:
-            checkout_cmd = ' checkout' if vcs_is_git else ' update'
+            checkout_cmd = ' checkout ' if vcs_is_git else ' update '
             try:
-                ctx.run(vcs + checkout_cmd, warn=True)
+                ctx.run(vcs + checkout_cmd + revision, warn=True)
             except Exception:
                 default_branch = 'master' if vcs_is_git else 'default'
                 print(
