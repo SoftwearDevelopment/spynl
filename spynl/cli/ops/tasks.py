@@ -129,7 +129,7 @@ def deploy(ctx, buildnr=None, task=None):
     with chdir('spynl/cli/ops/docker'):
         result = ctx.run('./build-image.sh %s' % (buildnr))
         if not result:
-            ctx.run('docker logout')
+            ctx.run('docker logout {}'.format(ecr_uri))
             raise Exit("[spynl ops.deploy] Building docker image failed: %s"
                        % result.stderr)
         # report the Spynl version from the code we just built
@@ -146,7 +146,7 @@ def deploy(ctx, buildnr=None, task=None):
         new_image = aws_image.format(tag=tag)
         ctx.run('docker tag {} {}'.format(spynl_image, new_image))
         ctx.run('docker push {}'.format(new_image))
-        ctx.run('docker logout')
+        ctx.run('docker logout {}'.format(ecr_uri))
         return
     else:
         new_image = aws_image.format(tag=version_tag)
@@ -154,7 +154,7 @@ def deploy(ctx, buildnr=None, task=None):
         ctx.run('docker push {}'.format(new_image))
 
     if not task:
-        ctx.run('docker logout')
+        ctx.run('docker logout {}'.format(ecr_uri))
         return
 
     # tag the image for being used in one of our defined Tasks
@@ -165,7 +165,7 @@ def deploy(ctx, buildnr=None, task=None):
         ctx.run('docker tag {} {}'.format(spynl_image, new_image))
         ctx.run('docker push {}'.format(new_image))
     trigger_aws_ecr_tasks(ctx, *tasks)
-    ctx.run('docker logout')
+    ctx.run('docker logout {}'.format(ecr_uri))
 
 
 @task(help={'packages': dev_tasks.PACKAGES_HELP})
