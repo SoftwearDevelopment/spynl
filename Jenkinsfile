@@ -14,7 +14,11 @@ node {
     stage('Unit Tests') {
       sh 'rm -rf repo-state.txt venv'
       checkout scm
-      sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -m && spynl/cli/ops/run-unit-tests.sh"
+      sh """
+          spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision -m && \\
+          source venv/bin/activate && pip install coverage pylint pytest-cov && mkdir -p pylint-results && \\
+          spynl dev.test --reports
+      """
       archive 'repo-state.txt'                              // for history
       stash name:'repo-state', includes:'**/repo-state.txt' // for using it again later in this build
       junit 'venv/**/pytests.xml'
