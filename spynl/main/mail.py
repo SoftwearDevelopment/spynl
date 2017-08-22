@@ -115,7 +115,7 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
 
 
 def send_template_email(request, recipient, template_string=None,
-                        template_file=None, plugin=None, replacements={},
+                        template_file=None, replacements={},
                         subject='', fail_silently=True, mailer=None,
                         attachments=None, sender=None, reply_to=None):
     """
@@ -146,10 +146,6 @@ def send_template_email(request, recipient, template_string=None,
     if subject:
         replacements['subject'] = subject
 
-    for key, value in replacements.items():
-        if isinstance(value, SpynlTranslationString):
-            replacements[key] = value.translate()
-
     if template_file is not None:
         try:
             html_body = render(template_file + '.jinja2', replacements,
@@ -170,11 +166,14 @@ def send_template_email(request, recipient, template_string=None,
             html_body = render(base_template, replacements, request=request)
         else:
             html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
-        html_body = html_body.replace('\n', '')
+
+    html_body = html_body.replace('\n', '')
 
     text_maker = html2text.HTML2Text()
     text_maker.ignore_images = True
+    text_maker.ignore_tables = True
     text_maker.wrap_links = False
+    text_maker.body_width = 0
     text_body = text_maker.handle(html_body)
 
     text_body = Attachment(data=text_body, transfer_encoding="base64",

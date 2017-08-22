@@ -24,7 +24,7 @@ from spynl.main.exceptions import EmailTemplateNotFound, EmailRecipientNotGiven
 def config():
     configurator = testing.setUp(settings={})
     configurator.include('pyramid_jinja2')
-    configurator.add_jinja2_renderer('.txt')
+    configurator.add_jinja2_renderer('.jinja2')
     yield configurator
     testing.tearDown()
 
@@ -41,9 +41,16 @@ def config2(settings):
 @pytest.fixture
 def template(tmpdir):
     """Create a temporary template file for tests to use."""
-    file_ = tmpdir.mkdir('template').join(uuid4().hex + '.jinja2')
-    yield file_.strpath
-    os.remove(file_.strpath)
+    name = uuid4().hex
+    folder = tmpdir.mkdir('template')
+    file_ = folder.join(name + '.jinja2')
+    subject_ = folder.join(name + '.subject.jinja2')
+    yield (file_.strpath, subject_.strpath)
+    try:
+        os.remove(file_.strpath)
+        os.remove(subject_.strpath)
+    except FileNotFoundError:
+        pass
 
 
 @pytest.fixture
@@ -79,13 +86,16 @@ def test_missing_recipient(dummy_request, mailer):
 
 def test_custom_html_template_mail(dummy_request, mailer, template):
     """The custom template is correctly used."""
-    with open(template, 'w') as fob:
-        fob.write("""{{% set default_subject = "Nic Test" %}}<!--CUSSSTOM-->
+    with open(template[0], 'w') as fob:
+        fob.write('''<!--CUSSSTOM-->
                      <p>Hey Nic!</p><p>It's me, Nic</p>
-                     <p><a href={url}>{url}</a></p>""".format(
+                     <p><a href={url}>{url}</a></p>'''.format(
                          url='http://spynl.softwearconnect.com'))
+    with open(template[1], 'w') as fob2:
+        fob2.write('{{"Nic Test"}}')
     assert send_template_email(dummy_request, 'nicolas@softwear',
-                               template_file=template, replacements={},
+                               template_file=template[0].replace('.jinja2', ''),
+                               replacements={},
                                mailer=mailer, sender='blah@blah.com')
     email = mailer.outbox[0]
     assert email.subject == 'Nic Test'
@@ -106,14 +116,15 @@ def test_custom_jinja_expressions_template_mail(dummy_request, mailer, template)
             'child': 'I is child content'
         }
     }
-    with open(template, 'w') as fob:
-        fob.write(
-            '{% set default_subject = "EMAIL SUBJECT: " + subject_content %}\n')
+    with open(template[0], 'w') as fob:
         fob.write('aaa ---{{content}}--- bbb')
         fob.write('aaa ---{{nested_content["child"]}}--- bbb')
         fob.write('bbb ---{{50 + 50}}--- aaa')
+    with open(template[1], 'w') as fob:
+        fob.write('{{ "EMAIL SUBJECT: " + subject_content }}\n')
     send_template_email(dummy_request, 'test_recipient_1',
-                        template_file=template, replacements=replacements,
+                        template_file=template[0].replace('.jinja2', ''),
+                        replacements=replacements,
                         subject='', mailer=mailer)
     assert mailer.outbox[0].subject == 'EMAIL SUBJECT: replaced subject content'
     assert ('aaa ---replaced content--- bbbaaa ---I is child content--- bbb'
@@ -123,14 +134,14 @@ def test_custom_jinja_expressions_template_mail(dummy_request, mailer, template)
 def test_custom_jinja_control_logic_template_mail(dummy_request, mailer, template):
     """Jinja control logic is handled in subject and body"""
     replacements = dict(a=True, b=[1, 2, 3])
-    with open(template, 'w') as fob:
+    with open(template[0], 'w') as fob:
         fob.write(
-            '''{% set default_subject = "I saw A." %}
-               {% if a %}\nI saw A.\n{% else %}\nI did not see A.\n{% endif %}
+            '''{% if a %}\nI saw A.\n{% else %}\nI did not see A.\n{% endif %}
                {% for i in b %}\nI:{{i}}\n {% endfor %}''')
-
+    with open(template[1], 'w') as fob:
+        fob.write('{{"I saw A."}}')
     send_template_email(dummy_request, 'test_recipient_1',
-                        template_file=template, replacements=replacements,
+                        template_file=template[0].replace('.jinja2', ''), replacements=replacements,
                         mailer=mailer)
     assert mailer.outbox[0].subject == 'I saw A.'
     for val in ("I:1", "I:2", "I:3"):
@@ -165,11 +176,14 @@ def test_send_template_email_with_none_recipient(dummy_request, mailer):
 def test_send_template_email_with_empty_subject(dummy_request, mailer,
                                                 template):
     """Subject has to be given explicitly."""
-    with open(template, 'w') as fob:
+    with open(template[0], 'w') as fob:
         fob.write('\n')
         fob.write('test body')
+    with open(template[1], 'w') as fob:
+        fob.write('\n')
     send_template_email(dummy_request, 'test_recipient',
-                        template_file=template, replacements={}, mailer=mailer)
+                        template_file=template[0].replace('.jinja2', ''),
+                        replacements={}, mailer=mailer)
     assert mailer.outbox[0].subject == ''
 
 
@@ -177,7 +191,7 @@ def test_send_template_email_when_template_doesnt_exist(dummy_request, mailer):
     """When no template is found, default one should be used."""
     with pytest.raises(EmailTemplateNotFound):
         send_template_email(dummy_request, 'test_recipient',
-                            template_file='/random/template/path/file.txt',
+                            template_file='/random/template/path/file',
                             replacements={}, mailer=mailer)
     assert mailer.outbox == []
 
@@ -185,12 +199,13 @@ def test_send_template_email_when_template_doesnt_exist(dummy_request, mailer):
 def test_send_template_email_when_template_exists(dummy_request, mailer,
                                                   template):
     """Ensure that the existent template will be used instead of default."""
-    with open(template, 'w') as fob:
-        fob.write('{% set default_subject = "FIRST EMAIL SUBJECT" %}\n')
+    with open(template[0], 'w') as fob:
         fob.write('aaa ---{{extra_content}}--- bbb')
+    with open(template[1], 'w') as fob:
+        fob.write('{{"FIRST EMAIL SUBJECT" }}\n')
     replacements = {'extra_content': 'Some replacement to be replaced.'}
     send_template_email(dummy_request, 'test_recipient_1',
-                        template_file=template,
+                        template_file=template[0].replace('.jinja2', ''),
                         replacements=replacements,
                         mailer=mailer)
     assert mailer.outbox[0].subject == 'FIRST EMAIL SUBJECT'
@@ -202,9 +217,12 @@ def test_send_template_email_when_template_exists(dummy_request, mailer,
 def test_send_template_email_with_non_ascii_character(dummy_request, mailer,
                                                       tmpdir):
     """Non ascii characters should be encoded to UTF-8."""
-    temp_file = tmpdir.mkdir('sub').join('my_template.jinja2')
+    folder = tmpdir.mkdir('sub')
+    temp_file = folder.join('my_template.jinja2')
+    temp_subject = folder.join('my_template.subject.jinja2')
     temp_file.write("ⓢⓢⓢ".encode(), mode='wb')
+    temp_subject.write("{{ 'subject' }}", mode='w')
     send_template_email(dummy_request, 'recipient',
-                        template_file=temp_file.strpath,
+                        template_file=temp_file.strpath.replace('.jinja2', ''),
                         subject='test subject', mailer=mailer, sender='sender')
     assert 'ⓢⓢⓢ' in mailer.outbox[0].body.data
