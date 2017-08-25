@@ -116,8 +116,10 @@ def mk_repo_state(ctx, packages='_all'):
 def deploy(ctx, buildnr=None, task=None, rollback=False):
     """Build a Spynl Docker image and deploy it."""
     ecr_profile, ecr_uri = get_ecr_profile_and_uri(task)
-    get_login_cmd = ctx.run('aws ecr --profile %s get-login '
-                            '--region eu-west-1' % ecr_profile)
+    get_login_cmd = ctx.run(
+        'aws ecr --profile {} get-login --region eu-west-1 --no-include-email'
+        .format(ecr_profile)
+    )
     ctx.run(get_login_cmd.stdout.strip())
 
     if rollback:
