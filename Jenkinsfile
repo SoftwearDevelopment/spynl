@@ -40,7 +40,6 @@ node {
         if (task != "production" ){
           sleep time:90, unit:'SECONDS'
           checkout scm
-          sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision"
           sh "source venv/bin/activate && spynl ops.smoke_test --task $task"
         }
       } catch (e) {  // Rollback to latest successful spynl image
