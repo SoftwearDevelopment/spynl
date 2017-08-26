@@ -36,7 +36,6 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh "spynl/cli/ops/prepare-stage.sh -u $scm_urls -r $revision -f $fallbackrevision"
                 sh "source venv/bin/activate && spynl ops.deploy --buildnr ${env.BUILD_NUMBER} --task $task"
             }
             post {
