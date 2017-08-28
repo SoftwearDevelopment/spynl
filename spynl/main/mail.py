@@ -115,7 +115,7 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
 
 
 def send_template_email(request, recipient, template_string=None,
-                        template_file=None, replacements={},
+                        template_file=None, replacements=None,
                         subject='', fail_silently=True, mailer=None,
                         attachments=None, sender=None, reply_to=None):
     """
@@ -123,8 +123,9 @@ def send_template_email(request, recipient, template_string=None,
 
     The email's content (which can contain HTML code) is defined by a Jinja
     template. This content template can be given either by filename
-    <template_file> (absolute path) or directly in string form
-    <template_string>. In both cases, the email content gets wrapped by a base
+    <template_file> (absolute path, without jinja2 extension) or directly in
+    string form <template_string>. In both cases, the email content gets
+    wrapped by a base
     template which defines a consistent layout. The base template to use is
     defined by a string type setting:
         `base_email_template: absolute path of template
@@ -134,17 +135,16 @@ def send_template_email(request, recipient, template_string=None,
     If no html or plain text was constructed in the end, replacements are being
     used to construct a basic text to be send as an email.
 
-    In case of a jinja2 template the following assignments are attempted to be
-    loaded from the template:
-        `default_subject`: will be used if no subject was passed
+    If a template file is given, we assume that the file ends with .jinja2, and
+    that there is a companion file .subject.jinja2 that defines the subject.
     """
     if (template_string is None and template_file is None) or \
             (template_string is not None and template_file is not None):
         raise Exception('One of <template_string> or <template_file> must be '
                         'given.')
     text_body = ''
-    if subject:
-        replacements['subject'] = subject
+    if not replacements:
+        replacements = {}
 
     if template_file is not None:
         try:
@@ -155,7 +155,6 @@ def send_template_email(request, recipient, template_string=None,
                                  replacements, request=request)
                 subject = subject.replace('\n', '')
         except TemplateNotFound:
-            # todo: change message in error:
             raise EmailTemplateNotFound(template_file)
     else:
         replacements['content'] = Template(template_string).render(

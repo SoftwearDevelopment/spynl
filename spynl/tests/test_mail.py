@@ -46,11 +46,6 @@ def template(tmpdir):
     file_ = folder.join(name + '.jinja2')
     subject_ = folder.join(name + '.subject.jinja2')
     yield (file_.strpath, subject_.strpath)
-    try:
-        os.remove(file_.strpath)
-        os.remove(subject_.strpath)
-    except FileNotFoundError:
-        pass
 
 
 @pytest.fixture
