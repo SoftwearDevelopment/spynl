@@ -90,5 +90,5 @@ class TemplateTranslations(GetTextWrapper):
 
     def gettext(self, *args, **kwargs):
         """Implements jinja.ext.i18n `gettext` function."""
-        tsf = TranslationString(*args, domain=self.domain, **kwargs)
-        return self.localizer.translate(tsf)
+        stsf = SpynlTranslationString(*args, domain=self.domain, **kwargs)
+        return stsf.translate(self.localizer)

@@ -33,7 +33,7 @@ DEFAULT_HTML_TEMPLATE = '''
           <td align="center" bgcolor="#fff" style="padding: 40px 0 30px 0;"
               style="color: #153643; font-family: Arial, sans-serif;
                      font-size: 16px; line-height: 20px;">
-            {{content}}
+            {{content_string}}
           </td>
         </tr>
         </table>
@@ -115,7 +115,7 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
 
 
 def send_template_email(request, recipient, template_string=None,
-                        template_file=None, plugin=None, replacements={},
+                        template_file=None, replacements=None,
                         subject='', fail_silently=True, mailer=None,
                         attachments=None, sender=None, reply_to=None):
     """
@@ -123,8 +123,9 @@ def send_template_email(request, recipient, template_string=None,
 
     The email's content (which can contain HTML code) is defined by a Jinja
     template. This content template can be given either by filename
-    <template_file> (absolute path) or directly in string form
-    <template_string>. In both cases, the email content gets wrapped by a base
+    <template_file> (absolute path, without jinja2 extension) or directly in
+    string form <template_string>. In both cases, the email content gets
+    wrapped by a base
     template which defines a consistent layout. The base template to use is
     defined by a string type setting:
         `base_email_template: absolute path of template
@@ -134,48 +135,44 @@ def send_template_email(request, recipient, template_string=None,
     If no html or plain text was constructed in the end, replacements are being
     used to construct a basic text to be send as an email.
 
-    In case of a jinja2 template the following assignments are attempted to be
-    loaded from the template:
-        `default_subject`: will be used if no subject was passed
+    If a template file is given, we assume that the file ends with .jinja2, and
+    that there is a companion file .subject.jinja2 that defines the subject.
     """
     if (template_string is None and template_file is None) or \
             (template_string is not None and template_file is not None):
         raise Exception('One of <template_string> or <template_file> must be '
                         'given.')
     text_body = ''
-    if subject:
-        replacements['subject'] = subject
-
-    for key, value in replacements.items():
-        if isinstance(value, SpynlTranslationString):
-            replacements[key] = value.translate()
+    if not replacements:
+        replacements = {}
 
     if template_file is not None:
         try:
-            replacements['content'] = render(template_file, replacements,
-                                             request=request)
+            html_body = render(template_file + '.jinja2', replacements,
+                               request=request)
+            if not subject:
+                subject = render(template_file + '.subject.jinja2',
+                                 replacements, request=request)
+                subject = subject.replace('\n', '')
         except TemplateNotFound:
             raise EmailTemplateNotFound(template_file)
-
-        if not subject:  # update with possible subject defined in template
-            subject = value_from_template(template_file, 'default_subject',
-                                          request, replacements, plugin)
-            replacements.update(subject=subject)
     else:
-        replacements['content'] = Template(template_string).render(
+        replacements['content_string'] = Template(template_string).render(
             **replacements)
+        # Render the base template with the content of the given template
+        base_template = get_settings().get('base_email_template')
+        if base_template is not None:
+            html_body = render(base_template, replacements, request=request)
+        else:
+            html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
 
-    # Render the base template with the content of the given template
-    base_template = get_settings().get('base_email_template')
-    if base_template is not None:
-        html_body = render(base_template, replacements, request=request)
-    else:
-        html_body = Template(DEFAULT_HTML_TEMPLATE).render(**replacements)
     html_body = html_body.replace('\n', '')
 
     text_maker = html2text.HTML2Text()
     text_maker.ignore_images = True
+    text_maker.ignore_tables = True
     text_maker.wrap_links = False
+    text_maker.body_width = 0
     text_body = text_maker.handle(html_body)
 
     text_body = Attachment(data=text_body, transfer_encoding="base64",
@@ -199,24 +196,3 @@ def send_template_email(request, recipient, template_string=None,
     return _sendmail(request, recipient, subject, text_body, html_body,
                      fail_silently=fail_silently, mailer=mailer,
                      attachments=attachments, sender=sender, reply_to=reply_to)
-
-
-def value_from_template(template_file, var, request, replacements,
-                        plugin=None):
-    """
-    Return the value of given <var> defined inside the <template_file>.
-
-    Set the static_url filter for templates to construct urls for static files.
-    If plugin was given, install plugin's translations to the environment.
-    """
-    path, filename = os.path.split(template_file)
-    env = Environment(loader=FileSystemLoader(path),
-                      extensions=['jinja2.ext.i18n'])
-    env.filters['static_url'] = request.static_url
-    if plugin is not None:
-        translations = TemplateTranslations(plugin)
-        env.install_gettext_translations(translations)
-
-    template = env.get_template(filename)
-    template_module = template.make_module(vars=replacements)
-    return getattr(template_module, var, '')
