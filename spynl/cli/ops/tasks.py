@@ -1,6 +1,7 @@
 """Tasks for operations around building and deploying Spynl"""
 
 import os
+import re
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
@@ -116,11 +117,18 @@ def mk_repo_state(ctx, packages='_all'):
 def deploy(ctx, buildnr=None, task=None, rollback=False):
     """Build a Spynl Docker image and deploy it."""
     ecr_profile, ecr_uri = get_ecr_profile_and_uri(task)
-    get_login_cmd = ctx.run(
+    login_cmd = ctx.run(
         'aws ecr --profile {} get-login --region eu-west-1 --no-include-email'
         .format(ecr_profile)
-    )
-    ctx.run(get_login_cmd.stdout.strip())
+    ).stdout
+
+    # Ensure the login string is valid AWS command
+    pattern = (r'^docker login -u AWS -p \S.* '
+               'https://[0-9]{12}.dkr.ecr.\S+.amazonaws.com$')
+    if re.match(pattern, login_cmd) is None:
+        raise Exit("[spynl ops.deploy] Docker login command is invalid.")
+
+    ctx.run(login_cmd)
 
     if rollback:
         # push the latest successful image to AWS for the given task
