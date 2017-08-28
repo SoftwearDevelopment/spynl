@@ -33,7 +33,7 @@ DEFAULT_HTML_TEMPLATE = '''
           <td align="center" bgcolor="#fff" style="padding: 40px 0 30px 0;"
               style="color: #153643; font-family: Arial, sans-serif;
                      font-size: 16px; line-height: 20px;">
-            {{content}}
+            {{content_string}}
           </td>
         </tr>
         </table>
@@ -157,7 +157,7 @@ def send_template_email(request, recipient, template_string=None,
         except TemplateNotFound:
             raise EmailTemplateNotFound(template_file)
     else:
-        replacements['content'] = Template(template_string).render(
+        replacements['content_string'] = Template(template_string).render(
             **replacements)
         # Render the base template with the content of the given template
         base_template = get_settings().get('base_email_template')
