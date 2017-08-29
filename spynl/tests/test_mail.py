@@ -79,6 +79,18 @@ def test_missing_recipient(dummy_request, mailer):
     assert email.body == "Hey Nic! It's me, Nic."
 
 
+def test_sender_name(dummy_request, mailer):
+    """
+    test that the sender_name gets added and that any problematic characters are
+    removed.
+    """
+    assert sendmail(dummy_request, 'nicolas@softwear', 'Nic Test',
+                    "Hey Nic! It's me, Nic.", sender_name='<bla@bla.com\n bla>',
+                    mailer=mailer)
+    email = mailer.outbox[0]
+    assert email.extra_headers == {'From': 'bla bla.com  bla <info@spynl.com>'}
+
+
 def test_custom_html_template_mail(dummy_request, mailer, template):
     """The custom template is correctly used."""
     with open(template[0], 'w') as fob:
