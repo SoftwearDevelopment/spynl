@@ -20,7 +20,7 @@ def dumps(body, pretty=False):
     return yaml.dump(body, indent=4) if pretty else yaml.dump(body)
 
 
-def loads(body, headers=None):
+def loads(body, headers=None, **kwargs):
     """return body as YAML"""
     try:
         return yaml.load(body)
