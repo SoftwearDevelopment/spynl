@@ -2,12 +2,6 @@
 from pkg_resources import iter_entry_points  # pylint: disable=E0611
 
 
-class PluginsLoaded(object):
-    """ Event to signal that all plugins have been loaded"""
-    def __init__(self, config):
-        self.config = config
-
-
 def main(config):
     """initialize this module, find all plugins and include them"""
     installed_plugins = {

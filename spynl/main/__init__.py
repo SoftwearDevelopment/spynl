@@ -22,7 +22,14 @@ from spynl.main.dateutils import now
 from spynl.main.locale import TemplateTranslations
 
 
-def main(global_config, test_settings=None, **settings):
+class ConfigCommited(object):
+    """ Event to signal that configurator finished and commited."""
+
+    def __init__(self, config):
+        self.config = config
+
+
+def main(global_config, config=None, **settings):
     """
     Return a Pyramid WSGI application.
 
@@ -30,13 +37,18 @@ def main(global_config, test_settings=None, **settings):
     renderer to use. And we take care of test settings. Then, we initialise the
     main plugins and the external plugins (which are not in this repository).
     """
-    # load (test) settings
-    config = Configurator(settings=settings)
-    config.add_settings({'spynl.ops.start_time': now()})
+    if config is None:
+        config = Configurator(settings=settings)
+        main_includeme(config)
 
-    if test_settings:
-        for key, value in test_settings.items():
-            config.add_settings({key: value})
+    config.commit()
+    config.registry.notify(ConfigCommited(config))
+
+    return config.make_wsgi_app()
+
+
+def main_includeme(config):
+    config.add_settings({'spynl.ops.start_time': now()})
 
     # Add spynl.main's view derivers
     config.add_view_deriver(validate_json_schema)
@@ -89,13 +101,4 @@ def main(global_config, test_settings=None, **settings):
         },
     })
 
-    # initialise mailer, use dummy mailer for tests
-    if test_settings:
-        config.include('pyramid_mailer.testing')
-    else:
-        config.include('pyramid_mailer')
-
-    config.commit()
-    config.registry.notify(plugins.PluginsLoaded(config))
-
-    return config.make_wsgi_app()
+    return config

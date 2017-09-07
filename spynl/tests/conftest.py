@@ -20,11 +20,10 @@ def settings():
     return {'spynl.pretty': '1',
             'enable_plugins': [],
             'pyramid.debug_authorization': 'false',
-            'pyramid.default_locale_name': 'en',
+            'pyramid.default_locale_name': 'nl',
             'pyramid.reload_templates': 'true',
             'spynl.domain': 'localhost',
             'spynl.languages': 'en,nl',
-            'default_locale_name': 'nl',
             'spynl.schemas': 'spynl-schemas',
             'pyramid.debug_notfound': 'false',
             'pyramid.debug_templates': 'true',
@@ -34,7 +33,8 @@ def settings():
             'spynl.dev_origin_whitelist':
                 'http://0.0.0.0:9001,chrome-extension:// ',
             'mail.host': 'smtp.fakehost.com', 'mail.ssl': 'false',
-            'mail.sender': 'info@spynl.com'}
+            'mail.sender': 'info@spynl.com',
+            'pyramid.includes': 'pyramid_mailer.testing'}
 
 
 @pytest.fixture(scope="session")
@@ -49,7 +49,7 @@ def app(settings):
     add_decode_function(config, decode_date, ['date'])
     add_encode_function(config, encode_date, datetime)
     add_encode_function(config, encode_boolean, bool)
-    spynl_app = main(None, test_settings=settings)
+    spynl_app = main(None, **settings)
     webtest_app = TestApp(spynl_app)
 
     return webtest_app
@@ -60,7 +60,7 @@ def app_factory():
     """Return a basic factory app maker to be able to pass custom settings."""
     def make_app(settings):
         """Return the maker app."""
-        spynl_app = main(None, test_settings=settings)
+        spynl_app = main(None, **settings)
         webtest_app = TestApp(spynl_app)
         return webtest_app
     return make_app
