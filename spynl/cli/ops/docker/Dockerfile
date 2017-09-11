@@ -12,4 +12,4 @@ COPY run.sh run.sh
 
 EXPOSE 6543
 
-ENTRYPOINT ["/run.sh"]
+CMD ["/run.sh"]

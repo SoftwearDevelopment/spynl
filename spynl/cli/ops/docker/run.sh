@@ -3,7 +3,7 @@
 # This script adapts /production.ini from environmental variables,
 # potentially configures NewRelic and starts gunicorn via supervisord.
 
-printf "======================= \nRUNNING SPYNL APPLICATION ...\n========================= \n\n" >> /logs/spynl.log
+printf "======================= \nRUNNING SPYNL APPLICATION ...\n========================= \n\n"
 
 # this should be pre-filled by a script
 SPYNL_DEV_DOMAIN=
@@ -11,7 +11,7 @@ SPYNL_DEV_DOMAIN=
 source /venv/bin/activate
 
 # let repos have their say before running
-spynl ops.prepare_docker_run 1>> /logs/spynl.log 2>> /logs/spynl.log
+spynl ops.prepare_docker_run
 
 # Spynl number of workers
 if [[ "$WEB_CONCURRENCY" == "" ]]; then
@@ -28,7 +28,7 @@ if [[ "$SPYNL_ENVIRONMENT" != "production" ]]; then
 fi
 
 DOMAIN=${SPYNL_DOMAIN:-softwearconnect.com}
-if [ -n "$SPYNL_ENVIRONMENT" ]; then
+if [ -n "$SPYNL_ENVIRONMENT" -a "$SPYNL_ENVIRONMENT" != "production" ]; then
     DOMAIN="$SPYNL_ENVIRONMENT"."$DOMAIN"
 fi
 sed -e 's#^\(spynl.domain =\).*$#\1 '$DOMAIN'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
@@ -36,10 +36,9 @@ sed -e 's#^\(spynl.domain =\).*$#\1 '$DOMAIN'#' /production.ini > /production.in
 # set SPYNL_ENVIRONMENT in production.ini
 sed -e 's#^\(spynl.ops.environment =\).*$#\1 '$SPYNL_ENVIRONMENT'#' /production.ini > /production.ini.tmp && mv /production.ini.tmp /production.ini
 
-# this can be handy when looking at /logs/spynl.log from outside a container
-printf "======================= \nOUTPUTTING production.ini ...\n========================= \n\n" >> /logs/spynl.log
-cat production.ini >> /logs/spynl.log
-printf "======================= \nEND OF production.ini ...\n========================= \n\n" >> /logs/spynl.log
+printf "======================= \nOUTPUTTING production.ini ...\n========================= \n\n"
+cat production.ini
+printf "======================= \nEND OF production.ini ...\n========================= \n\n"
 
 if [[ "$NEWRELIC" == "true" ]]; then
     pip install raven
@@ -58,9 +57,9 @@ if [[ "$NEWRELIC" == "true" ]]; then
     newrelic-admin generate-config $NEWRELIC_KEY /newrelic.ini
     #NEW_RELIC_CONFIG_FILE=/newrelic.ini
     sed -e 's#app_name = Python Application#app_name = SPYNL ['$SPYNL_ENVIRONMENT'-'$SPYNL_FUNCTION']#' /newrelic.ini > /newrelic.ini.tmp && mv /newrelic.ini.tmp /newrelic.ini
-    COMMAND="command=/venv/bin/newrelic-admin run-program /venv/bin/gunicorn --paste /production.ini --error-logfile /logs/gerr.log"
+    COMMAND="command=/venv/bin/newrelic-admin run-program /venv/bin/gunicorn --paste /production.ini"
 else
-    COMMAND="command=/venv/bin/gunicorn --paste /production.ini --error-logfile /logs/gerr.log"
+    COMMAND="command=/venv/bin/gunicorn --paste /production.ini"
 fi
 
 # configure the command supervisord should run

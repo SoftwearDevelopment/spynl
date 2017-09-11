@@ -2,7 +2,7 @@
 
 def docker_tag_and_push(ctx, ecr_profile, ecr_uri, version, build_num=None):
     """Tag and push the docker image to AWS."""
-    get_login_cmd = ctx.run('aws ecr --profile %s get-login '
+    get_login_cmd = ctx.run('aws ecr --profile %s get-login --no-include-email '
                             '--region eu-west-1' % ecr_profile)
     ctx.run(get_login_cmd.stdout.strip())
 
