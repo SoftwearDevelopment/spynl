@@ -69,6 +69,7 @@ do
 done
 
 spynl dev.translate
+spynl dev.versions
 
 if [[ "$MAKE_REPO_STATE" == "1" ]]; then
     spynl ops.mk_repo_state
