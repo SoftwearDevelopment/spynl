@@ -2,21 +2,22 @@
 This module provides information for version, db, build and enviroment.
 """
 
+import sys
 import os
+import json
 
 from pyramid.renderers import render
 from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import negotiate_locale_name
 
+from spynl.main.exceptions import SpynlException
 from spynl.main.version import __version__ as spynl_version
 from spynl.main.utils import get_settings
 from spynl.main.locale import SpynlTranslationString as _
 from spynl.main.dateutils import now, date_to_str
 from spynl.main.docs.settings import ini_doc, ini_description
 from spynl.main.docs.documentation import HIDE_TRYITOUT_IDS
-from spynl.main.pkg_utils import (get_spynl_packages,
-                                  lookup_scm_commit,
-                                  lookup_scm_commit_describe)
+from spynl.main.pkg_utils import get_spynl_packages
 
 
 def hello(request):
@@ -147,27 +148,22 @@ def versions(request):
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n
         status    | string | 'ok' or 'error'\n
-        spynl_version | string | The version of this Spynl instance.\n
-        spynl_commit  | string | The git commit id this Spynl instance.\n
+        spynl     | dict   | {commit: SCM commit id of the HEAD,
+        version: package version, scmVersion: state of the working directory,
+        will show version and commit, and dirty if the working directory
+        contains uncommited changes}.\n
         plugins   | dict   | {spynl-plugin: {commit: SCM commit id of the HEAD,
         version: package version, scmVersion: state of the working directory,
         will show version and commit, and dirty if the working directory
         contains uncommited changes}} for each Spynl plugin.\n
         time      | string | time in format: $setting[spynl.date_format]\n
     """
-    response = {}
-    response['time'] = date_to_str(now())
-    response['spynl_version'] = spynl_version
-    path2spynl = os.path.dirname(__file__) + '/../../..'
-    response['spynl_commit'] = lookup_scm_commit(path2spynl)
-
-    response['plugins'] = {}
-    packages = get_spynl_packages()
-    for package in packages:
-        pinfo = dict(version=package.version,
-                     commit=lookup_scm_commit(package.location),
-                     scmVersion=lookup_scm_commit_describe(package.location))
-        response['plugins'][package.project_name] = pinfo
+    try:
+        with open(os.path.join(sys.prefix, 'versions.json')) as f:
+            response = json.loads(f.read())
+        response['time'] = date_to_str(now())
+    except FileNotFoundError:
+        raise SpynlException('Version information not found')
     return response
 
 

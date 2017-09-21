@@ -12,12 +12,13 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.md')).read()
 
 
-install_requires = ['webob==1.6.3', 'pyramid>=1.7,<1.8', 'invoke>=0.14,<0.15', 'requests',
-                    'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog',
-                    'pytz', 'pbkdf2', 'python-dateutil', 'html2text',
-                    'beaker', 'waitress', 'gunicorn', 'jsonschema',
-                    'sphinx', 'pyyaml', 'tld', 'babel',
-                    'webtest', 'pytest', 'pytest-raisesregexp', 'dnspython']
+install_requires = [
+    'webob==1.6.3', 'pyramid>=1.7,<1.8', 'invoke>=0.14,<0.15', 'requests',
+    'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog', 'pytz', 'pbkdf2',
+    'python-dateutil', 'html2text', 'beaker', 'waitress', 'gunicorn',
+    'jsonschema', 'sphinx', 'pyyaml', 'tld', 'babel', 'click', 'webtest',
+    'pytest', 'pytest-raisesregexp', 'dnspython', 'pytest-cov',
+]
 
 
 def find_version(*file_paths):
@@ -36,28 +37,32 @@ def pytest_runner_dependency():
     return ['pytest-runner'] if needs_pytest else []
 
 
-setup(name='spynl',
-      version=find_version('spynl', 'main', 'version.py'),
-      description='spynl',
-      long_description=README,
-      classifiers=["Programming Language :: Python :: 3.5",
-                   "Framework :: Pylons",
-                   "Topic :: Internet :: WWW/HTTP",
-                   "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
-      author='Softwear BV',
-      author_email='development@softwear.nl',
-      url='https://github.com/SoftwearDevelopment/spynl',
-      license='MIT',
-      keywords='API SaaS',
-      packages=['spynl.cli', 'spynl.main'],
-      include_package_data=True,
-      zip_safe=False,
-      install_requires=install_requires,
-      setup_requires=pytest_runner_dependency() + ['PasteScript'],
-      test_suite="spynl",
-      entry_points={
-          "paste.app_factory": ["main = spynl.main:main"],
-          "console_scripts": ["spynl = spynl.cli:program.run"]
-      },
-      paster_plugins=['pyramid']
+setup(
+    name='spynl',
+    version=find_version('spynl', 'main', 'version.py'),
+    description='spynl',
+    long_description=README,
+    classifiers=["Programming Language :: Python :: 3.5",
+                 "Framework :: Pylons",
+                 "Topic :: Internet :: WWW/HTTP",
+                 "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
+    author='Softwear BV',
+    author_email='development@softwear.nl',
+    url='https://github.com/SoftwearDevelopment/spynl',
+    license='MIT',
+    keywords='API SaaS',
+    packages=['spynl.cli', 'spynl.main'],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=install_requires,
+    setup_requires=pytest_runner_dependency() + ['PasteScript'],
+    test_suite="spynl",
+    entry_points={
+        "paste.app_factory": ["main = spynl.main:main"],
+        "console_scripts": [
+            "spynl = spynl.cli:program.run",
+            "cli = spynl.cli.new:cli",
+        ]
+    },
+    paster_plugins=['pyramid']
 )
