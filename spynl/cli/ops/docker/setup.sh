@@ -36,6 +36,7 @@ sed -e 's#^\(spynl.ops.build_number =\).*$#\1 '$BUILDNR'#' /production.ini > /pr
 #spynl dev.install --scm-url <some-url> 
 
 spynl dev.translate
+spynl dev.versions
 
 # install gunicorn & paste 
 pip install gunicorn

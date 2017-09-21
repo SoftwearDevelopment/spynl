@@ -3,7 +3,6 @@
 
 
 import json
-import os
 from copy import deepcopy
 import pytest
 
@@ -24,13 +23,13 @@ PING_SCHEMA = {"$schema": "http://json-schema.org/schema#",
 @pytest.fixture(autouse=True)
 def patch_validation_file_path(tmpdir, monkeypatch):
     """Patch schemas directory."""
-    tmpdir.mkdir('spynl-schemas')
-    monkeypatch.setenv('VIRTUAL_ENV', tmpdir.strpath)
+    tmpdir.mkdir('schemas')
+    monkeypatch.setattr('sys.prefix', tmpdir.strpath)
 
 
 @pytest.fixture
 def ping_schema(tmpdir):
-    file_ = tmpdir.join('spynl-schemas/ping.json')
+    file_ = tmpdir.join('schemas/ping.json')
     file_.write(json.dumps(PING_SCHEMA, indent=2))
     yield file_
     file_.remove()
@@ -41,7 +40,7 @@ def wrong_ping_schema(tmpdir):
     schema = deepcopy(PING_SCHEMA)
     schema['required'].extend(['di'])
     schema['properties']['di'] = {'type': 'string'}
-    file_ = tmpdir.join('spynl-schemas/wrong-ping.json')
+    file_ = tmpdir.join('schemas/wrong-ping.json')
     file_.write(json.dumps(schema, indent=2))
     yield file_
     file_.remove()
@@ -53,7 +52,7 @@ def tenants_schema(tmpdir):
               "required": ["id", "name"],
               "properties": {"id": {"type": "string"},
                              "name": {"type": "string"}}}
-    file_ = tmpdir.join('spynl-schemas/tenants.json')
+    file_ = tmpdir.join('schemas/tenants.json')
     file_.write(json.dumps(schema, indent=2))
     yield file_
     file_.remove()
@@ -61,7 +60,7 @@ def tenants_schema(tmpdir):
 
 @pytest.fixture
 def invalid_schema(tmpdir):
-    file_ = tmpdir.join('spynl-schemas/invalid_ping.json')
+    file_ = tmpdir.join('schemas/invalid_ping.json')
     file_.write(json.dumps([], indent=2))
     yield file_
     file_.remove()
@@ -74,8 +73,9 @@ def test_novalidations_possible(invalid_schema):
     # no validations given
     validate_json(invalid_ping_response, [], 'response')
     vals = [{'schema': '__missing.json', 'in': 'response'}]
-    with pytest.raises_regexp(BadValidationInstructions,
-        ".* required schema __missing.json could not be found .*"):
+    with pytest.raises_regexp(
+            BadValidationInstructions,
+            ".* required schema __missing.json could not be found .*"):
         validate_json(invalid_ping_response, vals, 'response')
     # invalid schema
     vals = [{'schema': invalid_schema.basename, 'in': 'response'}]

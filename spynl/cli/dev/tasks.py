@@ -1,5 +1,6 @@
 """Main tasks for spynl like intall, server etc."""
-
+import sys
+import json
 import os
 from invoke import task
 from invoke.exceptions import Exit
@@ -10,9 +11,36 @@ from spynl.main.pkg_utils import get_config_package
 from spynl.cli.utils import resolve_packages_param, package_dir
 
 from .utils import get_or_create_locale_path, languages_from_dev_config
+from spynl.main.pkg_utils import (
+    SPYNL_DISTRIBUTION,
+    lookup_scm_commit,
+    lookup_scm_commit_describe,
+    get_spynl_packages,
+)
 
 
 PACKAGES_HELP = 'Affected packages, defaults to all installed.'
+
+
+@task()
+def versions(ctx):
+    versions = {'plugins': {}}
+    for package in get_spynl_packages():
+        info = {
+            package.project_name: {
+                'version': package.version,
+                'commit': lookup_scm_commit(package.location),
+                'scmVersion': lookup_scm_commit_describe(package.location)
+            }
+        }
+        if package.project_name == SPYNL_DISTRIBUTION.project_name:
+            versions.update(info)
+        else:
+            versions['plugins'].update(info)
+
+    versions_path = os.path.join(sys.prefix, 'versions.json')
+    with open(versions_path, 'w') as f:
+        print(json.dumps(versions, indent=4), file=f)
 
 
 @task(help={'scm-url': 'The URL needed to clone the repo, either for '
