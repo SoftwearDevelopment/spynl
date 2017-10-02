@@ -61,7 +61,7 @@ setup(
         "paste.app_factory": ["main = spynl.main:main"],
         "console_scripts": [
             "spynl = spynl.cli:program.run",
-            "cli = spynl.cli.new:cli",
+            "spynl-cli = spynl.cli.new:cli",
         ]
     },
     paster_plugins=['pyramid']
