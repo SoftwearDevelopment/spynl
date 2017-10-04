@@ -6,7 +6,7 @@ import sys
 import click
 
 from spynl.main.version import __version__ as spynl_version
-from spynl.cli.new.utils import resolve_packages, check_ini, run_command, exit
+from spynl.cli.new.utils import resolve_packages, check_ini, run_command, fail
 from spynl.main.pkg_utils import (
     SPYNL_DISTRIBUTION,
     lookup_scm_commit,
@@ -90,11 +90,11 @@ def test(packages, reports, non_interactive, pytest_options):
             run_command(cmd, check=True)
         except subprocess.CalledProcessError:
             if non_interactive:
-                exit("Tests for {} failed".format(pkg.project_name))
+                fail("Tests for {} failed".format(pkg.project_name))
             else:
                 msg = 'Do you wish to continue?'
                 if idx != len(packages) and not click.confirm(msg):
-                    exit('Aborting at user request.')
+                    fail('Aborting at user request.')
 
 
 @dev.command()

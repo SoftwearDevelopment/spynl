@@ -10,7 +10,7 @@ import click
 from spynl.main.pkg_utils import get_spynl_packages, SPYNL_DISTRIBUTION
 
 
-def exit(msg):
+def fail(msg):
     click.get_current_context().fail(msg)
 
 
@@ -31,7 +31,7 @@ def resolve_packages(ctx, param, value):
         if not_installed:
             msg = '{} is/are not installed. Exiting ...'.format(
                     ', '.join(not_installed))
-            exit(msg)
+            fail(msg)
 
         packages = list(filter(lambda p: p.project_name.lower() in value, packages))
     return packages
