@@ -66,7 +66,10 @@ def versions():
 
     versions_path = os.path.join(sys.prefix, 'versions.json')
     with open(versions_path, 'w') as f:
-        print(json.dumps(versions, indent=4), file=f)
+        versions = json.dumps(versions, indent=4)
+        print(versions, file=f)
+    click.echo('Installed versions file successfully.')
+    click.echo(versions)
 
 
 @dev.command()
