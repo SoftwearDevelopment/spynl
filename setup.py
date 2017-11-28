@@ -17,7 +17,7 @@ install_requires = [
     'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog', 'pytz', 'pbkdf2',
     'python-dateutil', 'html2text', 'beaker', 'waitress', 'gunicorn',
     'jsonschema', 'sphinx', 'pyyaml', 'tld', 'babel', 'click', 'webtest',
-    'pytest', 'pytest-raisesregexp', 'dnspython', 'pytest-cov',
+    'pytest<3.3.0', 'pytest-raisesregexp', 'dnspython', 'pytest-cov',
 ]
 
 
