@@ -34,16 +34,20 @@ def get_request():
     return threadlocal.get_current_request()
 
 
-def get_settings():
+def get_settings(setting=None):
     """
     Get settings (from .ini file [app:main] section)
+
+    If setting is given, get its value from the application settings and return it.
     Can also be accessed from the request object: request.registry.settings
     For more info on the way we do it here, consult
     http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/threadlocals.html
     Our policy is to not edit the settings during a request/response cycle.
     """
-    registry = threadlocal.get_current_registry()
-    return registry.settings if registry.settings is not None else {}
+    registry_settings = threadlocal.get_current_registry().settings or {}
+    if setting is not None:
+        return registry_settings.get(setting)
+    return registry_settings
 
 
 def check_origin(endpoint, info):
