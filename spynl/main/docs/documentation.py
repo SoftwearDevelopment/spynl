@@ -118,28 +118,8 @@ def document_endpoint(config, function, endpoint_name, resource=None):
 
 
 def make_docs(config):
-    """Write swagger file. Get definitions from files first."""
+    """Write swagger file."""
     log = get_logger('Spynl Documentation')
-
-    # add definitions from files
-    def_folder = 'spynl/main/docs/definitions'
-    definitions = glob.glob('%s/*.yml' % def_folder)
-    for definition in definitions:
-        try:
-            with open(definition, 'r') as current_file:
-                # check if the folder contains the definition
-                match = re.match(r'%s/(.*)\.yml' % def_folder, definition)
-                definition = match.group(1)
-                # Read the file first, this will give a more descriptive
-                # error message in case there is a yaml error.
-                yaml_text = current_file.read()
-                yaml_text = insert_ini_settings(config, yaml_text)
-                swagger_doc['definitions'][definition] = yaml.load(yaml_text)
-        except yaml.YAMLError as e:
-            log.error('File %s has yaml errors:', current_file.name)
-            log.error(e)
-        except IOError as e:
-            log.error('I/O error(%s: %s', e.errno, e.strerror)
 
     # turn swagger_doc into a JSON file
     swagger_file = '{}/swagger-ui/spynl.json'\
@@ -153,47 +133,6 @@ def make_docs(config):
     except (TypeError, OverflowError, ValueError) as e:
         log.error('Swagger file could not be dumped:')
         log.error(e)
-
-
-def add_swagger_reusables(config, *args):
-    """
-    Add definitions from docstrings other than the endpoints.
-    This function should be called from the plugger.py of the module.
-    Arguments can be any object with a docstring, most probably a function.
-    """
-    log = get_logger('Spynl Documentation')
-
-    for arg in args:
-        docstring = arg.__doc__
-        yaml_sep = docstring.find('---')
-        tag = re.search('--(parameter|response)?:?([a-zA-Z_-]*?)--', docstring)
-        yaml_description = None
-        if tag and yaml_sep != -1:
-            swagger_type = tag.group(1)
-            name = tag.group(2)
-            try:
-                description = insert_ini_settings(config, docstring[yaml_sep:])
-                yaml_description = yaml.load(description)
-            except yaml.YAMLError as e:
-                log.error('Docstring %s has yaml errors:', arg)
-                log.error(e)
-            if not yaml_description:
-                log.error('No description could be parsed for %s:%s',
-                          swagger_type, name)
-        else:
-            log.error('Docstring %s is missing yaml separation (---)'
-                      ' or name tag (--tag--, allowed characters:'
-                      ' a-z, A-Z, - and/or _)', arg)
-        if swagger_type == 'parameter':
-            if 'parameters' not in swagger_doc:
-                swagger_doc['parameters'] = {}
-            swagger_doc['parameters'][name] = yaml_description
-        elif swagger_type == 'response':
-            if 'responses' not in swagger_doc:
-                swagger_doc['responses'] = {}
-            swagger_doc['responses'][name] = yaml_description
-        else:
-            swagger_doc['definitions'][name] = yaml_description
 
 
 def insert_ini_settings(config, description):

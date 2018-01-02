@@ -2,5 +2,4 @@
 module for parsing doctrings to produce a .json file for swagger-ui
 """
 
-from spynl.main.docs.documentation import (document_endpoint,
-                                           add_swagger_reusables)
+from spynl.main.docs.documentation import document_endpoint

@@ -53,8 +53,6 @@ def main(config):
                         permission=Authenticated)
     config.add_endpoint(build, 'build', context=AboutResource,
                         permission=NO_PERMISSION_REQUIRED)
-    config.add_endpoint(endpoint_doc, 'doc', context=AboutResource,
-                        permission=Authenticated)  # TODO: deprecate
     config.add_endpoint(endpoint_doc, 'endpoints', context=AboutResource,
                         permission=Authenticated)
     config.add_endpoint(schemas, 'schemas', context=AboutResource,
