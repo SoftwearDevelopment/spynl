@@ -8,7 +8,7 @@ import sys
 import os
 import contextlib
 from functools import wraps
-from inspect import isclass, getargspec
+from inspect import isclass, getfullargspec
 import yaml
 from tld import get_tld
 from tld.exceptions import TldBadUrl, TldDomainNotFound
@@ -399,7 +399,7 @@ def required_args(*arguments):
             for required_arg in arguments:
                 if request.args.get(required_arg, None) is None:
                     raise MissingParameter(required_arg)
-            if len(getargspec(func).args) == 1:
+            if len(getfullargspec(func).args) == 1:
                 return func(request)
             else:
                 return func(*args)

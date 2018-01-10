@@ -2,6 +2,7 @@
 
 
 from functools import wraps
+from inspect import getfullargspec
 
 from marshmallow import Schema
 
@@ -27,6 +28,9 @@ def query_string_loader(schema):
             data, _ = schema.load(request.GET)
             request.args.update(data)
 
-            return view(*args, **kwargs)
+            if len(getfullargspec(view).args) == 1:
+                return view(request)
+            else:
+                return view(*args)
         return load
     return wrapper
