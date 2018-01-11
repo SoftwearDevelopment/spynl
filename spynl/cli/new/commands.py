@@ -118,7 +118,10 @@ def serve(ini):
 @click.option('--refresh', '-r',
               help='Refresh the translations calalogs.',
               is_flag=True)
-def translate(packages, languages, refresh):
+@click.option('--no-location', '-n',
+              help='Remove the comments (locations) from the .pot and .po file',
+              is_flag=True)
+def translate(packages, languages, refresh, no_location):
     """Perform translation tasks."""
     base_command = sys.executable + ' setup.py '
 
@@ -126,7 +129,10 @@ def translate(packages, languages, refresh):
         os.chdir(package.location)
 
         if refresh:
-            run_command(base_command + 'extract_messages')
+            cmd = base_command + 'extract_messages'
+            if no_location:
+                cmd += ' --no-location'
+            run_command(cmd)
 
             for lang in languages:
                 try:
