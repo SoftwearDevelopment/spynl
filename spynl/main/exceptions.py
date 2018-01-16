@@ -1,6 +1,5 @@
 """Generic custom exceptions for all packages to use."""
 
-import sys
 from pyramid.httpexceptions import HTTPBadRequest, HTTPForbidden
 
 from spynl.main.locale import SpynlTranslationString as _
@@ -171,6 +170,18 @@ class IllegalParameter(SpynlException):
                     default='Illegal parameter: ${param}',
                     mapping={'param': param})
         super().__init__(message=message)
+
+
+class ValidationError(SpynlException):
+    """Exception when parameter is illegal."""
+
+    def __init__(self, *args, **kwargs):
+        """Exception message."""
+        message = _('validation-error',
+                    default='Sorry, there was a problem with your request. '
+                    'If the problem persists, please contact support team. '
+                    'Our apologies for the inconvenience.')
+        super().__init__(*args, message=message, **kwargs)
 
 
 class BadValidationInstructions(SpynlException):

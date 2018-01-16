@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spynl.main 6.1.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-01-11 10:58+0100\n"
+"POT-Creation-Date: 2018-01-16 16:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,6 +36,9 @@ msgid "missing-parameter"
 msgstr ""
 
 msgid "illegal-parameter"
+msgstr ""
+
+msgid "validation-error"
 msgstr ""
 
 msgid "bad-validation-instructions"

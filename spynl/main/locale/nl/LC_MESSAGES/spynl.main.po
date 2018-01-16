@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spynl.main 5.48.rc1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-01-11 10:58+0100\n"
+"POT-Creation-Date: 2018-01-16 16:05+0100\n"
 "PO-Revision-Date: 2016-09-28 16:22+0200\n"
 "Last-Translator: Nicolas <nicolas@softwear.nl>\n"
 "Language: nl\n"
@@ -38,6 +38,9 @@ msgstr "Er ontbreekt een verplichte parameter: ${param}."
 
 msgid "illegal-parameter"
 msgstr "Ongeldige parameter: ${param}."
+
+msgid "validation-error"
+msgstr "Er was een probleem met uw verzoek. Neem contact op met de servicedesk als dit blijft gebeuren. Onze excuses voor het ongemak."
 
 msgid "bad-validation-instructions"
 msgstr "De beschrijving voor dit endpoint kan niet gebruikt worden: ${error}."
@@ -110,4 +113,3 @@ msgstr "Kon schema ${schema} niet vinden om te valideren."
 
 #~ msgid "mail-template-file-string"
 #~ msgstr "Specificeer een templatebestand of \"body_string\""
-
