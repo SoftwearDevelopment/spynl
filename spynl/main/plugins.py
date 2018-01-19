@@ -29,6 +29,9 @@ def main(config):
             # available distributions but other plugins that need to be loaded
             # first. Load would call require which would raise.
             # http://setuptools.readthedocs.io/en/latest/pkg_resources.html#entrypoint-objects
-            config.include(plugin.resolve())
+            entrypoint = plugin.resolve()
+            # If the entrypoint is a callable let pyramid include it.
+            if callable(entrypoint):
+                config.include(entrypoint)
 
     load_plugins(load)
