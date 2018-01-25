@@ -488,19 +488,30 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
 
     user_info = get_user_info(request, purpose='error_view')
 
+    debug_message = getattr(exc, 'debug_message', 'No debug message'),
+    developer_message = getattr(exc, 'developer_message', 'No developer message'),
+
     metadata = dict(
         user=user_info,
         url=request.path_url,
-        debug_message=getattr(exc, 'debug_message', 'No debug message'),
+        debug_message=debug_message,
+        developer_message=developer_message,
         err_source=get_err_source(last_traceback),
         detail=getattr(exc, 'detail', None)
     )
 
-    log.error(top_msg,
-              error_type,
-              str(error_msg),
-              exc_info=exc_info,
-              extra=dict(meta=metadata, payload=str(request.body)[:500]))
+    if developer_message:
+        top_msg += " developer_message: %s" % developer_message
+
+    if debug_message:
+        top_msg += " debug_message: %s" % debug_message
+
+    log.error(
+        top_msg,
+        error_type,
+        str(error_msg),
+        exc_info=exc_info,
+    )
 
     send_exception_to_external_monitoring(user_info=user_info,
                                           exc_info=exc_info,

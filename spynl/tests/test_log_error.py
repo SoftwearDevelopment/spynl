@@ -57,7 +57,7 @@ def fake_request():
     return FakeRequest()
 
 
-TOP_MSG = "TEST Error of type %s with message: '%s'."
+TOP_MSG = "TEST Error of type %s with message: '%s'"
 
 
 def test_log_error_msg(logger, fake_request):
@@ -70,8 +70,7 @@ def test_log_error_msg(logger, fake_request):
         raise Error
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
-        assert logger.error_log['msg'] == TOP_MSG % ('Error',
-                                                     'An error has occurred')
+        assert TOP_MSG % ('Error', 'An error has occurred') in logger.error_log['msg']
 
 
 def test_log_error_msg_attribute(logger, fake_request):
@@ -83,8 +82,7 @@ def test_log_error_msg_attribute(logger, fake_request):
         raise Error
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
-        assert logger.error_log['msg'] == TOP_MSG % ('Error',
-                                                     'An error has occurred')
+        assert TOP_MSG % ('Error', 'An error has occurred') in logger.error_log['msg']
 
 
 def test_log_exception_cause(logger, fake_request):
@@ -148,8 +146,7 @@ def test_log_given_exc_type_and_msg(logger, fake_request):
         log_error(exc, fake_request, TOP_MSG,
                   error_type="Argh", error_msg="what the hell")
 
-        assert logger.error_log['msg'] == ("TEST Error of type Argh "
-                                           "with message: 'what the hell'.")
+        assert "TEST Error of type Argh" in logger.error_log['msg']
 
 
 def test_log_message(logger, fake_request):
@@ -163,19 +160,8 @@ def test_log_message(logger, fake_request):
         assert SpynlException().message in logger.error_log['msg']
 
 
-def test_log_debug_message(logger, fake_request):
-    """Test that the default debug_message is logged."""
-
-    try:
-        raise SpynlException
-    except Exception as exc:
-        log_error(exc, fake_request, TOP_MSG)
-        msg = logger.error_log['kwargs']['extra']['meta']['debug_message']
-        assert msg == SpynlException().debug_message
-
-
 def test_log_custom_message(logger, fake_request):
-    """Test that the debug_message is logged."""
+    """Test that the custom is logged."""
 
     try:
         raise SpynlException(message="blah")
@@ -185,23 +171,23 @@ def test_log_custom_message(logger, fake_request):
         assert "blah" in logger.error_log['msg']
 
 
-def test_log_custom_debug_message(logger, fake_request):
+def test_log_debug_message(logger, fake_request):
     """Test that the debug_message is logged."""
 
     try:
-        raise SpynlException(debug_message="blah")
+        raise SpynlException(message="blah", debug_message="HI I AM DEBUG")
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
 
-        assert logger.error_log['kwargs']['extra']['meta']['debug_message'] == "blah"
+        assert "HI I AM DEBUG" in logger.error_log['msg']
 
 
-def test_log_message_equals_debug_message(logger, fake_request):
-    """Test that the default spynlmessage is logged."""
+def test_log_developer_message(logger, fake_request):
+    """Test that the developer_message is logged."""
 
     try:
-        raise SpynlException
+        raise SpynlException(message="blah", developer_message="HI I AM DEVELOPER")
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
 
-        logger.error_log['msg'] == logger.error_log['kwargs']['extra']['meta']['debug_message']
+        assert "HI I AM DEVELOPER" in logger.error_log['msg']

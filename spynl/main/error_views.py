@@ -22,7 +22,7 @@ def spynl_error(exc, request):
     request.response.status_int = http_exc.status_int
     request.response.content_type = 'application/json'  # this is Spynl default
 
-    top_msg = "Spynl Error of type %s with message: '%s'."
+    top_msg = "Spynl Error of type %s with message: '%s'"
     log_error(exc, request, top_msg)
     return exc.make_response()
 

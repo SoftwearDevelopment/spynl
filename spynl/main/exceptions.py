@@ -35,6 +35,9 @@ class SpynlException(Exception):
         # set messages
         self.message = message
         self.developer_message = developer_message
+        if developer_message and not debug_message:
+            debug_message = developer_message
+
         self.debug_message = debug_message
 
     def make_response(self):
