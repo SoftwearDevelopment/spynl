@@ -232,14 +232,3 @@ class EmailRecipientNotGiven(SpynlException):
         message = _('email-recipient-not-given',
                     default=('You did not give a recipient for the email.'))
         super().__init__(message=message)
-
-
-class BadQueryString(SpynlException):
-    """Raise when request query string is invalid."""
-
-    def __init__(self, *args, **kwargs):
-        kwargs['message'] = _(
-            'invalid-query-string-or-post-body-parameters',
-            default='One or more of the parameters you provided is(are) invalid.'
-        )
-        super().__init__(*args, **kwargs)
