@@ -1,7 +1,5 @@
 """The main package of Spynl."""
 
-from pkg_resources import iter_entry_points  # pylint: disable=E0611
-
 from pyramid.config import Configurator
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.viewderivers import INGRESS
@@ -97,7 +95,8 @@ def main_includeme(config):
     config.add_settings({
         'jinja2.i18n.gettext': TemplateTranslations,
         'jinja2.filters': {
-            'static_url': 'pyramid_jinja2.filters:static_url_filter'
+            'static_url': 'pyramid_jinja2.filters:static_url_filter',
+            'quoteplus': 'urllib.parse.quote_plus',
         },
     })
 
