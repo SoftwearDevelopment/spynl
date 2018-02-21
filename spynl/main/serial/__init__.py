@@ -105,7 +105,7 @@ def loads(body, content_type, headers=None, context=None):
 
     try:
         load = handler['load']
-    except (AttributeError, KeyError):
+    except AttributeError:
         raise DeserializationUnsupportedException(content_type)
 
     return load(body, headers=headers, context=context)

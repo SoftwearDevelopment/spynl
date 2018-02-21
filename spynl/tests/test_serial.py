@@ -9,11 +9,9 @@ import pytest
 
 from spynl.main.dateutils import (date_to_str, date_from_str, localize_date)
 
-from spynl.main.serial import (handlers, json, xml, csv, py, loads, dumps,
+from spynl.main.serial import (json, xml, csv, py, loads, dumps,
                                MalformedRequestException,
-                               UnsupportedContentTypeException,
-                               DeserializationUnsupportedException,
-                               SerializationUnsupportedException)
+                               UnsupportedContentTypeException)
 from spynl.main.serial.csv import loads as csv_loads
 
 
@@ -35,20 +33,6 @@ def test_bad_content_types():
 
     with pytest.raises(UnsupportedContentTypeException):
         dumps('object', 'application/object')
-
-
-def test_supported_content_type_but_not_loading(monkeypatch):
-    """We might support only dumping or only loading in a content-type."""
-    monkeypatch.setitem(handlers, 'foo/type', {})
-    with pytest.raises(DeserializationUnsupportedException):
-        loads('body', 'foo/type')
-
-
-def test_supported_content_type_but_not_dumping(monkeypatch):
-    """We might support only dumping or only loading in a content-type."""
-    monkeypatch.setitem(handlers, 'foo/type', {})
-    with pytest.raises(SerializationUnsupportedException):
-        dumps('body', 'foo/type')
 
 
 def test_sniff_braces():
