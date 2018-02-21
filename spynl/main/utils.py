@@ -511,6 +511,7 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         error_type,
         str(error_msg),
         exc_info=exc_info,
+        extra=dict(meta=metadata)
     )
 
     send_exception_to_external_monitoring(user_info=user_info,
