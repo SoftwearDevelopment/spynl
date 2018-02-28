@@ -1,5 +1,6 @@
 """Handle JSON content."""
 
+from decimal import Decimal
 import json
 import re
 
@@ -25,6 +26,8 @@ def dumps(body, pretty=False):
         """Custom JSONEncoder to encode the object."""
 
         def default(self, obj):  # pylint: disable=method-hidden
+            if isinstance(obj, Decimal):
+                return float(obj)
             return objects.encode(obj)
 
     return json.dumps(body, indent=indent, ensure_ascii=False, cls=JSONEncoder)

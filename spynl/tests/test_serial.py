@@ -1,6 +1,8 @@
 # coding=UTF8
 """Specifically test (de)serialisation with straightforward unit tests."""
 
+from decimal import Decimal
+
 import datetime
 import json as json_py
 from xml.etree.ElementTree import fromstring
@@ -449,3 +451,8 @@ def test_csv_loads_csvimport_with_datefield(app):
     assert data['date'].day, 10
     assert data['date'].hour, 10
     assert data['date'].minute, 11
+
+
+def test_decimal_json_dumps():
+    """test dumping decimals to floats."""
+    assert dumps({'a': Decimal(1)}, 'application/json') == '{"a": 1.0}'
