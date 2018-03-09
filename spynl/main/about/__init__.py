@@ -21,10 +21,12 @@ class AboutResource(Resource):
 
 
 class StaticResource(Resource):
-    """The resource class for static assets. Open if you're authenticated."""
+    """
+    The resource class for static assets for the about endpoints. Open only to
+    developers.
+    """
 
-    __acl__ = [(Allow, Authenticated, 'read'), DENY_ALL]
-
+    __acl__ = [(Allow, 'role:spynl-developer', 'read'), DENY_ALL]
 
 
 
