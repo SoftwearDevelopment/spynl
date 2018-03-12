@@ -175,18 +175,6 @@ class IllegalParameter(SpynlException):
         super().__init__(message=message)
 
 
-class ValidationError(SpynlException):
-    """Exception when parameter is illegal."""
-
-    def __init__(self, *args, **kwargs):
-        """Exception message."""
-        message = _('validation-error',
-                    default='Sorry, there was a problem with your request. '
-                    'If the problem persists, please contact support team. '
-                    'Our apologies for the inconvenience.')
-        super().__init__(*args, message=message, **kwargs)
-
-
 class BadValidationInstructions(SpynlException):
     """Exception when the validation documentation cannot be used."""
 

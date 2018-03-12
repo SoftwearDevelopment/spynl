@@ -10,6 +10,28 @@ from spynl.main.utils import log_error
 from spynl.main.locale import SpynlTranslationString as _
 
 
+def validation_error(exc, request):
+    """
+    Handle raised ValidationErrors from marshmallow.
+    """
+    request.response.status_int = 400
+    request.response.content_type = 'application/json'  # this is Spynl default
+
+    top_msg = "Spynl Error of type %s with errors: '%s'"
+    log_error(exc, request, top_msg, error_msg=exc.normalized_messages())
+
+    message = _('validation-error',
+                default='Sorry, there was a problem with your request. '
+                'If the problem persists, please contact support team. '
+                'Our apologies for the inconvenience.')
+    return dict(
+        status='error',
+        type=exc.__class__.__name__,
+        message=message,
+        developer_message=exc.normalized_messages(),
+    )
+
+
 def spynl_error(exc, request):
     """
     Handle raised SpynlExceptions.

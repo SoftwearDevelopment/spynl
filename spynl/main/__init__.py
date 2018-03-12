@@ -4,14 +4,17 @@ from pyramid.config import Configurator
 from pyramid.security import NO_PERMISSION_REQUIRED
 from pyramid.viewderivers import INGRESS
 
+from marshmallow import ValidationError
+
 from spynl.main import serial, about, plugins, routing, events, endpoints, \
     session
 
 from spynl.main.utils import renderer_factory, check_origin, \
     handle_pre_flight_request
 
+
 from spynl.main.exceptions import SpynlException
-from spynl.main.error_views import spynl_error, error400, error500
+from spynl.main.error_views import spynl_error, error400, error500, validation_error
 from spynl.main.validation import validate_json_schema
 
 from spynl.main.docs.documentation import make_docs
@@ -83,6 +86,10 @@ def main_includeme(config):
                     permission=NO_PERMISSION_REQUIRED,
                     is_error_view=True)
     config.add_view(error500, context=Exception,
+                    renderer='spynls-renderer',
+                    permission=NO_PERMISSION_REQUIRED,
+                    is_error_view=True)
+    config.add_view(validation_error, context=ValidationError,
                     renderer='spynls-renderer',
                     permission=NO_PERMISSION_REQUIRED,
                     is_error_view=True)

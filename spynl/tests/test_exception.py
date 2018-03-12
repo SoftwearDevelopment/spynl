@@ -2,6 +2,7 @@
 import pytest
 
 from pyramid.httpexceptions import HTTPConflict
+from marshmallow import Schema, fields
 
 from spynl.main.exceptions import SpynlException, catch_mapped_exceptions
 
@@ -10,6 +11,21 @@ from spynl.main.exceptions import SpynlException, catch_mapped_exceptions
 def exception_app(app_factory, settings, monkeypatch):
     """Plugin an endpoint that always raises and echo's back information."""
     def patched_plugin_main(config):
+        def raise_validation_error(request):
+            """
+            Always raises a validationerror.
+            """
+            class S(Schema):
+                x = fields.String(required=True)
+            S().load({})
+
+        def buggy_endpoint(request):
+            """
+            This endpoint only raises an external exception that needs to be mapped
+            to a SpynlException
+            """
+            raise ToBeMapped(extra='extra info')
+
         def echo_raise(request):
             """
             Always raises.
@@ -30,6 +46,7 @@ def exception_app(app_factory, settings, monkeypatch):
         config.add_view_deriver(catch_mapped_exceptions)
 
         config.add_endpoint(echo_raise, 'echo-raise')
+        config.add_endpoint(raise_validation_error, 'raise-validation-error')
         config.add_endpoint(buggy_endpoint, 'buggy-endpoint')
 
     # monkeypatch spynl.main.plugins.main as it is a simple entry point without
@@ -78,14 +95,6 @@ class Mapped(SpynlException):
         self.extra = self._external_exception.extra
 
 
-def buggy_endpoint(request):
-    """
-    This endpoint only raises an external exception that needs to be mapped
-    to a SpynlException
-    """
-    raise ToBeMapped(extra='extra info')
-
-
 def test_spynlexception(exception_app):
     """Test regular SpynlException"""
     response = exception_app.get('/echo-raise', expect_errors=True)
@@ -119,3 +128,13 @@ def test_exception_mapping(exception_app):
                                        expect_errors=True)
     assert response.json_body['extra'] == 'extra info'
     assert response.json_body['message'] == 'This is a Spynl message'
+
+
+def test_validation_error(exception_app):
+    response = exception_app.get('/raise-validation-error', expect_errors=True)
+    assert response.status_code == 400 and response.json_body == {
+        'status': 'error',
+        'type': 'ValidationError',
+        'message': 'Ongeldige data.',
+        'developer_message': {'x': ['Missing data for required field.']}
+    }
