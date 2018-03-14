@@ -132,9 +132,10 @@ def test_exception_mapping(exception_app):
 
 def test_validation_error(exception_app):
     response = exception_app.get('/raise-validation-error', expect_errors=True)
-    assert response.status_code == 400 and response.json_body == {
-        'status': 'error',
-        'type': 'ValidationError',
-        'message': 'Ongeldige data.',
-        'developer_message': {'x': ['Missing data for required field.']}
-    }
+    expected = dict(
+        status='error',
+        type='ValidationError',
+        developer_message={'x': ['Missing data for required field.']}
+    )
+    assert response.status_code == 400 and all(i in response.json_body.items()
+                                               for i in expected.items())
