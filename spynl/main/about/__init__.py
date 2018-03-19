@@ -40,6 +40,7 @@ def main(config):
                            permission='read')
     config.add_static_view(name='static_docson',
                            path='spynl.main:docs/docson/',
+                           factory=StaticResource,
                            permission='read')
 
     # check if we can use authentication for the more sensitive views
@@ -56,8 +57,8 @@ def main(config):
     config.add_endpoint(build, 'build', context=AboutResource,
                         permission=NO_PERMISSION_REQUIRED)
     config.add_endpoint(endpoint_doc, 'endpoints', context=AboutResource,
-                        permission=Authenticated)
+                        permission=permission)
     config.add_endpoint(schemas, 'schemas', context=AboutResource,
-                        permission=Authenticated)
+                        permission=permission)
     config.add_endpoint(ini, 'ini', context=AboutResource,
                         permission=permission)
