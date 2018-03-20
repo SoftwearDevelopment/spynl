@@ -85,30 +85,6 @@ def test_log_error_msg_attribute(logger, fake_request):
         assert TOP_MSG % ('Error', 'An error has occurred') in logger.error_log['msg']
 
 
-def test_log_exception_cause(logger, fake_request):
-    """
-    Test exception __cause__
-
-    Test that when a second exception is raised from the context of a first
-    the logger receives information about the original.
-    """
-
-    class Error(Exception):
-        pass
-
-    class SecondError(Exception):
-        pass
-
-    try:
-        raise Error
-    except Exception as exc:
-        try:
-            raise SecondError from exc
-        except Exception as exc2:
-            log_error(exc2, fake_request, TOP_MSG)
-            assert logger.error_log['kwargs']['exc_info'][0] == Error
-
-
 def test_log_exception_name(logger, fake_request):
     """Test stripping of "Exception" from the name."""
 

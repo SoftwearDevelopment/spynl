@@ -483,9 +483,6 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
     exc_info = sys.exc_info()
     last_traceback = exc_info[2]
 
-    if hasattr(exc, '__cause__') and exc.__cause__ is not None:
-        exc_info = (exc.__cause__.__class__, exc.__cause__, last_traceback)
-
     user_info = get_user_info(request, purpose='error_view')
 
     debug_message = getattr(exc, 'debug_message', 'No debug message'),
