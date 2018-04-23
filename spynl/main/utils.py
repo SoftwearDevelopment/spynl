@@ -304,17 +304,6 @@ def renderer_factory(info):
     return json_renderer_factory(None)
 
 
-def is_package_installed(package_name):
-    """
-    Return True if the package has been pip-installed
-    in the current environment
-    """
-    # importing pip here so pip>=1.5.1 does not cause cyclic package troubles
-    # when starting the spynl application
-    import pip
-    return package_name in [i.key for i in pip.get_installed_distributions()]
-
-
 def get_logger(name=None):
     """Return the Logger object with the given name."""
     if not name:
@@ -422,42 +411,46 @@ def send_exception_to_external_monitoring(user_info=None, exc_info=None,
     settings = get_settings()
     if exc_info is None:
         exc_info = sys.exc_info()
+
     # send Exception to Sentry if the raven package is installed
     # and sentry is configured
     try:
-        if is_package_installed('raven') and settings.get('spynl.sentry_key')\
-          and settings.get('spynl.sentry_project'):
-            import raven  # pylint: disable=import-error
-            spynl_env = settings.get('spynl.ops.environment', 'dev')
-            spynl_function = settings.get('spynl.function', 'all')
-            client = raven.Client(
-                dsn='https://{}@app.getsentry.com/{}'.format(
-                    settings.get('spynl.sentry_key'),
-                    settings.get('spynl.sentry_project')),
-                release=spynl_version,
-                site='Spynl [{}-{}]'.format(spynl_env, spynl_function),
-                processors=('raven.processors.SanitizePasswordsProcessor',))
-            if user_info is not None:
-                client.user_context(user_info)
-            data = dict(exc_info=exc_info, extra=metadata)
-            if endpoint is not None:
-                data.update(tags=dict(endpoint=endpoint))
-            client.captureException(**data)
-    except Exception as e:
-        log.warning('Could not send Exception to Sentry: %s', e)
+        import raven
+        dsn = 'https://{}@app.getsentry.com/{}'.format(
+            settings['spynl.sentry_key'],
+            settings['spynl.sentry_project'])
+    except (ImportError, KeyError):
+        pass
+    else:
+        spynl_env = settings.get('spynl.ops.environment', 'dev')
+        spynl_function = settings.get('spynl.function', 'all')
+        data = dict(exc_info=exc_info, extra=metadata)
+        if endpoint is not None:
+            data.update(tags=dict(endpoint=endpoint))
+        client = raven.Client(
+            dsn=dsn,
+            release=spynl_version,
+            site='Spynl [{}-{}]'.format(spynl_env, spynl_function),
+            processors=('raven.processors.SanitizePasswordsProcessor',))
+        if user_info is not None:
+            client.user_context(user_info)
+        client.captureException(**data)
 
     # tell NewRelic about user information if the newrelic package is installed
     # (the rest of the configuration of NewRelic is ini-file-based)
     try:
-        if is_package_installed('newrelic') and user_info is not None:
-            import newrelic.agent  # pylint: disable=import-error
-            for key in user_info:
+        import newrelic.agent
+    except ImportError:
+        pass
+    else:
+        if user_info is not None:
+            for key, value in user_info.items():
                 # do not include ipaddress for privacy
-                if key != 'ipaddress':
-                    newrelic.agent.add_custom_parameter(key, user_info[key])
-
-    except Exception as e:
-        log.warning('Could not add user info to NewRelic on exception: %s', e)
+                if key == 'ipaddress':
+                    continue
+                if not newrelic.agent.add_custom_parameter(key, value):
+                    log.warning('Could not add user info to NewRelic on exception: %s', key)
+                    break
 
 
 def log_error(exc, request, top_msg, error_type=None, error_msg=None):
