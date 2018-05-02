@@ -419,21 +419,27 @@ def send_exception_to_external_monitoring(user_info=None, exc_info=None,
         dsn = 'https://{}@app.getsentry.com/{}'.format(
             settings['spynl.sentry_key'],
             settings['spynl.sentry_project'])
-    except (ImportError, KeyError):
-        pass
-    else:
+
         spynl_env = settings.get('spynl.ops.environment', 'dev')
         spynl_function = settings.get('spynl.function', 'all')
-        data = dict(exc_info=exc_info, extra=metadata)
-        if endpoint is not None:
-            data.update(tags=dict(endpoint=endpoint))
+        site = 'Spynl [{}-{}]'.format(spynl_env, spynl_function),
+
         client = raven.Client(
             dsn=dsn,
             release=spynl_version,
-            site='Spynl [{}-{}]'.format(spynl_env, spynl_function),
+            site=site,
             processors=('raven.processors.SanitizePasswordsProcessor',))
+    except (ImportError, KeyError):
+        pass
+    except raven.exceptions.InvalidDsn:
+        log.warning('Invalid Sentry DSN')
+    else:
         if user_info is not None:
             client.user_context(user_info)
+
+        data = dict(exc_info=exc_info, extra=metadata)
+        if endpoint is not None:
+            data.update(tags=dict(endpoint=endpoint))
         client.captureException(**data)
 
     # tell NewRelic about user information if the newrelic package is installed
