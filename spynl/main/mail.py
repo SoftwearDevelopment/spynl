@@ -179,6 +179,7 @@ def send_template_email(request, recipient, template_string=None,
     text_maker.ignore_images = True
     text_maker.ignore_tables = True
     text_maker.wrap_links = False
+    text_maker.use_automatic_links = False
     text_maker.body_width = 0
     text_body = text_maker.handle(html_body)
 
