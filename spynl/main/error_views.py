@@ -19,7 +19,6 @@ def validation_error(exc, request):
 
     top_msg = "Spynl Error of type %s with errors: '%s'"
     log_error(exc, request, top_msg, error_msg=exc.normalized_messages())
-
     message = _('validation-error',
                 default='Sorry, there was a problem with your request. '
                 'If the problem persists, please contact support team. '
@@ -46,6 +45,7 @@ def spynl_error(exc, request):
 
     top_msg = "Spynl Error of type %s with message: '%s'"
     log_error(exc, request, top_msg)
+
     return exc.make_response()
 
 

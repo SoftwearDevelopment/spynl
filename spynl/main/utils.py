@@ -396,8 +396,7 @@ def required_args(*arguments):
     return outer_wrapper
 
 
-def send_exception_to_external_monitoring(user_info=None, exc_info=None,
-                                          metadata=None, endpoint=None):
+def report_to_sentry(exception, request):
     """Send exception info to online services for better monitoring
     The user_info param can be added so the services can display which user
     was involved.
@@ -409,54 +408,60 @@ def send_exception_to_external_monitoring(user_info=None, exc_info=None,
     """
     log = get_logger()
     settings = get_settings()
-    if exc_info is None:
-        exc_info = sys.exc_info()
 
-    # send Exception to Sentry if the raven package is installed
-    # and sentry is configured
     try:
         import raven
         dsn = 'https://{}@app.getsentry.com/{}'.format(
             settings['spynl.sentry_key'],
-            settings['spynl.sentry_project'])
-
-        spynl_env = settings.get('spynl.ops.environment', 'dev')
-        spynl_function = settings.get('spynl.function', 'all')
-        site = 'Spynl [{}-{}]'.format(spynl_env, spynl_function),
-
-        client = raven.Client(
-            dsn=dsn,
-            release=spynl_version,
-            site=site,
-            processors=('raven.processors.SanitizePasswordsProcessor',))
+            settings['spynl.sentry_project']
+        )
     except (ImportError, KeyError):
-        pass
+        # if raven package is not installed or sentry key or project don't exist move on
+        return
     except raven.exceptions.InvalidDsn:
         log.warning('Invalid Sentry DSN')
-    else:
-        if user_info is not None:
-            client.user_context(user_info)
+        return
 
-        data = dict(exc_info=exc_info, extra=metadata)
-        if endpoint is not None:
-            data.update(tags=dict(endpoint=endpoint))
-        client.captureException(**data)
+    client = raven.Client(
+        dsn=dsn,
+        release=spynl_version,
+        site='Spynl',
+        environment=settings.get('spynl.ops.environment', 'dev'),
+        processors=('raven.processors.SanitizePasswordsProcessor',)
+    )
+    user_info = get_user_info(request, purpose='error_view')
+    if user_info:
+        client.user_context(user_info)
+    client.captureException(
+        tags=dict(endpoint=request.path),
+        extra=dict(
+            url=request.path_url,
+            debug_message=getattr(exception, 'debug_message', None),
+            developer_message=getattr(exception, 'developer_message', None),
+            detail=getattr(exception, 'detail', None)
+        )
+    )
 
+
+def report_to_newrelic(user_info):
     # tell NewRelic about user information if the newrelic package is installed
     # (the rest of the configuration of NewRelic is ini-file-based)
     try:
         import newrelic.agent
     except ImportError:
-        pass
-    else:
-        if user_info is not None:
-            for key, value in user_info.items():
-                # do not include ipaddress for privacy
-                if key == 'ipaddress':
-                    continue
-                if not newrelic.agent.add_custom_parameter(key, value):
-                    log.warning('Could not add user info to NewRelic on exception: %s', key)
-                    break
+        return
+
+    if not user_info:
+        return
+
+    log = get_logger()
+    for key, value in user_info.items():
+        # do not include ipaddress for privacy
+        if key == 'ipaddress':
+            continue
+        if not newrelic.agent.add_custom_parameter(key, value):
+            log.warning('Could not add user info to NewRelic on exception: %s', key)
+            break
 
 
 def log_error(exc, request, top_msg, error_type=None, error_msg=None):
@@ -479,9 +484,6 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
             if not error_msg:
                 error_msg = _('no-message-available', default="No message available.")
 
-    exc_info = sys.exc_info()
-    last_traceback = exc_info[2]
-
     user_info = get_user_info(request, purpose='error_view')
 
     debug_message = getattr(exc, 'debug_message', 'No debug message'),
@@ -492,7 +494,7 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         url=request.path_url,
         debug_message=debug_message,
         developer_message=developer_message,
-        err_source=get_err_source(last_traceback),
+        err_source=get_err_source(exc.__traceback__),
         detail=getattr(exc, 'detail', None)
     )
 
@@ -506,14 +508,13 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         top_msg,
         error_type,
         str(error_msg),
-        exc_info=exc_info,
+        exc_info=sys.exc_info(),
         extra=dict(meta=metadata)
     )
 
-    send_exception_to_external_monitoring(user_info=user_info,
-                                          exc_info=exc_info,
-                                          metadata=metadata,
-                                          endpoint=request.path)
+    if getattr(exc, 'monitor', None) is True:
+        report_to_sentry(exc, request)
+    report_to_newrelic(user_info)
 
 
 @contextlib.contextmanager

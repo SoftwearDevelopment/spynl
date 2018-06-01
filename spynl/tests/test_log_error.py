@@ -21,7 +21,7 @@ def logger(monkeypatch):
     def patched_monitoring(*args, **kwargs):
         pass
     monkeypatch.setattr(
-        'spynl.main.utils.send_exception_to_external_monitoring',
+        'spynl.main.utils.report_to_sentry',
         patched_monitoring
     )
 

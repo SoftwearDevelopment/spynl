@@ -26,11 +26,13 @@ class SpynlException(Exception):
     catch_mapped_exceptions function needs to be registered as a view deriver.
     """
     http_escalate_as = HTTPBadRequest
+    monitor = True
 
     def __init__(self,
                  message='an internal error has occured',
                  developer_message=None,
-                 debug_message=None):
+                 debug_message=None,
+                 monitor=None):
         super().__init__(*self.args)
         # set messages
         self.message = message
@@ -39,6 +41,9 @@ class SpynlException(Exception):
             debug_message = developer_message
 
         self.debug_message = debug_message
+        # Pass False if you don't want the exception to be sent to sentry
+        if monitor is not None:
+            self.monitor = monitor
 
     def make_response(self):
         """
