@@ -8,13 +8,12 @@ from pyramid_mailer import get_mailer
 from pyramid_mailer.message import Attachment
 from pyramid_mailer.message import Message
 
-from jinja2 import Environment, Template, TemplateNotFound, FileSystemLoader
+from jinja2 import Template, TemplateNotFound
 import html2text
 
 from spynl.main.utils import get_logger, get_settings
 
 from spynl.main.exceptions import EmailTemplateNotFound, EmailRecipientNotGiven
-from .locale import TemplateTranslations, SpynlTranslationString
 
 
 DEFAULT_HTML_TEMPLATE = '''
@@ -41,7 +40,7 @@ DEFAULT_HTML_TEMPLATE = '''
     </html>'''
 
 
-def _sendmail(request, recipient, subject, plain_body, html_body=None,
+def _sendmail(request, recipients, subject, plain_body, html_body=None,
               sender=None, attachments=None, fail_silently=True, mailer=None,
               reply_to=None, sender_name=None):
     """
@@ -50,7 +49,7 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
     email address.
 
     :param Request request: the original request
-    :param string recipient: addressee
+    :param string recipients: addressees
     :param string subject: subject of mail
     :param string plain_body: content of mail
     :param string html_body: html content of mail
@@ -74,17 +73,16 @@ def _sendmail(request, recipient, subject, plain_body, html_body=None,
             sender = 'no_reply@{}'.format(domain)
 
     sender = str(sender)
-    recipients = None
-    # Recipient could be given as None, in which case we'll use the dummy
-    # recipient.
-    if recipient:
-        recipients = [str(recipient)]
-    elif not fail_silently:
-        raise EmailRecipientNotGiven()
-    elif settings.get('mail.dummy_recipient'):
-        recipients = [settings.get('mail.dummy_recipient')]
-        logger.info("I will send this email to %s instead of %s.",
-                    settings.get('mail.dummy_recipient'), recipient)
+    if not recipients:
+        if not fail_silently:
+            raise EmailRecipientNotGiven()
+        elif settings.get('mail.dummy_recipient'):
+            recipients = [settings.get('mail.dummy_recipient')]
+            logger.info("I will send this email to %s instead of %s.",
+                        settings.get('mail.dummy_recipient'), recipients)
+    if isinstance(recipients, str):
+        recipients = [recipients]
+
     subject = str(subject).rstrip()
 
     # set Reply-To header if needed:
