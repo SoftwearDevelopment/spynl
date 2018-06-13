@@ -80,6 +80,9 @@ def _sendmail(request, recipients, subject, plain_body, html_body=None,
             recipients = [settings.get('mail.dummy_recipient')]
             logger.info("I will send this email to %s instead of %s.",
                         settings.get('mail.dummy_recipient'), recipients)
+        else:
+            return False
+
     if isinstance(recipients, str):
         recipients = [recipients]
 
