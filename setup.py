@@ -16,7 +16,7 @@ install_requires = [
     'webob==1.6.3', 'pyramid>=1.7,<1.8', 'invoke>=0.14,<0.15', 'requests',
     'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog', 'pytz', 'pbkdf2',
     'python-dateutil', 'html2text', 'beaker', 'waitress', 'gunicorn',
-    'jsonschema', 'sphinx', 'pyyaml', 'tld', 'babel', 'click', 'webtest',
+    'jsonschema', 'sphinx', 'pyyaml', 'tld==0.7.9', 'babel', 'click', 'webtest',
     'pytest<3.3.0', 'pytest-raisesregexp', 'dnspython', 'pytest-cov',
     'marshmallow==3.0.0b8',
 ]
