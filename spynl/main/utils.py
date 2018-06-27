@@ -415,6 +415,13 @@ def report_to_sentry(exception, request):
             settings['spynl.sentry_key'],
             settings['spynl.sentry_project']
         )
+        client = raven.Client(
+            dsn=dsn,
+            release=spynl_version,
+            site='Spynl',
+            environment=settings.get('spynl.ops.environment', 'dev'),
+            processors=('raven.processors.SanitizePasswordsProcessor',)
+        )
     except (ImportError, KeyError):
         # if raven package is not installed or sentry key or project don't exist move on
         return
@@ -422,13 +429,6 @@ def report_to_sentry(exception, request):
         log.warning('Invalid Sentry DSN')
         return
 
-    client = raven.Client(
-        dsn=dsn,
-        release=spynl_version,
-        site='Spynl',
-        environment=settings.get('spynl.ops.environment', 'dev'),
-        processors=('raven.processors.SanitizePasswordsProcessor',)
-    )
     user_info = get_user_info(request, purpose='error_view')
     if user_info:
         client.user_context(user_info)
