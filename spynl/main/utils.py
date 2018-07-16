@@ -324,7 +324,6 @@ def parse_value(value, class_info):
         except:
             raise SpynlException(_(
                 'parse-value-exception-as-class',
-                default='"${value}" could not be parsed as ${class}',
                 mapping={'value': value, 'class': class_info.__name__}))
 
     if hasattr(class_info, '__iter__'):
@@ -332,8 +331,6 @@ def parse_value(value, class_info):
             if not isclass(cl):
                 raise SpynlException(_(
                     'parse-value-exception-not-class',
-                    default='${class} is not a class. Cannot parse '
-                            'value "${value}".',
                     mapping={'class': cl, 'value': value}))
             try:
                 return cl(value)
@@ -341,7 +338,6 @@ def parse_value(value, class_info):
                 pass
     raise SpynlException(_(
         'parse-value-exception-any-class',
-        default='"${value}" could not be parsed into any class in ${classes}',
         mapping={'value': value,
                  'classes': [cl.__name__ for cl in class_info]}))
 
@@ -482,7 +478,7 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         except AttributeError:
             error_msg = str(exc)
             if not error_msg:
-                error_msg = _('no-message-available', default="No message available.")
+                error_msg = _('no-message-available')
 
     user_info = get_user_info(request, purpose='error_view')
 

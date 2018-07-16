@@ -145,10 +145,7 @@ class BadOrigin(SpynlException):
 
     def __init__(self, origin):
         """Set the origin attribute."""
-        message = _(u'bad-origin',
-                    default=("Requests to the Spynl API are not "
-                             "permitted from origin '${origin}'."),
-                    mapping={'origin': origin})
+        message = _('bad-origin', mapping={'origin': origin})
         super().__init__(message=message)
 
 
@@ -163,9 +160,7 @@ class MissingParameter(SpynlException):
 
     def __init__(self, param):
         """Exception message."""
-        message = _('missing-parameter',
-                    default='Missing required parameter: ${param}',
-                    mapping={'param': param})
+        message = _('missing-parameter', mapping={'param': param})
         super().__init__(message=message)
 
 
@@ -174,9 +169,7 @@ class IllegalParameter(SpynlException):
 
     def __init__(self, param):
         """Exception message."""
-        message = _('illegal-parameter',
-                    default='Illegal parameter: ${param}',
-                    mapping={'param': param})
+        message = _('illegal-parameter', mapping={'param': param})
         super().__init__(message=message)
 
 
@@ -185,12 +178,7 @@ class BadValidationInstructions(SpynlException):
 
     def __init__(self, error):
         """Exception message."""
-        message = _(
-            'bad-validation-instructions',
-            default=('The description of validations for this endpoint cannot '
-                     'be used: ${error}'),
-            mapping={'error': error}
-        )
+        message = _('bad-validation-instructions', mapping={'error': error})
         super().__init__(message=message)
 
 
@@ -199,11 +187,7 @@ class InvalidResponse(SpynlException):
 
     def __init__(self, error):
         """Exception message."""
-        message = _(
-            'invalid-response',
-            default=('Spynl could not generate a valid response: ${error}'),
-            mapping={'error': error}
-        )
+        message = _('invalid-response', mapping={'error': error})
         super().__init__(message=message)
 
 
@@ -212,11 +196,7 @@ class EmailTemplateNotFound(SpynlException):
 
     def __init__(self, template):
         """Exception message."""
-        message = _(
-            'email-tmpl-not-found',
-            default=('The email template <${template}> was not found.'),
-            mapping={'template': template}
-        )
+        message = _('email-tmpl-not-found', mapping={'template': template})
         super().__init__(message=message)
 
 
@@ -225,6 +205,5 @@ class EmailRecipientNotGiven(SpynlException):
 
     def __init__(self):
         """Exception message."""
-        message = _('email-recipient-not-given',
-                    default=('You did not give a recipient for the email.'))
+        message = _('email-recipient-not-given')
         super().__init__(message=message)

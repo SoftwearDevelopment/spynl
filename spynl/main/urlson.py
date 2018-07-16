@@ -112,8 +112,7 @@ class UnexpectedEndOfInput(ValueError):
 
     def __init__(self):
         """initialize"""
-        super().__init__(
-            _('unexpected-end-of-input', default='Unexpected end of input.'))
+        super().__init__(_('unexpected-end-of-input'))
 
 
 def handle_ws(urlson, offset=0):

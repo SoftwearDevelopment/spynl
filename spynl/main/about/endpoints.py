@@ -51,11 +51,7 @@ def hello(request):
     packages = get_spynl_packages()
     for package in packages:
         plugin_versions[package.project_name] = package.version
-    return {'message': _('about-message',
-                         default='This is a Spynl web application. '
-                                 'You can get more information at '
-                                 'about/endpoints, about/ini, about/versions, '
-                                 'about/build and about/environment.'),
+    return {'message': _('about-message'),
             'spynl_version': spynl_version,
             'plugins': plugin_versions,
             'language': negotiate_locale_name(request),

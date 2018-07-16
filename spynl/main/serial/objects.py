@@ -112,8 +112,6 @@ def decode_date(dic, fieldname, context):
     except Exception:
         raise ValueError(_(
             'date-decode-value-error',
-            default="The value '${value}' for key '${key}' does not seem to "
-                    "be a valid date string that conforms to ${format}.",
             mapping={'value': dic[fieldname], 'key': fieldname,
                      'format': date_format_str()}))
 

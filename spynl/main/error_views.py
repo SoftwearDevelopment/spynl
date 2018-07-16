@@ -19,10 +19,7 @@ def validation_error(exc, request):
 
     top_msg = "Spynl Error of type %s with errors: '%s'"
     log_error(exc, request, top_msg, error_msg=exc.normalized_messages())
-    message = _('validation-error',
-                default='Sorry, there was a problem with your request. '
-                'If the problem persists, please contact support team. '
-                'Our apologies for the inconvenience.')
+    message = _('validation-error')
     return dict(
         status='error',
         type=exc.__class__.__name__,
@@ -64,22 +61,19 @@ def error400(exc, request):
     error_type = exc.__class__.__name__
     if isinstance(exc, HTTPNotFound):
         message = _('no-endpoint-for-path',
-                    default="No endpoint found for path '${path}'.",
                     mapping={'path': request.path_info})
     elif (isinstance(exc, HTTPForbidden) and hasattr(exc, 'result') and
           exc.result is not None):
         if isinstance(exc.result, ACLDenied):
             message = _(
                 'permission-denial',
-                default="Permission to '${permission}' ${context} was denied.",
                 mapping={'context': request.context.__class__.__name__,
                          'permission': exc.result.permission})
             # TODO: log exc.result as detail info
         else:
             message = exc.result.msg
     elif isinstance(exc, HTTPInternalServerError):
-        message = _('internal-server-error',
-                    default='An internal server error occured.')
+        message = _('internal-server-error')
     else:
         message = exc.explanation
         if exc.detail:
@@ -113,6 +107,5 @@ def error500(exc, request):
     top_msg = "Server Error (500) of type '%s' with message: '%s'."
     log_error(exc, request, top_msg)
 
-    message = _('internal-server-error',
-                default='An internal server error occured.')
+    message = _('internal-server-error')
     return dict(status='error', message=message)

@@ -66,16 +66,13 @@ def interprete_validation_instructions(json_data, validations, req_res):
         return
     logger = get_logger(__name__)
     if not isinstance(validations, list):
-        raise BadValidationInstructions(_(
-            'validations-is-not-list',
-            default='Validations should be a list.'))
+        raise BadValidationInstructions(_('validations-is-not-list'))
     else:
         for validation in validations:
             for required in ('schema', 'in'):
                 if required not in validation:
                     raise BadValidationInstructions(_(
                         'bad-validation-instructions-missing-field',
-                        default='Missing field: ${field}',
                         mapping={'field': required}))
             if validation['in'] not in ('request', 'response'):
                 raise BadValidationInstructions(_(
@@ -127,12 +124,9 @@ def apply_schema(data, schema_name):
                          schema_path, str(sch_exc))
             raise BadValidationInstructions(_(
                 'bad-validation-instructions-bad-schema',
-                default="The schema ${schema} is not valid",
                 mapping={'schema': schema_name}))
     else:
         logger.error("The schema %s could not be found.", schema_path)
         raise BadValidationInstructions(_(
             'bad-validation-instructions-schema-not-found',
-            default="The required schema ${schema} could not be found to "
-                    "perform validation.",
             mapping={'schema': schema_name}))

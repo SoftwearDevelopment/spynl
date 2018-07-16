@@ -110,7 +110,7 @@ def test_log_exception_default_message(logger, fake_request):
         raise Exception
     except Exception as exc:
         log_error(exc, fake_request, TOP_MSG)
-        assert 'No message available' in logger.error_log['msg']
+        assert 'no-message-available' in logger.error_log['msg']
 
 
 def test_log_given_exc_type_and_msg(logger, fake_request):

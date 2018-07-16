@@ -1,0 +1,107 @@
+# English translations for spynl.main.
+# Copyright (C) 2018 "Softwear BV"
+# This file is distributed under the same license as the spynl.main project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: spynl.main 6.1.9\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2018-07-17 10:38+0200\n"
+"PO-Revision-Date: 2018-07-16 13:48+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+msgid "about-message"
+msgstr "This is a Spynl web application. You can get more information at about/endpoints, about/ini, about/versions, about/build and about/environment."
+
+msgid "validation-error"
+msgstr "Sorry, there was a problem with your request. If the problem persists, please contact our support team. Our apologies for the inconvenience."
+
+msgid "no-endpoint-for-path"
+msgstr "No endpoint found for path '${path}'."
+
+msgid "permission-denial"
+msgstr "Permission to '${permission}' ${context} was denied."
+
+msgid "internal-server-error"
+msgstr "An internal server error occured."
+
+msgid "bad-origin"
+msgstr "Requests to the Spynl API are not permitted from origin '${origin}'."
+
+msgid "missing-parameter"
+msgstr "Missing required parameter: ${param}"
+
+msgid "illegal-parameter"
+msgstr "Illegal parameter: ${param}"
+
+msgid "bad-validation-instructions"
+msgstr "The description of validations for this endpoint cannot be used: ${error}"
+
+msgid "invalid-response"
+msgstr "Spynl could not generate a valid response: ${error}"
+
+msgid "email-tmpl-not-found"
+msgstr "The email template <${template}> was not found."
+
+msgid "email-recipient-not-given"
+msgstr "You did not give a recipient for the email."
+
+msgid "undetermined-content-type-exception"
+msgstr "The request carries a body but the content type cannot be determined."
+
+msgid "unsupported-content-type-exception"
+msgstr "Unsupported content type: \"${type}\""
+
+msgid "deserialization-unsupported-exception"
+msgstr "Deserialization for content type \"${type}\" is unsupported."
+
+msgid "serialization-unsupported-exception"
+msgstr "Serialization for content type: \"${type}\" is not supported."
+
+msgid "malformed-request-exception-type"
+msgstr "Malformed \"${type}\" request: ${request}"
+
+msgid "malformed-request-exception"
+msgstr "Malformed request: ${type}"
+
+msgid "date-decode-value-error"
+msgstr "The value '${value}' for key '${key}' does not seem to be a valid date string that conforms to ${format}."
+
+msgid "unexpected-end-of-input"
+msgstr "Unexpected end of input."
+
+msgid "parse-value-exception-as-class"
+msgstr "\"${value}\" could not be parsed as ${class}"
+
+msgid "parse-value-exception-not-class"
+msgstr "${class} is not a class. Cannot parse value \"${value}\"."
+
+msgid "parse-value-exception-any-class"
+msgstr "\"${value}\" could not be parsed into any class in ${classes}"
+
+msgid "no-message-available"
+msgstr "No message available."
+
+msgid "validations-is-not-list"
+msgstr "Validations should be a list."
+
+msgid "bad-validation-instructions-missing-field"
+msgstr "Missing field: ${field}"
+
+msgid "bad-validation-instructions-setting-in"
+msgstr "Setting \"in\" should be either \"request\" or \"response\""
+
+msgid "bad-validation-instructions-bad-schema"
+msgstr "The schema ${schema} is not valid"
+
+msgid "bad-validation-instructions-schema-not-found"
+msgstr "The required schema ${schema} could not be found to perform validation."
+
