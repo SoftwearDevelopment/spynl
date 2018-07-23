@@ -111,7 +111,7 @@ def serve(ini):
 @package_option
 @click.option('-l', '--languages',
               multiple=True,
-              default=['nl'],
+              default=['nl', 'en'],
               help=('A language code such as "en" or "nl". '
                     'Can be provided multiple times for multiple languages. ')
               )
