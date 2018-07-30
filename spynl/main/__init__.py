@@ -104,6 +104,8 @@ def main_includeme(config):
         'jinja2.filters': {
             'static_url': 'pyramid_jinja2.filters:static_url_filter',
             'quoteplus': 'urllib.parse.quote_plus',
+            'format_currency': 'babel.numbers.format_currency',
+            'format_decimal': 'babel.numbers.format_decimal',
         },
     })
 
