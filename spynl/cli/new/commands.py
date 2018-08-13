@@ -121,7 +121,11 @@ def serve(ini):
 @click.option('--no-location', '-n',
               help='Remove the comments (locations) from the .pot and .po file',
               is_flag=True)
-def translate(packages, languages, refresh, no_location):
+@click.option('--add-comments', '-c',
+              help=('Add translator comments from the code (translator comments'
+                    ' should start with #.)'),
+              is_flag=True)
+def translate(packages, languages, refresh, no_location, add_comments):
     """Perform translation tasks."""
     base_command = sys.executable + ' setup.py '
 
@@ -132,6 +136,8 @@ def translate(packages, languages, refresh, no_location):
             cmd = base_command + 'extract_messages'
             if no_location:
                 cmd += ' --no-location'
+            if add_comments:
+                cmd += ' --add-comments .'
             run_command(cmd)
 
             for lang in languages:
