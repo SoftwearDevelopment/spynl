@@ -158,6 +158,7 @@ class IllegalAction(SpynlException):
 class MissingParameter(SpynlException):
     """Exception when parameter is missing."""
 
+    monitor = False
     def __init__(self, param):
         """Exception message."""
         message = _('missing-parameter', mapping={'param': param})
