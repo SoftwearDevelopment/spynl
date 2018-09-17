@@ -17,7 +17,7 @@ from pyramid.response import Response
 from pyramid.renderers import json_renderer_factory
 from pyramid.exceptions import Forbidden
 from pyramid import threadlocal
-from pyramid.httpexceptions import HTTPForbidden
+from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
 
 from spynl.main import urlson
 from spynl.main.exceptions import SpynlException, MissingParameter, BadOrigin
@@ -509,9 +509,10 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         extra=dict(meta=metadata)
     )
 
-    if (getattr(exc, 'monitor', None) is True or not isinstance(exc, HTTPForbidden)):
-        report_to_sentry(exc, request)
-    report_to_newrelic(user_info)
+    if ((getattr(exc, 'monitor', None) is True or
+         not isinstance(exc, (HTTPForbidden, HTTPNotFound)))):
+            report_to_sentry(exc, request)
+            report_to_newrelic(user_info)
 
 
 @contextlib.contextmanager
