@@ -19,89 +19,89 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 msgid "about-message"
-msgstr "This is a Spynl web application. You can get more information at about/endpoints, about/ini, about/versions, about/build and about/environment."
+msgstr "Questa è un'applicazione web Spynl. Puoi trovare ulteriori informazioni si about/endpoints, about/ini, about/versions, about/build e about/environment."
 
 msgid "validation-error"
-msgstr "Sorry, there was a problem with your request. If the problem persists, please contact our support team. Our apologies for the inconvenience."
+msgstr "Spiacenti, si è verificato un errore con la tua richiesta. Se il problema persiste, contatta il nostro team di assistenza. Ci scusiamo per l'inconveniente."
 
 msgid "no-endpoint-for-path"
-msgstr "No endpoint found for path '${path}'."
+msgstr "Nessun risultato trovato per il percorso '${path}'."
 
 msgid "permission-denial"
-msgstr "Permission to '${permission}' ${context} was denied."
+msgstr "Il permesso per '${permission}' ${context} è stato negato."
 
 msgid "internal-server-error"
-msgstr "An internal server error occured."
+msgstr "Si è verificato un errore all'interno del server."
 
 msgid "bad-origin"
-msgstr "Requests to the Spynl API are not permitted from origin '${origin}'."
+msgstr "Le richieste per l'API Spynl originate da '${origin}' non sono consentite."
 
 msgid "missing-parameter"
-msgstr "Missing required parameter: ${param}"
+msgstr "Parametro richiesto mancante: ${param}"
 
 msgid "illegal-parameter"
-msgstr "Illegal parameter: ${param}"
+msgstr "Parametro illegale: ${param}"
 
 msgid "bad-validation-instructions"
-msgstr "The description of validations for this endpoint cannot be used: ${error}"
+msgstr "La descrizione delle convalide per questo risultato non può essere usata: ${error}"
 
 msgid "invalid-response"
-msgstr "Spynl could not generate a valid response: ${error}"
+msgstr "Spynl non può generare una risposta valida: ${error}"
 
 msgid "email-tmpl-not-found"
-msgstr "The email template <${template}> was not found."
+msgstr "Iltemplate per email <${template}> non è stato trovato."
 
 msgid "email-recipient-not-given"
-msgstr "You did not give a recipient for the email."
+msgstr "Non hai indicato un destinatario per l'email."
 
 msgid "undetermined-content-type-exception"
-msgstr "The request carries a body but the content type cannot be determined."
+msgstr "La richiesta ha un corpo, ma il tipo di contenuto non può essere determinato."
 
 msgid "unsupported-content-type-exception"
-msgstr "Unsupported content type: \"${type}\""
+msgstr "Tipo di contenuto non supportato: \"${type}\""
 
 msgid "deserialization-unsupported-exception"
-msgstr "Deserialization for content type \"${type}\" is unsupported."
+msgstr "La deserializzazione per i contenuti di tipo \"${type}\" non è supportata."
 
 msgid "serialization-unsupported-exception"
-msgstr "Serialization for content type: \"${type}\" is not supported."
+msgstr "La serializzazione per i contenuti di tipo: \"${type}\" non è supportata."
 
 msgid "malformed-request-exception-type"
-msgstr "Malformed \"${type}\" request: ${request}"
+msgstr "Richiesta: ${request}" malposta \"${type}\"
 
 msgid "malformed-request-exception"
-msgstr "Malformed request: ${type}"
+msgstr "Richiesta malposta: ${type}"
 
 msgid "date-decode-value-error"
-msgstr "The value '${value}' for key '${key}' does not seem to be a valid date string that conforms to ${format}."
+msgstr "Il valore '${value}' della chiave '${key}' sembra non essere una stringa valida per la data conforme a ${format}."
 
 msgid "unexpected-end-of-input"
-msgstr "Unexpected end of input."
+msgstr "Interruzione inaspettata degli input."
 
 msgid "parse-value-exception-as-class"
-msgstr "\"${value}\" could not be parsed as ${class}"
+msgstr "\"${value}\" non può essere analizzato come ${class}"
 
 msgid "parse-value-exception-not-class"
-msgstr "${class} is not a class. Cannot parse value \"${value}\"."
+msgstr "${class} non è una classe. Impossibile analizzare il valore \"${value}\"."
 
 msgid "parse-value-exception-any-class"
-msgstr "\"${value}\" could not be parsed into any class in ${classes}"
+msgstr "\"${value}\" Non può essere analizzanto in nessuna classe in ${classes}"
 
 msgid "no-message-available"
-msgstr "No message available."
+msgstr "Nessun messaggio disponibile."
 
 msgid "validations-is-not-list"
-msgstr "Validations should be a list."
+msgstr "Le convalide dovrebbero essere elencate."
 
 msgid "bad-validation-instructions-missing-field"
-msgstr "Missing field: ${field}"
+msgstr "Campo mancante: ${field}"
 
 msgid "bad-validation-instructions-setting-in"
-msgstr "Setting \"in\" should be either \"request\" or \"response\""
+msgstr "Le impostazioni \"in\" dovrebbero essere in \"request\" o \"response\""
 
 msgid "bad-validation-instructions-bad-schema"
-msgstr "The schema ${schema} is not valid"
+msgstr "Lo schema ${schema} non è valido"
 
 msgid "bad-validation-instructions-schema-not-found"
-msgstr "The required schema ${schema} could not be found to perform validation."
+msgstr "Impossibile trovare lo schema ${schema} richiesto per effetrtuare la convalida."
 
