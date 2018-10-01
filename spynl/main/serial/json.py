@@ -28,6 +28,8 @@ def dumps(body, pretty=False):
         def default(self, obj):  # pylint: disable=method-hidden
             if isinstance(obj, Decimal):
                 return float(obj)
+            if isinstance(obj, set):
+                return list(obj)
             return objects.encode(obj)
 
     return json.dumps(body, indent=indent, ensure_ascii=False, cls=JSONEncoder)
