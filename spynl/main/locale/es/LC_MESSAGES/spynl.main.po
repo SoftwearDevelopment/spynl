@@ -1,4 +1,4 @@
-# Spanish translations for spynl.main.
+# English translations for spynl.main.
 # Copyright (C) 2018 "Softwear BV"
 # This file is distributed under the same license as the spynl.main project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
@@ -10,98 +10,98 @@ msgstr ""
 "POT-Creation-Date: 2018-08-02 09:33+0200\n"
 "PO-Revision-Date: 2018-07-16 13:48+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: es\n"
-"Language-Team: es <LL@li.org>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
 msgid "about-message"
-msgstr "This is a Spynl web application. You can get more information at about/endpoints, about/ini, about/versions, about/build and about/environment."
+msgstr "Esta es una aplicación web de Spynl. Puede obtener más información en about/endpoints, about/ini, about/versions, about/build y about/environment."
 
 msgid "validation-error"
-msgstr "Sorry, there was a problem with your request. If the problem persists, please contact our support team. Our apologies for the inconvenience."
+msgstr "Lo sentimos, ha habido un problema con su solicitud. Si el problema persiste, póngase en contacto con nuestro equipo de atención al cliente. Le pedimos disculpas por las molestias."
 
 msgid "no-endpoint-for-path"
-msgstr "No endpoint found for path '${path}'."
+msgstr "No se ha encontrado un punto de conexión para la ruta '${path}'."
 
 msgid "permission-denial"
-msgstr "Permission to '${permission}' ${context} was denied."
+msgstr "Se ha denegado el permiso para '${permission}' ${context}."
 
 msgid "internal-server-error"
-msgstr "An internal server error occured."
+msgstr "Se ha producido un error interno del servidor."
 
 msgid "bad-origin"
-msgstr "Requests to the Spynl API are not permitted from origin '${origin}'."
+msgstr "No se permiten las solicitudes para la API de Spynl desde el origen '${origin}'."
 
 msgid "missing-parameter"
-msgstr "Missing required parameter: ${param}"
+msgstr "Falta el parámetro obligatorio: ${param}"
 
 msgid "illegal-parameter"
-msgstr "Illegal parameter: ${param}"
+msgstr "Parámetro ilegal: ${param}"
 
 msgid "bad-validation-instructions"
-msgstr "The description of validations for this endpoint cannot be used: ${error}"
+msgstr "No se puede usar la descripción de las validaciones para este punto de conexión: ${error}"
 
 msgid "invalid-response"
-msgstr "Spynl could not generate a valid response: ${error}"
+msgstr "Spynl no ha podido generar una respuesta válida: ${error}"
 
 msgid "email-tmpl-not-found"
-msgstr "The email template <${template}> was not found."
+msgstr "No se ha encontrado la plantilla <${template}> de correo electrónico."
 
 msgid "email-recipient-not-given"
-msgstr "You did not give a recipient for the email."
+msgstr "No ha indicado un destinatario para el correo electrónico."
 
 msgid "undetermined-content-type-exception"
-msgstr "The request carries a body but the content type cannot be determined."
+msgstr "La solicitud tiene cuerpo pero no se puede determinar el tipo de contenido."
 
 msgid "unsupported-content-type-exception"
-msgstr "Unsupported content type: \"${type}\""
+msgstr "Tipo de contenido no compatible: \"${type}\""
 
 msgid "deserialization-unsupported-exception"
-msgstr "Deserialization for content type \"${type}\" is unsupported."
+msgstr "La deserialización para el tipo de contenido \"${type}\" no es compatible."
 
 msgid "serialization-unsupported-exception"
-msgstr "Serialization for content type: \"${type}\" is not supported."
+msgstr "La serialización para el tipo de contenido: \"${type}\" no es compatible."
 
 msgid "malformed-request-exception-type"
-msgstr "Malformed \"${type}\" request: ${request}"
+msgstr "Solicitud \"${type}\" malformada: ${request}"
 
 msgid "malformed-request-exception"
-msgstr "Malformed request: ${type}"
+msgstr "Solicitud malformada: ${type}"
 
 msgid "date-decode-value-error"
-msgstr "The value '${value}' for key '${key}' does not seem to be a valid date string that conforms to ${format}."
+msgstr "El valor '${value}' para la clave '${key}' no parece que sea una cadena de fecha válida que se ajuste a ${format}."
 
 msgid "unexpected-end-of-input"
-msgstr "Unexpected end of input."
+msgstr "Fin de entrada inesperada."
 
 msgid "parse-value-exception-as-class"
-msgstr "\"${value}\" could not be parsed as ${class}"
+msgstr "\"${value}\" no se pudo dividir como ${class}"
 
 msgid "parse-value-exception-not-class"
-msgstr "${class} is not a class. Cannot parse value \"${value}\"."
+msgstr "${class} no es una clase. No se puede dividir el valor \"${value}\"."
 
 msgid "parse-value-exception-any-class"
-msgstr "\"${value}\" could not be parsed into any class in ${classes}"
+msgstr "\"${value}\" no se pudo dividir en ninguna clase en ${classes}"
 
 msgid "no-message-available"
-msgstr "No message available."
+msgstr "No hay ningún mensaje disponible."
 
 msgid "validations-is-not-list"
-msgstr "Validations should be a list."
+msgstr "Las validaciones deben ser una lista."
 
 msgid "bad-validation-instructions-missing-field"
-msgstr "Missing field: ${field}"
+msgstr "Campo que falta: ${field}"
 
 msgid "bad-validation-instructions-setting-in"
-msgstr "Setting \"in\" should be either \"request\" or \"response\""
+msgstr "La configuración \"in\" debería ser \"request\" o \"response\""
 
 msgid "bad-validation-instructions-bad-schema"
-msgstr "The schema ${schema} is not valid"
+msgstr "El esquema ${schema} no es válido"
 
 msgid "bad-validation-instructions-schema-not-found"
-msgstr "The required schema ${schema} could not be found to perform validation."
+msgstr "No se ha podido encontrar el esquema requerido ${schema} para realizar la validación."
 
