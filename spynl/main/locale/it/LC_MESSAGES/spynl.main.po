@@ -1,4 +1,4 @@
-# English translations for spynl.main.
+# Italian translations for spynl.main.
 # Copyright (C) 2018 "Softwear BV"
 # This file is distributed under the same license as the spynl.main project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spynl.main 6.1.9\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-08-02 09:33+0200\n"
+"POT-Creation-Date: 2018-10-04 10:39+0200\n"
 "PO-Revision-Date: 2018-07-16 13:48+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: en\n"
-"Language-Team: en <LL@li.org>\n"
+"Language: it\n"
+"Language-Team: it <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -67,7 +67,7 @@ msgid "serialization-unsupported-exception"
 msgstr "La serializzazione per i contenuti di tipo: \"${type}\" non è supportata."
 
 msgid "malformed-request-exception-type"
-msgstr "Richiesta: ${request}" malposta \"${type}\"
+msgstr "Richiesta: ${request}\" malposta \"${type}\\"
 
 msgid "malformed-request-exception"
 msgstr "Richiesta malposta: ${type}"

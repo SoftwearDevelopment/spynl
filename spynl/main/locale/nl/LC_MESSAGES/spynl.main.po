@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spynl.main 5.48.rc1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-08-02 09:33+0200\n"
+"POT-Creation-Date: 2018-10-04 10:39+0200\n"
 "PO-Revision-Date: 2016-09-28 16:22+0200\n"
 "Last-Translator: Nicolas <nicolas@softwear.nl>\n"
 "Language: nl\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 msgid "about-message"
-msgstr ""
+msgstr "Dit is een Spynl web applicatie. U kunt meer informatie vinden op about/endpoints, about/ini, about/versions, about/build en about/environment."
 
 msgid "validation-error"
 msgstr "Er was een probleem met uw verzoek. Neem contact op met de servicedesk als dit blijft gebeuren. Onze excuses voor het ongemak."
@@ -52,7 +52,7 @@ msgid "email-tmpl-not-found"
 msgstr "De e-mailtemplate <${template}> kan niet worden gevonden."
 
 msgid "email-recipient-not-given"
-msgstr ""
+msgstr "De ontvanger van de email mist."
 
 msgid "undetermined-content-type-exception"
 msgstr "De request heeft een body maar de content type is niet herkent."
@@ -111,6 +111,4 @@ msgstr "Kon schema ${schema} niet vinden om te valideren."
 #~ msgid "mail-template-file-string"
 #~ msgstr "Specificeer een templatebestand of \"body_string\""
 
-#~ msgid "invalid-query-string-or-post-body-parameters"
-#~ msgstr ""
 
