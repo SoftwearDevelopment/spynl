@@ -1,9 +1,12 @@
 import json
 import os
+import re
 import subprocess
 import sys
+import configparser
 
 import click
+from babel.messages.pofile import read_po
 
 from spynl.main.version import __version__ as spynl_version
 from spynl.cli.new.utils import resolve_packages, check_ini, run_command, fail
@@ -32,6 +35,16 @@ package_option = click.option(
     callback=resolve_packages,
     help='Packages to operate on.'
 )
+
+
+language_option = click.option(
+    '-l', '--languages',
+    multiple=True,
+    default=['nl', 'en', 'de', 'fr', 'es', 'it'],
+    help=('A language code such as "en" or "nl". '
+          'Can be provided multiple times for multiple languages.')
+)
+
 
 ini_option = click.option(
     '-i', '--ini',
@@ -109,12 +122,7 @@ def serve(ini):
 
 @dev.command()
 @package_option
-@click.option('-l', '--languages',
-              multiple=True,
-              default=['nl', 'en', 'de', 'fr', 'es', 'it'],
-              help=('A language code such as "en" or "nl". '
-                    'Can be provided multiple times for multiple languages. ')
-              )
+@language_option
 @click.option('--refresh', '-r',
               help='Refresh the translations calalogs.',
               is_flag=True)
@@ -150,3 +158,75 @@ def translate(packages, languages, refresh, no_location, add_comments):
 
         for lang in languages:
             run_command(base_command + 'compile_catalog -l ' + lang)
+
+
+@dev.command()
+@package_option
+@language_option
+@click.pass_context
+def extract_missing_translations(ctx, packages, languages):
+    """ extract the messages that still need to be translated """
+    wd = os.getcwd()
+    # prepare files with comments:
+    ctx.invoke(translate, packages=packages, languages=languages, refresh=True,
+               no_location=True, add_comments=True)
+
+    for package in packages:
+        os.chdir(package.location)
+        config = configparser.ConfigParser()
+        config.read('setup.cfg')
+        try:
+            domain = config['update_catalog']['domain']
+            output_dir = config['update_catalog']['output_dir']
+        # package is not configured for translations
+        except KeyError:
+            continue
+        json_messages = {}
+
+        # Use English as the standard:
+        filename = os.path.join(output_dir, 'en', 'LC_MESSAGES',
+                                domain + '.po')
+        with open(filename, 'r') as f:
+            en_messages = read_po(f)._messages
+        # Check the English messages, fail if there is one missing:
+        for message_id, message in en_messages.items():
+            if not message.string:
+                fail('missing English message: {} in {}'
+                     .format(message_id, filename))
+
+        warnings = []
+        for lang in [lang for lang in languages if lang != 'en']:
+            filename = os.path.join(output_dir, lang, 'LC_MESSAGES',
+                                    domain + '.po')
+            with open(filename, 'r') as po_file:
+                po_messages = read_po(po_file)._messages
+
+            for message_id, message in po_messages.items():
+                if not message.string:
+                    warnings.append('missing message: {} in {}'.\
+                                    format(message_id, filename))
+                # if it's not the same as en, it doesn't need to be translated
+                # + we do not want to translate locale_id's for now.
+                elif (message.string != en_messages[message_id].string or
+                      'locale_id' in message_id):
+                    continue
+                json_messages[message_id] = {
+                    'message': en_messages[message_id].string,
+                    'description': str(en_messages[message_id].auto_comments),
+                }
+
+        if json_messages:
+            filename = os.path.join(wd, domain + '.json')
+            with open(filename, 'w') as outfile:
+                print('Writing file: {}'.format(filename))
+                json.dump(json_messages, outfile)
+
+    # restore files:
+    ctx.invoke(translate, packages=packages, languages=languages, refresh=True,
+               no_location=True, add_comments=False)
+
+    # print warnings after all the other output:
+    if warnings:
+        print('\n\nWarnings:\n')
+    for warning in warnings:
+        print(warning)
