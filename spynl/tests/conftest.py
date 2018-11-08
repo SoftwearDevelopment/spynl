@@ -72,3 +72,8 @@ def mailer(app):
     mailer = get_mailer(app.app.registry)
     mailer.outbox = []
     return mailer
+
+
+@pytest.fixture(scope="session")
+def dummyrequest():
+    return testing.DummyRequest()
