@@ -219,7 +219,7 @@ def extract_missing_translations(ctx, packages, languages):
             filename = os.path.join(wd, domain + '.json')
             with open(filename, 'w') as outfile:
                 print('Writing file: {}'.format(filename))
-                json.dump(json_messages, outfile)
+                json.dump(json_messages, outfile, sort_keys=True, indent=4)
 
     # restore files:
     ctx.invoke(translate, packages=packages, languages=languages, refresh=True,
