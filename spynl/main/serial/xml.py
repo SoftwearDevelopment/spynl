@@ -112,4 +112,3 @@ def prettify_xml(xmlstr):
             indent += 1
         else:
             yield item
-    raise StopIteration()
