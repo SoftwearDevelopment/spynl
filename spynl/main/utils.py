@@ -255,9 +255,10 @@ def get_user_info(request, purpose=None):
     information about the (authenticated) user. If no information is
     available it should return an empty dictionary.
     """
-    if request.registry.settings.get('user_info_function') is not None:
+    try:
         return request.registry.settings['user_info_function'](request, purpose)
-    return _get_user_info(request)
+    except (KeyError, AttributeError, TypeError):
+        return _get_user_info(request)
 
 
 def _get_user_info(request):
@@ -322,7 +323,7 @@ def parse_value(value, class_info):
     if isclass(class_info):
         try:
             return class_info(value)
-        except:
+        except Exception:
             raise SpynlException(_(
                 'parse-value-exception-as-class',
                 mapping={'value': value, 'class': class_info.__name__}))

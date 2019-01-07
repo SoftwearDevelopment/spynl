@@ -26,11 +26,11 @@ def test_notwhitelisted_origin(app):
     """Test not whitelisted origin."""
     msg = 'Requests naar Spynl zijn niet toegestaan vanaf origin '
     headers = {"Origin": "Not-a-Url", "Content-Type": "application/json'"}
-    with pytest.raises_regexp(HTTPForbidden, msg + "'Not-a-Url"):
+    with pytest.raises(HTTPForbidden, match=msg + "'Not-a-Url"):
         app.get('/ping', headers=headers)
     headers = {"Origin": "http://www.swcloud.com"}
-    with pytest.raises_regexp(HTTPForbidden, msg + "'http://www.swcloud.com'"):
+    with pytest.raises(HTTPForbidden, match=msg + "'http://www.swcloud.com'"):
         app.get('/ping', headers=headers)
     headers = {"Origin": "http://0.0.0.0:9003"}
-    with pytest.raises_regexp(HTTPForbidden, msg + "'http://0.0.0.0:9003'"):
+    with pytest.raises(HTTPForbidden, match=msg + "'http://0.0.0.0:9003'"):
         app.get('/ping', headers=headers)

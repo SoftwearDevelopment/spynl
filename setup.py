@@ -17,7 +17,7 @@ install_requires = [
     'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog', 'pytz', 'pbkdf2',
     'python-dateutil', 'html2text', 'beaker', 'waitress', 'gunicorn',
     'jsonschema', 'sphinx', 'pyyaml', 'tld==0.7.9', 'babel', 'click', 'webtest',
-    'pytest<3.3.0', 'pytest-raisesregexp', 'dnspython', 'pytest-cov',
+    'pytest', 'dnspython', 'pytest-cov',
     'marshmallow==3.0.0b8', 'openpyxl',
 ]
 

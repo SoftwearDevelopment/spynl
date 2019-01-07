@@ -46,7 +46,7 @@ def test_get_req_dont_parse_body(app):
 
 def test_contenttype_unsupported(app):
     """Raise exception when conttenttype is unsupported."""
-    with pytest.raises_regexp(AppError, 'Content type is niet ondersteund'):
+    with pytest.raises(AppError, match='Content type is niet ondersteund'):
         app.post('/request_echo', 'wtf',
                  headers={'Content-Type': 'text/plain'})
 
@@ -90,18 +90,17 @@ def test_bad_json(app):
     """Test that bad json in the request raises exceptions."""
     headers = {'Content-Type': 'application/json'}
 
-    with pytest.raises_regexp(AppError,
-                              'Expecting value: line 1 column 1'):
+    with pytest.raises(AppError, match='Expecting value: line 1 column 1'):
         app.post('/request_echo', '<a>', headers=headers)
-    with pytest.raises_regexp(AppError,
-                              'Expecting property name enclosed in'
-                              ' double quotes: line 1 column 2'):
+    with pytest.raises(AppError,
+                       match='Expecting property name enclosed in'
+                       ' double quotes: line 1 column 2'):
         app.post('/request_echo', '{', headers=headers)
 
 
 def test_noresource(app):
     """Test no resource, 404 not found error."""
-    with pytest.raises_regexp(AppError, '404 Not Found'):
+    with pytest.raises(AppError, match='404 Not Found'):
         app.post('/', '{}', {'Content-Type': ''})
 
 
@@ -123,7 +122,7 @@ def test_jsonandget(app):
     """
     returned = {'a': '1', 'b': ['1.2', '4.5'], 'c': {'ca': 'string1'}}
     response = app.post('/request_echo?data={a:1,b:[1.2,4.5],c:{ca:string1}}',
-                         dumps({'data': {'a': 2}})).text
+                        dumps({'data': {'a': 2}})).text
     assert loads(response)['data'] == returned
 
 

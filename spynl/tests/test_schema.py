@@ -73,13 +73,13 @@ def test_novalidations_possible(invalid_schema):
     # no validations given
     validate_json(invalid_ping_response, [], 'response')
     vals = [{'schema': '__missing.json', 'in': 'response'}]
-    with pytest.raises_regexp(
+    with pytest.raises(
             BadValidationInstructions,
-            "bad-validation-instructions"):
+            match="bad-validation-instructions"):
         validate_json(invalid_ping_response, vals, 'response')
     # invalid schema
     vals = [{'schema': invalid_schema.basename, 'in': 'response'}]
-    with pytest.raises_regexp(BadValidationInstructions, "bad-validation-instructions"):
+    with pytest.raises(BadValidationInstructions, match="bad-validation-instructions"):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
 
 
@@ -91,19 +91,19 @@ def test_invalid_description(ping_schema):
     sub-message (Missing field ...)
     """
     vals = [{'apply-to': 'bla', 'in': 'response'}]
-    with pytest.raises_regexp(BadValidationInstructions,
-                              "bad-validation-instructions"):
+    with pytest.raises(BadValidationInstructions,
+                       match="bad-validation-instructions"):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
     vals = [{'schema': ping_schema.basename}]
-    with pytest.raises_regexp(BadValidationInstructions, "bad-validation-instructions"):
+    with pytest.raises(BadValidationInstructions, match="bad-validation-instructions"):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
     vals = [{'schema': 'bla', 'apply-to': 'bla', 'in': 'repsonse'}]
-    with pytest.raises_regexp(BadValidationInstructions,
-                              'bad-validation-instructions'):
+    with pytest.raises(BadValidationInstructions,
+                       match='bad-validation-instructions'):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
     vals = {'apply-to': 'bla', 'in': 'response'}
-    with pytest.raises_regexp(BadValidationInstructions,
-                              "bad-validation-instructions"):
+    with pytest.raises(BadValidationInstructions,
+                       match="bad-validation-instructions"):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
 
 
@@ -127,7 +127,7 @@ def test_correct_sub_schema(ping_schema, tenants_schema):
 def test_incorrect_response_schema(wrong_ping_schema):
     """Change schema so that the /ping response is not correct."""
     vals = [{'schema': wrong_ping_schema.basename, 'in': 'response'}]
-    with pytest.raises_regexp(InvalidResponse, "invalid-response"):
+    with pytest.raises(InvalidResponse, match="invalid-response"):
         validate_json(USUAL_PING_RESPONSE, vals, 'response')
 
 
@@ -139,6 +139,5 @@ def test_incorrect_sub_schema(ping_schema, tenants_schema):
     response_with_bad_tenant_data = deepcopy(USUAL_PING_RESPONSE)
     response_with_bad_tenant_data['tenants'] = [
         {'id': 'Bla1', 'name': 'Tenant'}, {'id': 'Bla2', 'nname': 'TTT2'}]
-    with pytest.raises_regexp(InvalidResponse,
-                              "invalid-response"):
+    with pytest.raises(InvalidResponse, match="invalid-response"):
         validate_json(response_with_bad_tenant_data, vals, 'response')
