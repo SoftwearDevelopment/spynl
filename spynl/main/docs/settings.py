@@ -168,7 +168,12 @@ ini_doc = [{'name': 'spynl.date_systemtz',
             'hidden': True,
             'default': '',
             'info': 'The key used to connect to NewRelic. Leave empty if '
-                    'you are not usig NewRelic.'}
+                    'you are not usig NewRelic.'},
+           {'name': 'spynl.documentation_folder',
+            'plugin': '',
+            'required': 'no',
+            'default': 'spynl_swagger',
+            'info': 'The folder all documentation files will be written into.'},
           ]
 
 

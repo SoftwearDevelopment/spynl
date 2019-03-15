@@ -2,9 +2,8 @@
 Module for parsing docstrings and making the .json file for swagger-ui
 """
 
-from os import path as osp
+import os
 import json
-import glob
 import re
 import yaml
 
@@ -121,9 +120,13 @@ def make_docs(config):
     """Write swagger file."""
     log = get_logger('Spynl Documentation')
 
+    folder = config.get_settings().get('spynl.documentation_folder',
+                                       'spynl_swagger')
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
     # turn swagger_doc into a JSON file
-    swagger_file = '{}/swagger-ui/spynl.json'\
-                   .format('/'.join(osp.abspath(__file__).split('/')[:-1]))
+    swagger_file = os.path.join(folder, 'spynl.json')
     try:
         with open(swagger_file, 'w') as outfile:
             json.dump(swagger_doc, outfile, indent=4, separators=(',', ': '),

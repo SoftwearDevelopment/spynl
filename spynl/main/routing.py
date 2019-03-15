@@ -8,6 +8,7 @@ one path (alias). We use the URLDispatch feature of Pyramid
 here, so we create routes for all possible cases.
 """
 
+import os
 
 from pyramid.security import NO_PERMISSION_REQUIRED
 
@@ -112,6 +113,9 @@ def add_endpoint(config, func, endpoint_name,
     """
     logger = get_logger('spynl.main.routing')
 
+    generate_documentation = (os.environ.get('GENERATE_SPYNL_DOCUMENTATION') ==
+                              'generate')
+
     if 'renderer' not in kw:
         kw['renderer'] = 'spynls-renderer'
     if context:  # This is a resource-based endpoint
@@ -141,12 +145,13 @@ def add_endpoint(config, func, endpoint_name,
                                     permission=permission, **kw)
                     logger.info("Added endpoint '%s' for route '%s', resource '%s'",
                                 endpoint_name, route_name, context_name)
-                    document_endpoint(
-                        config,
-                        func,
-                        has_method and path + '/' + endpoint_name or path,
-                        resource=path
-                    )
+                    if generate_documentation:
+                        document_endpoint(
+                            config,
+                            func,
+                            has_method and path + '/' + endpoint_name or path,
+                            resource=path
+                        )
 
     else:  # This is a general endpoint without route
         logger.debug("Adding endpoint '%s'", endpoint_name)

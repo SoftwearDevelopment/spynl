@@ -121,6 +121,14 @@ def serve(ini):
 
 
 @dev.command()
+@ini_option
+def generate_documentation(ini):
+    """Run a local server."""
+    os.environ['GENERATE_SPYNL_DOCUMENTATION'] = 'generate'
+    run_command('pserve {}'.format(ini))
+
+
+@dev.command()
 @package_option
 @language_option
 @click.option('--refresh', '-r',

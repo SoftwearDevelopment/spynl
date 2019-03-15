@@ -1,4 +1,5 @@
 """The main package of Spynl."""
+import os
 
 from pyramid.config import Configurator
 from pyramid.security import NO_PERMISSION_REQUIRED
@@ -95,7 +96,9 @@ def main_includeme(config):
                     is_error_view=True)
 
     # make spynl documentation
-    make_docs(config)
+    if os.environ.get('GENERATE_SPYNL_DOCUMENTATION') == 'generate':
+        make_docs(config)
+        exit()
 
     # add jinja for templating
     config.include('pyramid_jinja2')
