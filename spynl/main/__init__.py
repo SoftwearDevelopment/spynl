@@ -16,7 +16,6 @@ from spynl.main.utils import renderer_factory, check_origin, \
 
 from spynl.main.exceptions import SpynlException
 from spynl.main.error_views import spynl_error, error400, error500, validation_error
-from spynl.main.validation import validate_json_schema
 
 from spynl.main.docs.documentation import make_docs
 from spynl.main.docs.settings import check_required_settings
@@ -53,7 +52,6 @@ def main_includeme(config):
     config.add_settings({'spynl.ops.start_time': now()})
 
     # Add spynl.main's view derivers
-    config.add_view_deriver(validate_json_schema)
     config.add_view_deriver(handle_pre_flight_request, under=INGRESS)
     config.add_view_deriver(check_origin)
 
@@ -80,20 +78,16 @@ def main_includeme(config):
     # Error views
     config.add_view(error400, context='pyramid.httpexceptions.HTTPError',
                     renderer='spynls-renderer',
-                    permission=NO_PERMISSION_REQUIRED,
-                    is_error_view=True)
+                    permission=NO_PERMISSION_REQUIRED)
     config.add_view(spynl_error, context=SpynlException,
                     renderer='spynls-renderer',
-                    permission=NO_PERMISSION_REQUIRED,
-                    is_error_view=True)
+                    permission=NO_PERMISSION_REQUIRED)
     config.add_view(error500, context=Exception,
                     renderer='spynls-renderer',
-                    permission=NO_PERMISSION_REQUIRED,
-                    is_error_view=True)
+                    permission=NO_PERMISSION_REQUIRED)
     config.add_view(validation_error, context=ValidationError,
                     renderer='spynls-renderer',
-                    permission=NO_PERMISSION_REQUIRED,
-                    is_error_view=True)
+                    permission=NO_PERMISSION_REQUIRED)
 
     # make spynl documentation
     if os.environ.get('GENERATE_SPYNL_DOCUMENTATION') == 'generate':
