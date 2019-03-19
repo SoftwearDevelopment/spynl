@@ -69,6 +69,24 @@ def document_endpoint(config, function, endpoint_name, resource=None):
         log.error(e)
         return
 
+    if 'validations' in yaml_doc:
+        for method in [m for m in ('get', 'post') if m in yaml_doc]:
+            valdoc = ("#### Validations\n"
+                      "In | Schema | Apply to | Repeat\n"
+                      "------ | ------ | ------ | -----\n")
+            if isinstance(yaml_doc['validations'], list):
+                for val in yaml_doc['validations']:
+                    if not isinstance(val, dict):
+                        continue
+                    template = ('{}|<a href="/about/schemas?schema={}">'
+                                '{}</a>|{}|{}\n')
+                    valdoc += template.format(val.get('in'),
+                                              val.get('schema'),
+                                              val.get('schema'),
+                                              val.get('apply-to', '*'),
+                                              val.get('repeat', 'no'))
+            yaml_doc[method]['description'] += valdoc
+
     if 'show-try' in yaml_doc and not asbool(yaml_doc['show-try']):
         for method in ('get', 'post'):
             if method not in yaml_doc:

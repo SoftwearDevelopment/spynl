@@ -97,6 +97,37 @@ def endpoint_doc(request):
     return index
 
 
+def schemas(request):
+    """
+    Using docson to display any relevant JSON schemas used by Spynl.
+
+    ---
+    get:
+      tags:
+        - about
+      description: >
+        Schema files are read from an internal Spynl location and
+        Presented as text/html (using docson).
+        This endpoint requires 'read' permission for the 'about' resource.
+        It is linked from by /about/doc when schemas are used for
+        validations by an endpoint.
+
+        ####Parameters
+
+        JSON keys |   Type   |    Req.     | Description\n
+        --------- | -------- | ----------- | --------- \n
+        schema    |   string |  &#10004;   | Name of the schema file. \n
+
+    show-try: No
+    """
+    request.response.content_type = 'text/html'
+    static_url = request.static_url('spynl.main:docs/docson/')
+    schema = request.args.get('schema')
+    if not schema.endswith('.json'):
+        schema = schema + '.json'
+    return HTTPFound("{}#schemas/{}".format(static_url, schema))
+
+
 def versions(request):
     """
     The changeset IDs of Spynl and all installed plugins.
