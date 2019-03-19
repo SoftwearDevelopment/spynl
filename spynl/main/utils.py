@@ -65,6 +65,11 @@ def check_origin(endpoint, info):
     return wrapper_view
 
 
+# NOTE this has NOTHING to do with the check options view deriver. But we
+# need to register it somewhere.
+check_origin.options = ('is_error_view',)
+
+
 def validate_locale(locale):
     """Validate a locale against our supported languages."""
     supported_languages = [
