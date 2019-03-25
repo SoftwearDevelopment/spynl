@@ -7,8 +7,6 @@ import json
 import re
 import yaml
 
-from pyramid.settings import asbool
-
 from spynl.main.version import __version__ as spynl_version
 from spynl.main.utils import get_logger, get_yaml_from_docstring
 from spynl.main.docs.settings import get_ini_doc_setting
@@ -37,10 +35,6 @@ swagger_doc = {
 }
 
 
-# list of endpoints where we hide the sandbox
-HIDE_TRYITOUT_IDS = []
-
-
 def document_endpoint(config, function, endpoint_name, resource=None):
     """parse docstring and store in swagger_doc dict"""
     log = get_logger('Spynl Documentation')
@@ -52,13 +46,13 @@ def document_endpoint(config, function, endpoint_name, resource=None):
         log.warning("No YAML found in docstring of endpoint %s "
                     "(resource: %s). Cannot generate entry in "
                     "/about/endpoints.", endpoint_name, resource)
-        return None
+        return
     if resource:
         # Replace $resource in the docstring with the actual resource
         yaml_str = re.sub(r'\$resource', resource, yaml_str)
     try:
         yaml_str = insert_ini_settings(config, yaml_str)
-        yaml_doc = yaml.load(yaml_str)
+        yaml_doc = yaml.load(yaml_str, Loader=yaml.FullLoader)
         # If a path has a different view for get and post, add both
         if path in swagger_doc['paths']:
             swagger_doc['paths'][path].update(yaml_doc)
@@ -68,17 +62,6 @@ def document_endpoint(config, function, endpoint_name, resource=None):
         log.error('Wrong yaml code for endpoint %s:', path)
         log.error(e)
         return
-
-    if 'show-try' in yaml_doc and not asbool(yaml_doc['show-try']):
-        for method in ('get', 'post'):
-            if method not in yaml_doc:
-                continue
-            for tag in yaml_doc.get(method).get('tags', []):
-                htio_id = ('#{tag}_{method}{path}'
-                           .format(tag=tag, method=method, path=path))
-        HIDE_TRYITOUT_IDS.append(
-            htio_id.replace('-', '_').replace(' ', '_').replace('/', '_')
-        )
 
     # the 1st line of a docstring can be used for the swagger summary
     docstring = function.__doc__

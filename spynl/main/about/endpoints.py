@@ -7,7 +7,6 @@ import os
 import json
 
 from pyramid.renderers import render
-from pyramid.httpexceptions import HTTPFound
 from pyramid.i18n import negotiate_locale_name
 
 from spynl.main.exceptions import SpynlException
@@ -16,7 +15,6 @@ from spynl.main.utils import get_settings
 from spynl.main.locale import SpynlTranslationString as _
 from spynl.main.dateutils import now, date_to_str
 from spynl.main.docs.settings import ini_doc, ini_description
-from spynl.main.docs.documentation import HIDE_TRYITOUT_IDS
 from spynl.main.pkg_utils import get_spynl_packages
 
 
@@ -56,45 +54,6 @@ def hello(request):
             'plugins': plugin_versions,
             'language': negotiate_locale_name(request),
             'time': date_to_str(now())}
-
-
-def endpoint_doc(request):
-    """
-    All endpoints offered by this instance, with explanations.
-
-    ---
-    get:
-      tags:
-        - about
-      description:
-        Presented as text/html (in swagger-ui).
-        Requires 'read' permission for the 'about' resource.
-    show-try: No
-    """
-    request.response.content_type = 'text/html'
-    path2swagger = '{}/../docs/swagger-ui/index.html'\
-                   .format('/'.join(os.path.abspath(__file__).split('/')[:-1]))
-    index = open(path2swagger, 'r').read()
-    static_url = request.static_url('spynl.main:docs/swagger-ui/')
-    # We would like to treat the swagger-ui directory as a drop-in
-    # replacable dir, so we simply re-create the HTML by doing some
-    # replacements.
-    index = index.replace("<title>Swagger UI",
-                          "<title>Spynl Endpoints Documentation")
-    index = index.replace("http://petstore.swagger.io/v2/swagger.json",
-                          "{}spynl.json".format(static_url))
-    index = index.replace("href='css", "href='{}css".format(static_url))
-    index = index.replace("src='", "src='{}".format(static_url))
-    # We'll now add some CSS before the body closes
-    # We hide the Swagger head
-    css = '#header {display:none; !important}'
-    # We hide the parameter sandbox for some views
-    for htio_id in HIDE_TRYITOUT_IDS:
-        css += '{} .sandbox {{display:none; !important}}'.format(htio_id)
-    ins = index.find('</body>')
-    index = index[:ins] + '<style>' + css + '</style></body></html>'
-
-    return index
 
 
 def versions(request):
