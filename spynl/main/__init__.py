@@ -21,6 +21,7 @@ from spynl.main.docs.documentation import make_docs
 from spynl.main.docs.settings import check_required_settings
 from spynl.main.dateutils import now
 from spynl.main.locale import TemplateTranslations
+from spynl.main.utils import add_jinja2_filters
 
 
 class ConfigCommited(object):
@@ -100,14 +101,12 @@ def main_includeme(config):
 
     # add jinja for templating
     config.include('pyramid_jinja2')
-    config.add_settings({
-        'jinja2.i18n.gettext': TemplateTranslations,
-        'jinja2.filters': {
-            'static_url': 'pyramid_jinja2.filters:static_url_filter',
-            'quoteplus': 'urllib.parse.quote_plus',
-            'format_currency': 'babel.numbers.format_currency',
-            'format_decimal': 'babel.numbers.format_decimal',
-        },
-    })
-
+    config.add_settings({'jinja2.i18n.gettext': TemplateTranslations})
+    jinja_filters = {
+        'static_url': 'pyramid_jinja2.filters:static_url_filter',
+        'quoteplus': 'urllib.parse.quote_plus',
+        'format_currency': 'babel.numbers.format_currency',
+        'format_decimal': 'babel.numbers.format_decimal',
+    }
+    add_jinja2_filters(config, jinja_filters)
     return config

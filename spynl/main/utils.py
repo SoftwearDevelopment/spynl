@@ -531,3 +531,13 @@ def chdir(dirname=None):
         yield
     finally:
         os.chdir(curdir)
+
+
+def add_jinja2_filters(config, new_filters):
+    """
+    A helper function to add jinja filters in a plugger in such a
+    way that previously added filters are not removed.
+    """
+    filters = config.get_settings().get('jinja2.filters', {})
+    filters.update(new_filters)
+    config.add_settings({'jinja2.filters': filters})
