@@ -29,7 +29,7 @@ def ping(request):
       description: >
         Spynl tells you "pong" and the time.
 
-        ####Response
+        ### Response
 
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n
@@ -52,7 +52,7 @@ def time(request):
         Spynl tells you its server time and what it believes to be
         your local time if you are logged in.
 
-        ####Response
+        ### Response
 
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n

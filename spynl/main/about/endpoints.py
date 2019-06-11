@@ -27,7 +27,7 @@ def hello(request):
       description: >
         The index for all about-endpoints.
 
-        ####Response
+        ### Response
 
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n
@@ -67,7 +67,7 @@ def versions(request):
       description: >
         Requires 'read' permission for the 'about' resource.
 
-        ####Response
+        ### Response
 
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n
@@ -101,7 +101,7 @@ def build(request):
         - about
       description: >
 
-        ####Response
+        ### Response
 
         JSON keys | Content Type | Description\n
         --------- | ------------ | -----------\n
