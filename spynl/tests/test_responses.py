@@ -14,8 +14,7 @@ def test_ping(app):
     response = app.get('/ping')
     rbody = loads(response.text)
     assert rbody['greeting'] == 'pong'
-    assert response.headers['Content-Type'] == \
-        'application/json; charset=UTF-8'
+    assert response.headers['Content-Type'] == 'application/json'
     assert response.headers['Content-Length'] == '86'
     assert response.headers['Access-Control-Allow-Credentials'] == 'true'
     assert response.headers['Vary'] == 'Accept-Encoding, Origin'

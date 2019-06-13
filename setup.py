@@ -13,7 +13,7 @@ README = open(os.path.join(here, 'README.md')).read()
 
 
 install_requires = [
-    'webob==1.6.3', 'pyramid>=1.7,<1.8', 'invoke>=0.14,<0.15', 'requests',
+    'webob', 'pyramid', 'invoke>=0.14,<0.15', 'requests',
     'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog', 'pytz', 'pbkdf2',
     'python-dateutil', 'html2text', 'beaker', 'waitress', 'gunicorn',
     'jsonschema', 'sphinx', 'pyyaml', 'tld==0.7.9', 'babel', 'click', 'webtest',
