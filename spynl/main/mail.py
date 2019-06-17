@@ -1,4 +1,3 @@
-
 """Define functions to send emails."""
 
 import re
@@ -40,9 +39,19 @@ DEFAULT_HTML_TEMPLATE = '''
     </html>'''
 
 
-def _sendmail(request, recipients, subject, plain_body, html_body=None,
-              sender=None, attachments=None, fail_silently=True, mailer=None,
-              reply_to=None, sender_name=None):
+def _sendmail(
+    request,
+    recipients,
+    subject,
+    plain_body,
+    html_body=None,
+    sender=None,
+    attachments=None,
+    fail_silently=True,
+    mailer=None,
+    reply_to=None,
+    sender_name=None,
+):
     """
     Send a mail using the pyramid mailer. This function also makes sure
     that if Spynl is not in a production environment, mail is sent to a dummy
@@ -78,8 +87,11 @@ def _sendmail(request, recipients, subject, plain_body, html_body=None,
             raise EmailRecipientNotGiven()
         elif settings.get('mail.dummy_recipient'):
             recipients = [settings.get('mail.dummy_recipient')]
-            logger.info("I will send this email to %s instead of %s.",
-                        settings.get('mail.dummy_recipient'), recipients)
+            logger.info(
+                "I will send this email to %s instead of %s.",
+                settings.get('mail.dummy_recipient'),
+                recipients,
+            )
         else:
             return False
 
@@ -97,17 +109,23 @@ def _sendmail(request, recipients, subject, plain_body, html_body=None,
         # unverified email errors.
         sender_name = re.sub('[\n<>@]', ' ', sender_name).strip()
         extra_headers['From'] = '{} <{}>'.format(sender_name, sender)
-    message = Message(sender=sender, recipients=recipients, subject=subject,
-                      body=plain_body, html=html_body,
-                      extra_headers=extra_headers)
+    message = Message(
+        sender=sender,
+        recipients=recipients,
+        subject=subject,
+        body=plain_body,
+        html=html_body,
+        extra_headers=extra_headers,
+    )
     if attachments:
         for attachment in attachments:
             message.attach(attachment)
 
     try:
         message.validate()
-        logger.info('Sending email titled "%s" to %s from %s',
-                    subject, recipients, sender)
+        logger.info(
+            'Sending email titled "%s" to %s from %s', subject, recipients, sender
+        )
         # Always set fail_silently to false, so we can log the
         # exception
         mailer.send_immediately(message, fail_silently=False)
@@ -121,11 +139,20 @@ def _sendmail(request, recipients, subject, plain_body, html_body=None,
     return True
 
 
-def send_template_email(request, recipient, template_string=None,
-                        template_file=None, replacements=None,
-                        subject='', fail_silently=True, mailer=None,
-                        attachments=None, sender=None, reply_to=None,
-                        sender_name=None):
+def send_template_email(
+    request,
+    recipient,
+    template_string=None,
+    template_file=None,
+    replacements=None,
+    subject='',
+    fail_silently=True,
+    mailer=None,
+    attachments=None,
+    sender=None,
+    reply_to=None,
+    sender_name=None,
+):
     """
     Send email using a html template.
 
@@ -146,27 +173,28 @@ def send_template_email(request, recipient, template_string=None,
     If a template file is given, we assume that the file ends with .jinja2, and
     that there is a companion file .subject.jinja2 that defines the subject.
     """
-    if (template_string is None and template_file is None) or \
-            (template_string is not None and template_file is not None):
-        raise Exception('One of <template_string> or <template_file> must be '
-                        'given.')
+    if (template_string is None and template_file is None) or (
+        template_string is not None and template_file is not None
+    ):
+        raise Exception('One of <template_string> or <template_file> must be given.')
     text_body = ''
     if not replacements:
         replacements = {}
 
     if template_file is not None:
         try:
-            html_body = render(template_file + '.jinja2', replacements,
-                               request=request)
+            html_body = render(template_file + '.jinja2', replacements, request=request)
             if not subject:
-                subject = render(template_file + '.subject.jinja2',
-                                 replacements, request=request)
+                subject = render(
+                    template_file + '.subject.jinja2', replacements, request=request
+                )
                 subject = subject.replace('\n', '')
         except TemplateNotFound:
             raise EmailTemplateNotFound(template_file)
     else:
         replacements['content_string'] = Template(template_string).render(
-            **replacements)
+            **replacements
+        )
         # Render the base template with the content of the given template
         base_template = get_settings().get('base_email_template')
         if base_template is not None:
@@ -184,25 +212,41 @@ def send_template_email(request, recipient, template_string=None,
     text_maker.body_width = 0
     text_body = text_maker.handle(html_body)
 
-    text_body = Attachment(data=text_body, transfer_encoding="base64",
-                           content_type="text/plain; charset=UTF-8",
-                           disposition='inline')
-    html_body = Attachment(data=html_body, transfer_encoding="base64",
-                           content_type="text/html; charset=UTF-8",
-                           disposition='inline')
+    text_body = Attachment(
+        data=text_body,
+        transfer_encoding="base64",
+        content_type="text/plain; charset=UTF-8",
+        disposition='inline',
+    )
+    html_body = Attachment(
+        data=html_body,
+        transfer_encoding="base64",
+        content_type="text/html; charset=UTF-8",
+        disposition='inline',
+    )
 
     if not text_body and not html_body:
-        str_replacements = '\n'.join(['{}: {}'.format(key, value)
-                                      for key, value in replacements.items()])
+        str_replacements = '\n'.join(
+            ['{}: {}'.format(key, value) for key, value in replacements.items()]
+        )
         text_body = 'Your account has been changed.\n' + str_replacements
         template = Template(DEFAULT_HTML_TEMPLATE)
         replacements.update(subject=subject, content=text_body)
         html_body = template.render(**replacements)
         get_logger(__name__).error(
-            'Body was not found in body_string or email template: %s',
-            template)
+            'Body was not found in body_string or email template: %s', template
+        )
 
-    return _sendmail(request, recipient, subject, text_body, html_body,
-                     fail_silently=fail_silently, mailer=mailer,
-                     attachments=attachments, sender=sender, reply_to=reply_to,
-                     sender_name=sender_name)
+    return _sendmail(
+        request,
+        recipient,
+        subject,
+        text_body,
+        html_body,
+        fail_silently=fail_silently,
+        mailer=mailer,
+        attachments=attachments,
+        sender=sender,
+        reply_to=reply_to,
+        sender_name=sender_name,
+    )

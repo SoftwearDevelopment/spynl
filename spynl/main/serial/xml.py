@@ -17,8 +17,7 @@ def loads(body, headers=None, context=None):
         root = fromstring(body)
     except ParseError as err:
         # pylint: disable=E1101
-        raise MalformedRequestException('application/xml',
-                                        error_cause=str(err))
+        raise MalformedRequestException('application/xml', error_cause=str(err))
 
     dic = __loads(root, True)
     return objects.SpynlDecoder(context=context)(dic)

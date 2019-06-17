@@ -1,6 +1,7 @@
 """Helper functions."""
 
 import os
+
 # import contextlib
 import subprocess
 import shlex
@@ -30,7 +31,8 @@ def resolve_packages(ctx, param, value):
         not_installed = value - {p.project_name.lower() for p in packages}
         if not_installed:
             msg = '{} is/are not installed. Exiting ...'.format(
-                    ', '.join(not_installed))
+                ', '.join(not_installed)
+            )
             fail(msg)
 
         packages = list(filter(lambda p: p.project_name.lower() in value, packages))
@@ -58,14 +60,16 @@ def check_ini(ctx, param, value):
         value = ini_files[0]
 
     elif len(ini_files) > 1:
-        click.echo('\n'.join([
-            '{}:\t{}'.format(i + 1, ini) for i, ini in enumerate(ini_files)
-        ]))
+        click.echo(
+            '\n'.join(['{}:\t{}'.format(i + 1, ini) for i, ini in enumerate(ini_files)])
+        )
         i = click.prompt('Which ini file should be used', type=int, default=0)
         try:
             value = ini_files[i - 1]
         except IndexError:
-            raise click.BadParameter('Choices are between 1 and {}'.format(len(ini_files)))
+            raise click.BadParameter(
+                'Choices are between 1 and {}'.format(len(ini_files))
+            )
     else:
         value = os.path.join(SPYNL_DISTRIBUTION.location, 'minimal.ini')
 

@@ -17,13 +17,17 @@ def main(config):
 
         Session = settings.get(settings['spynl.session'])
         if not Session:
-            msg = ('The function for the session factory is not set in any of '
-                   'the plugins for this spynl.session option: {}'
-                   .format(settings['spynl.session']))
+            msg = (
+                'The function for the session factory is not set in any of '
+                'the plugins for this spynl.session option: {}'.format(
+                    settings['spynl.session']
+                )
+            )
             raise SpynlException(msg)
 
         def mksession(sid):
             return Session(id=sid)
+
     else:
         from beaker.session import Session
 
@@ -41,8 +45,7 @@ def main(config):
             body = get_parsed_body(request)
         except:
             body = {}
-        for params in (body, request.GET,
-                       request.headers, request.cookies):
+        for params in (body, request.GET, request.headers, request.cookies):
             if 'sid' in params:
                 sid = params['sid']
 

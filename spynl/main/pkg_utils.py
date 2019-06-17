@@ -14,8 +14,7 @@ from spynl.main.exceptions import SpynlException
 
 
 # mocking some package info pip.get_distributed_packages provides
-Package = namedtuple('Package', ['project_name', 'version', 'location',
-                                 'scm_url'])
+Package = namedtuple('Package', ['project_name', 'version', 'location', 'scm_url'])
 
 
 SPYNL_DISTRIBUTION = get_distribution(__package__.split('.')[0])
@@ -43,18 +42,22 @@ def get_spynl_packages(include_scm_urls=False, include_spynl=True):
             plugin.dist.project_name,
             plugin.dist.version,
             plugin.dist.location,
-            lookup_scm_url(plugin.dist.location) if include_scm_urls else None
-
-        ) for plugin in iter_entry_points('spynl.plugins')
+            lookup_scm_url(plugin.dist.location) if include_scm_urls else None,
+        )
+        for plugin in iter_entry_points('spynl.plugins')
     }
 
     if include_spynl:
-        packages.add(Package(
-            SPYNL_DISTRIBUTION.project_name,
-            SPYNL_DISTRIBUTION.version,
-            SPYNL_DISTRIBUTION.location,
-            lookup_scm_url(SPYNL_DISTRIBUTION.location) if include_scm_urls else None
-        ))
+        packages.add(
+            Package(
+                SPYNL_DISTRIBUTION.project_name,
+                SPYNL_DISTRIBUTION.version,
+                SPYNL_DISTRIBUTION.location,
+                lookup_scm_url(SPYNL_DISTRIBUTION.location)
+                if include_scm_urls
+                else None,
+            )
+        )
 
     return packages
 
@@ -63,8 +66,7 @@ def get_spynl_package(name, packages=None):
     """Return the installed spynl package."""
     if packages is None:
         packages = get_spynl_packages()
-    return next(filter(lambda p: p.project_name == name, packages),
-                None)
+    return next(filter(lambda p: p.project_name == name, packages), None)
 
 
 def lookup_scm_url(package_location):
@@ -89,8 +91,9 @@ def lookup_scm_commit(package_location):
             cmd = 'hg id -i'
         else:
             return None
-        cmd_result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,
-                                    universal_newlines=True)
+        cmd_result = subprocess.run(
+            cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True
+        )
         return cmd_result.stdout.strip()
 
 
@@ -104,12 +107,15 @@ def lookup_scm_commit_describe(package_location):
         if os.path.exists('.git'):
             cmd = 'git describe --dirty'
         elif os.path.exists('.hg'):
-            cmd = 'hg log -r . --template '\
-              '"{latesttag}-{latesttagdistance}-{node|short}\n"'
+            cmd = (
+                'hg log -r . --template '
+                '"{latesttag}-{latesttagdistance}-{node|short}\n"'
+            )
         else:
             return None
-        cmd_result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,
-                                    universal_newlines=True)
+        cmd_result = subprocess.run(
+            cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True
+        )
         return cmd_result.stdout.strip()
 
 
@@ -121,16 +127,18 @@ def get_config_package(require=None):
     config_package = None
     if require is None:
         require = ('development.ini', 'production.ini')
-    if not isinstance(require, (list, tuple,)):
+    if not isinstance(require, (list, tuple)):
         require = (require,)
     packages = get_spynl_packages()
     for package in packages:
         plisting = os.listdir(package.location)
         if all([ini in plisting for ini in require]):
             if config_package is not None:
-                emsg = ("Two packages have configurations (development.ini "
-                        "and production.ini): %s and %s. unsure which to use!"
-                        % (config_package.project_name, package.project_name))
+                emsg = (
+                    "Two packages have configurations (development.ini "
+                    "and production.ini): %s and %s. unsure which to use!"
+                    % (config_package.project_name, package.project_name)
+                )
                 raise SpynlException(emsg)
             config_package = package
     return config_package

@@ -7,11 +7,9 @@ from pyramid.viewderivers import INGRESS
 
 from marshmallow import ValidationError
 
-from spynl.main import serial, about, plugins, routing, events, endpoints, \
-    session
+from spynl.main import serial, about, plugins, routing, events, endpoints, session
 
-from spynl.main.utils import renderer_factory, check_origin, \
-    handle_pre_flight_request
+from spynl.main.utils import renderer_factory, check_origin, handle_pre_flight_request
 
 
 from spynl.main.exceptions import SpynlException
@@ -77,22 +75,34 @@ def main_includeme(config):
     config.add_translation_dirs('spynl.main:locale/')
 
     # Error views
-    config.add_view(error400, context='pyramid.httpexceptions.HTTPError',
-                    renderer='spynls-renderer',
-                    is_error_view=True,
-                    permission=NO_PERMISSION_REQUIRED)
-    config.add_view(spynl_error, context=SpynlException,
-                    renderer='spynls-renderer',
-                    is_error_view=True,
-                    permission=NO_PERMISSION_REQUIRED)
-    config.add_view(error500, context=Exception,
-                    renderer='spynls-renderer',
-                    is_error_view=True,
-                    permission=NO_PERMISSION_REQUIRED)
-    config.add_view(validation_error, context=ValidationError,
-                    renderer='spynls-renderer',
-                    is_error_view=True,
-                    permission=NO_PERMISSION_REQUIRED)
+    config.add_view(
+        error400,
+        context='pyramid.httpexceptions.HTTPError',
+        renderer='spynls-renderer',
+        is_error_view=True,
+        permission=NO_PERMISSION_REQUIRED,
+    )
+    config.add_view(
+        spynl_error,
+        context=SpynlException,
+        renderer='spynls-renderer',
+        is_error_view=True,
+        permission=NO_PERMISSION_REQUIRED,
+    )
+    config.add_view(
+        error500,
+        context=Exception,
+        renderer='spynls-renderer',
+        is_error_view=True,
+        permission=NO_PERMISSION_REQUIRED,
+    )
+    config.add_view(
+        validation_error,
+        context=ValidationError,
+        renderer='spynls-renderer',
+        is_error_view=True,
+        permission=NO_PERMISSION_REQUIRED,
+    )
 
     # make spynl documentation
     if os.environ.get('GENERATE_SPYNL_DOCUMENTATION') == 'generate':

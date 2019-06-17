@@ -26,8 +26,9 @@ class SpynlTranslationString(object):
     """
 
     # TODO: should we add __slots__ = ('translation_string')?
-    def __init__(self, msgid, default=None, mapping=None, context=None,
-                 domain='spynl.main'):
+    def __init__(
+        self, msgid, default=None, mapping=None, context=None, domain='spynl.main'
+    ):
         """
         Initialize a TranslationString, using the correct domain.
         """
@@ -40,10 +41,9 @@ class SpynlTranslationString(object):
                 if isinstance(mapping[key], SpynlTranslationString):
                     mapping[key] = mapping[key].translate()
         # Initialize a Pyramid TranslationString
-        self.translation_string = TranslationString(msgid, default=default,
-                                                    mapping=mapping,
-                                                    context=context,
-                                                    domain=domain)
+        self.translation_string = TranslationString(
+            msgid, default=default, mapping=mapping, context=context, domain=domain
+        )
 
     def __repr__(self):
         """
@@ -69,7 +69,7 @@ class SpynlTranslationString(object):
         # it to another translation string in a mapping.
         if not localizer:
             request = threadlocal.get_current_request()
-            if request is None:   # we cannot find out locale of the user, so
+            if request is None:  # we cannot find out locale of the user, so
                 return str(self)  # we'll use the interpolated default
             else:
                 localizer = request.localizer

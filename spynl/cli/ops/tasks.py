@@ -12,64 +12,99 @@ from invoke.exceptions import Exit
 
 from spynl.main.version import __version__ as SPYNL_VERSION
 from spynl.main.utils import chdir
-from spynl.main.pkg_utils import (get_spynl_package, get_dev_config,
-                                  get_config_package, lookup_scm_url,
-                                  lookup_scm_commit, get_spynl_packages)
-from spynl.cli.utils import (resolve_packages_param, package_dir,
-                             assert_response_code)
+from spynl.main.pkg_utils import (
+    get_spynl_package,
+    get_dev_config,
+    get_config_package,
+    lookup_scm_url,
+    lookup_scm_commit,
+    get_spynl_packages,
+)
+from spynl.cli.utils import resolve_packages_param, package_dir, assert_response_code
 from spynl.cli.dev import tasks as dev_tasks
-from spynl.cli.ops.utils import (validate_tasks, trigger_aws_ecr_tasks,
-                                 get_ecr_profile_and_uri)
+from spynl.cli.ops.utils import (
+    validate_tasks,
+    trigger_aws_ecr_tasks,
+    get_ecr_profile_and_uri,
+)
 
 
-@task(help={'packages': dev_tasks.PACKAGES_HELP,
-            'revision': 'The code revision (e.g. branch name or tag, '
-                        'applicable across repositories). '
-                        'Defaults to "master" on git and "default" on '
-                        'mercurial.',
-            'fallbackrevision': 'Revision to fall back on if revision '
-                                'is not given. Defaults to "master" on git '
-                                'and "default" on mercurial.',
-            'spynlbranch': 'You can specify a branch for the main Spynl '
-                           'package. Defaults to "master".',
-            'task': 'The AWS ECS task identifier to be restarted '
-                    '(see the spynl.ops.ecr.dev_tasks setting). '
-                    'Can be more than task (provide a comma-separated '
-                    'list in that case). Alternatively, use "production" '
-                    'to deploy to the production ECR.'})
-def start_build(ctx, packages='_all', revision='', fallbackrevision='',
-                spynlbranch='master', task=''):
+@task(
+    help={
+        'packages': dev_tasks.PACKAGES_HELP,
+        'revision': 'The code revision (e.g. branch name or tag, '
+        'applicable across repositories). '
+        'Defaults to "master" on git and "default" on '
+        'mercurial.',
+        'fallbackrevision': 'Revision to fall back on if revision '
+        'is not given. Defaults to "master" on git '
+        'and "default" on mercurial.',
+        'spynlbranch': 'You can specify a branch for the main Spynl '
+        'package. Defaults to "master".',
+        'task': 'The AWS ECS task identifier to be restarted '
+        '(see the spynl.ops.ecr.dev_tasks setting). '
+        'Can be more than task (provide a comma-separated '
+        'list in that case). Alternatively, use "production" '
+        'to deploy to the production ECR.',
+    }
+)
+def start_build(
+    ctx,
+    packages='_all',
+    revision='',
+    fallbackrevision='',
+    spynlbranch='master',
+    task='',
+):
     """Make a new Spynl build: call the SPYNL job on Jenkins."""
     jenkins_url = get_dev_config().get('spynl.ops.jenkins_url', '').strip()
     if not jenkins_url:
-        raise Exit('[spynl ops.start_build] No spynl.ops.jenkins_url '
-                   'setting found! Exiting ...')
+        raise Exit(
+            '[spynl ops.start_build] No spynl.ops.jenkins_url '
+            'setting found! Exiting ...'
+        )
     if os.environ.get('JENKINS_USER') is None:
         jenkins_user = os.environ.get('USER')
-        print('[spynl ops.start_build] Assuming jenkins user %s ...'
-              'Set env variable JENKINS_USER to change this.' % jenkins_user)
+        print(
+            '[spynl ops.start_build] Assuming jenkins user %s ...'
+            'Set env variable JENKINS_USER to change this.' % jenkins_user
+        )
     else:
         jenkins_user = os.environ.get('JENKINS_USER')
     if os.environ.get('JENKINS_PASSWORD') is None:
-        raise Exit('[spynl ops.start_build] No jenkins password given -'
-                   ' please set env variable JENKINS_PASSWORD. Exiting...')
+        raise Exit(
+            '[spynl ops.start_build] No jenkins password given -'
+            ' please set env variable JENKINS_PASSWORD. Exiting...'
+        )
 
     jurl_parts = urlparse(jenkins_url)
-    url = "{jscheme}://{juser}:{jpw}@{jloc}/job/Spynl"\
-          "/buildWithParameters?delay=0sec"\
-          .format(jscheme=jurl_parts.scheme, juser=jenkins_user,
-                  jpw=os.environ['JENKINS_PASSWORD'], jloc=jurl_parts.netloc)
-    installed_packages_urls = resolve_packages_param(packages,
-                                                     resolve_to='scm-urls',
-                                                     include_spynl=False)
-    params = dict(scm_urls=','.join(installed_packages_urls),
-                  revision=revision, fallbackrevision=fallbackrevision,
-                  spynlbranch=spynlbranch, task=task)
-    print('[spynl ops.start_build] Calling up Jenkins server at '
-          '%s with params %s.' % (url, str(params)))
+    url = (
+        "{jscheme}://{juser}:{jpw}@{jloc}/job/Spynl"
+        "/buildWithParameters?delay=0sec".format(
+            jscheme=jurl_parts.scheme,
+            juser=jenkins_user,
+            jpw=os.environ['JENKINS_PASSWORD'],
+            jloc=jurl_parts.netloc,
+        )
+    )
+    installed_packages_urls = resolve_packages_param(
+        packages, resolve_to='scm-urls', include_spynl=False
+    )
+    params = dict(
+        scm_urls=','.join(installed_packages_urls),
+        revision=revision,
+        fallbackrevision=fallbackrevision,
+        spynlbranch=spynlbranch,
+        task=task,
+    )
+    print(
+        '[spynl ops.start_build] Calling up Jenkins server at '
+        '%s with params %s.' % (url, str(params))
+    )
     pkg_names = [pkg.project_name for pkg in get_spynl_packages('_all')]
-    print('\nThe following spynl plugins will be built:\n{}'
-          .format('\n'.join(pkg_names)))
+    print(
+        '\nThe following spynl plugins will be built:\n{}'.format('\n'.join(pkg_names))
+    )
     answer = None
     while answer not in ('y', 'n'):
         answer = input('\nProceed with the build (y/n)?')
@@ -91,40 +126,47 @@ def mk_repo_state(ctx, packages='_all'):
     with open('repo-state.txt', 'w') as repo_state:
         spynl_scm_url = lookup_scm_url(os.getcwd())
         commit_id = lookup_scm_commit(os.getcwd())
-        print("[spynl ops.mk_repo_state] Package spynl has commit ID: %s"
-              % commit_id)
+        print("[spynl ops.mk_repo_state] Package spynl has commit ID: %s" % commit_id)
         repo_state.write("%s %s\n" % (spynl_scm_url, commit_id))
         for name in resolve_packages_param(packages):
             with package_dir(name):
                 scm_url = lookup_scm_url(os.getcwd())
                 commit_id = lookup_scm_commit(os.getcwd())
-                print("[spynl ops.mk_repo_state] Package %s has commit ID: %s"
-                      % (name, commit_id))
+                print(
+                    "[spynl ops.mk_repo_state] Package %s has commit ID: %s"
+                    % (name, commit_id)
+                )
                 repo_state.write("%s %s\n" % (scm_url, commit_id))
 
 
-@task(help={'buildnr': 'Number of the SPYNL-Deploy build of Jenkins.',
-            'task': 'Can be either "production" or one of the dev '
-                    'tasks given by the spynl.ops.ecr.dev_tasks setting. '
-                    'With the former, the image will be pushed to the '
-                    'production AWS ECR. The build number will be attached '
-                    'to the tag. With the latter, the image will be pushed '
-                    'to the development AWS ECR. It will be tagged with the '
-                    'task name and the task in the AWS ECS will be restarted, '
-                    'so the new image will be live.',
-            'rollback': 'Rollback to the last successful image of the given'
-                        ' task(environment).'})
+@task(
+    help={
+        'buildnr': 'Number of the SPYNL-Deploy build of Jenkins.',
+        'task': 'Can be either "production" or one of the dev '
+        'tasks given by the spynl.ops.ecr.dev_tasks setting. '
+        'With the former, the image will be pushed to the '
+        'production AWS ECR. The build number will be attached '
+        'to the tag. With the latter, the image will be pushed '
+        'to the development AWS ECR. It will be tagged with the '
+        'task name and the task in the AWS ECS will be restarted, '
+        'so the new image will be live.',
+        'rollback': 'Rollback to the last successful image of the given'
+        ' task(environment).',
+    }
+)
 def deploy(ctx, buildnr=None, task=None, rollback=False):
     """Build a Spynl Docker image and deploy it."""
     ecr_profile, ecr_uri = get_ecr_profile_and_uri(task)
     login_cmd = ctx.run(
-        'aws ecr --profile {} get-login --region eu-west-1 --no-include-email'
-        .format(ecr_profile)
+        'aws ecr --profile {} get-login --region eu-west-1 --no-include-email'.format(
+            ecr_profile
+        )
     ).stdout
 
     # Ensure the login string is valid AWS command
-    pattern = (r'^docker login -u AWS -p \S.* '
-               'https://[0-9]{12}.dkr.ecr.\S+.amazonaws.com$')
+    pattern = (
+        r'^docker login -u AWS -p \S.* https://[0-9]{12}.dkr.ecr.\S+.amazonaws.com$'
+    )
     if re.match(pattern, login_cmd) is None:
         raise Exit("[spynl ops.deploy] Docker login command is invalid.")
 
@@ -145,16 +187,16 @@ def deploy(ctx, buildnr=None, task=None, rollback=False):
     # --- put repo-state.txt into the docker build directory
     ctx.run('mv repo-state.txt spynl/cli/ops/docker')
     # --- put production.ini into the docker build directory
-    ctx.run('cp %s/production.ini spynl/cli/ops/docker'
-            % get_config_package().location)
+    ctx.run('cp %s/production.ini spynl/cli/ops/docker' % get_config_package().location)
 
     # --- build Docker image
     with chdir('spynl/cli/ops/docker'):
         result = ctx.run('./build-image.sh %s' % (buildnr))
         if not result:
             ctx.run('docker logout {}'.format(ecr_uri))
-            raise Exit("[spynl ops.deploy] Building docker image failed: %s"
-                       % result.stderr)
+            raise Exit(
+                "[spynl ops.deploy] Building docker image failed: %s" % result.stderr
+            )
         # report the Spynl version from the code we just built
         spynl_version = ctx.run('cat built.spynl.version').stdout.strip()
         ctx.run('rm -f built.spynl.version')  # clean up
@@ -202,39 +244,45 @@ def prepare_docker_run(ctx, packages='_all'):
     If the packages provide a script called "prepare-docker-run.sh",
     this task will run it.
     """
-    print("[spynl ops.prepare_docker_run] Will check packages %s ..."
-          % packages)
+    print("[spynl ops.prepare_docker_run] Will check packages %s ..." % packages)
     for package_name in resolve_packages_param(packages):
         package = get_spynl_package(package_name)
-        print("[spynl ops.prepare_docker_run] Checking package %s at %s ..."
-              % (package_name, package.location))
+        print(
+            "[spynl ops.prepare_docker_run] Checking package %s at %s ..."
+            % (package_name, package.location)
+        )
         with package_dir(package_name):
             if os.path.exists('%s/prepare-docker-run.sh' % package.location):
-                print("[spynl ops.prepare_docker_run] Preparing repo: %s ..."
-                      % package_name)
+                print(
+                    "[spynl ops.prepare_docker_run] Preparing repo: %s ..."
+                    % package_name
+                )
                 ctx.run('%s/prepare-docker-run.sh' % package.location)
 
 
-@task(help={'packages': dev_tasks.PACKAGES_HELP,
-            'task': 'Spynl task, used to find out at which URL to test Spynl. '
-                    ' One of the tasks specified by the ini-setting '
-                    ' "spynl.ops.dev_url". For tasks other than "dev", the '
-                    ' term "spynl" in the dev_url will be replaced by '
-                    ' "spynl-<task>". If no task parameter is given, '
-                    ' then the <url> parameter should be given.',
-            'url': 'URL to run smoke test against. Will overwrite whatever '
-                   'URL the task parameter indicates.'})
+@task(
+    help={
+        'packages': dev_tasks.PACKAGES_HELP,
+        'task': 'Spynl task, used to find out at which URL to test Spynl. '
+        ' One of the tasks specified by the ini-setting '
+        ' "spynl.ops.dev_url". For tasks other than "dev", the '
+        ' term "spynl" in the dev_url will be replaced by '
+        ' "spynl-<task>". If no task parameter is given, '
+        ' then the <url> parameter should be given.',
+        'url': 'URL to run smoke test against. Will overwrite whatever '
+        'URL the task parameter indicates.',
+    }
+)
 def smoke_test(ctx, packages="_all", url=None, task='dev'):
     """Run smoke tests"""
     config = get_dev_config()
-    ecr_dev_tasks = [t.strip() for t in config
-                     .get('spynl.ops.ecr.dev_tasks', '')
-                     .split(',')]
+    ecr_dev_tasks = [
+        t.strip() for t in config.get('spynl.ops.ecr.dev_tasks', '').split(',')
+    ]
     if url is not None:
         spynl_url = url.strip()
     elif task is None:
-        raise Exit('Please specify a url or a task from [%s].'
-                   % ecr_dev_tasks)
+        raise Exit('Please specify a url or a task from [%s].' % ecr_dev_tasks)
     else:
         if ',' in task:  # let's only do the first one
             task = task.split(',')[0].strip()
@@ -257,25 +305,29 @@ def smoke_test(ctx, packages="_all", url=None, task='dev'):
     print("[spynl ops.smoke_test] check if build is new ...")
     res = requests.get(spynl_url + '/about/build')
     assert_response_code(res, 200)
-    build_time = datetime.strptime(res.json()['build_time'],
-                                   '%Y-%m-%dT%H:%M:%S%z')
+    build_time = datetime.strptime(res.json()['build_time'], '%Y-%m-%dT%H:%M:%S%z')
     now = datetime.now(tz=pytz.UTC)
     if not now - timedelta(minutes=15) < build_time:
-        raise Exit("[spynl ops.smoke_test] Build seems to be old: "
-                   "%s (now - 15m) is not before %s"
-                   % (now - timedelta(minutes=15), build_time))
+        raise Exit(
+            "[spynl ops.smoke_test] Build seems to be old: "
+            "%s (now - 15m) is not before %s"
+            % (now - timedelta(minutes=15), build_time)
+        )
 
     for package_name in resolve_packages_param(packages):
         with package_dir(package_name):
             package = get_spynl_package(package_name)
             if os.path.exists('%s/smoke-test.py' % package.location):
-                print("[spynl ops.smoke_test] Running %s/smoke-test.py ..."
-                      % package.location)
-                ctx.run('python %s/smoke-test.py --spynl-url %s'
-                        % (package.location, spynl_url))
+                print(
+                    "[spynl ops.smoke_test] Running %s/smoke-test.py ..."
+                    % package.location
+                )
+                ctx.run(
+                    'python %s/smoke-test.py --spynl-url %s'
+                    % (package.location, spynl_url)
+                )
 
     # smoke tests succedded so tag spynl image as successful
-    ctx.run('docker tag spynl:v{} spynl:{}_success'
-            .format(SPYNL_VERSION, task))
+    ctx.run('docker tag spynl:v{} spynl:{}_success'.format(SPYNL_VERSION, task))
 
     print('[spynl ops.smoke_test] Spynl presence checked successfully!')

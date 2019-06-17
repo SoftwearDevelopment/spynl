@@ -26,12 +26,11 @@ swagger_doc = {
         'version': spynl_version,
         'title': 'Spynl Endpoints',
         'description': 'A list of all endpoints on this Spynl instance,'
-                       ' with a short description on how to use them.'
-                       ' <br/><br/><span style="color: grey;">{}<span>'
-                       .format(EXTENDED_DESCRIPTION)
+        ' with a short description on how to use them.'
+        ' <br/><br/><span style="color: grey;">{}<span>'.format(EXTENDED_DESCRIPTION),
     },
     'paths': {},
-    'definitions': {}
+    'definitions': {},
 }
 
 
@@ -43,9 +42,13 @@ def document_endpoint(config, function, endpoint_name, resource=None):
     yaml_str = get_yaml_from_docstring(function.__doc__, load_yaml=False)
 
     if not yaml_str:
-        log.warning("No YAML found in docstring of endpoint %s "
-                    "(resource: %s). Cannot generate entry in "
-                    "/about/endpoints.", endpoint_name, resource)
+        log.warning(
+            "No YAML found in docstring of endpoint %s "
+            "(resource: %s). Cannot generate entry in "
+            "/about/endpoints.",
+            endpoint_name,
+            resource,
+        )
         return
     if resource:
         # Replace $resource in the docstring with the actual resource
@@ -70,13 +73,11 @@ def document_endpoint(config, function, endpoint_name, resource=None):
         first_doc_line = doc_lines[1].strip()
         if first_doc_line == '---':
             first_doc_line = ''
-    for method in [m for m in ('get', 'post')
-                   if m in swagger_doc['paths'][path]]:
+    for method in [m for m in ('get', 'post') if m in swagger_doc['paths'][path]]:
         path_doc = swagger_doc['paths'][path][method]
         if 'summary' not in path_doc or not path_doc['summary']:
             if resource:
-                path_doc['summary'] = re.sub(r'\$resource', resource,
-                                             first_doc_line)
+                path_doc['summary'] = re.sub(r'\$resource', resource, first_doc_line)
             else:
                 path_doc['summary'] = first_doc_line
 
@@ -85,8 +86,7 @@ def make_docs(config):
     """Write swagger file."""
     log = get_logger('Spynl Documentation')
 
-    folder = config.get_settings().get('spynl.documentation_folder',
-                                       'spynl_swagger')
+    folder = config.get_settings().get('spynl.documentation_folder', 'spynl_swagger')
     if not os.path.exists(folder):
         os.makedirs(folder)
 
@@ -94,8 +94,9 @@ def make_docs(config):
     swagger_file = os.path.join(folder, 'spynl.json')
     try:
         with open(swagger_file, 'w') as outfile:
-            json.dump(swagger_doc, outfile, indent=4, separators=(',', ': '),
-                      sort_keys=True)
+            json.dump(
+                swagger_doc, outfile, indent=4, separators=(',', ': '), sort_keys=True
+            )
     except IOError as e:
         log.error('I/O error(%s: %s', e.errno, e.strerror)
     except (TypeError, OverflowError, ValueError) as e:
@@ -128,20 +129,28 @@ def insert_ini_settings(config, description):
             # hide the value of the setting
             if setting_doc.get('hidden'):
                 setting = '****'
-            description = re.sub(r'\$setting\[' + setting_name + r'\]',
-                                 str(setting) + r' (the ' + setting_name +
-                                 ' for this Spynl instance)', description)
+            description = re.sub(
+                r'\$setting\[' + setting_name + r'\]',
+                str(setting) + r' (the ' + setting_name + ' for this Spynl instance)',
+                description,
+            )
         else:
             default = None
             if setting_doc is not None:
                 default = get_ini_doc_setting(setting_name).get('default')
             if default is not None:
-                description = re.sub(r'\$setting\[' + setting_name + r'\]',
-                                     str(default) + r' (the ' + setting_name +
-                                     ' for this Spynl instance)', description)
+                description = re.sub(
+                    r'\$setting\[' + setting_name + r'\]',
+                    str(default)
+                    + r' (the '
+                    + setting_name
+                    + ' for this Spynl instance)',
+                    description,
+                )
             else:
-                description = re.sub(r'\$setting\[' + setting_name + r'\]',
-                                     setting_name, description)
+                description = re.sub(
+                    r'\$setting\[' + setting_name + r'\]', setting_name, description
+                )
                 log.error('There is no value for setting %s', setting_name)
         match = flag.search(description)
 

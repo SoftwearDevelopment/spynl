@@ -5,8 +5,12 @@ Furthermore, we apply (de)serialisation which plugins can define for object
 types like IDs or dates.
 """
 from pyramid import threadlocal
-from spynl.main.dateutils import (date_format_str, localize_date,
-                                  date_to_str, date_from_str)
+from spynl.main.dateutils import (
+    date_format_str,
+    localize_date,
+    date_to_str,
+    date_from_str,
+)
 from spynl.main.utils import get_settings, get_logger
 from spynl.main.locale import SpynlTranslationString as _
 
@@ -38,8 +42,9 @@ class SpynlDecoder(object):
         decode_functions = settings.get('serial_decode_functions', {})
         for fieldname in dic:
             if fieldname in decode_functions:
-                decode_functions[fieldname](dic, fieldname=fieldname,
-                                            context=self.context)
+                decode_functions[fieldname](
+                    dic, fieldname=fieldname, context=self.context
+                )
 
         # All remaining strings: we use unicode internally
         # & we expect incoming strings to be UTF-8 encoded
@@ -78,8 +83,9 @@ def add_decode_function(config, function, fields):
     decode_functions = settings.get('serial_decode_functions', {})
     for field in fields:
         if decode_functions.get(field) is not None:
-            log.warning('A custom decoding function for field %s is being '
-                        'overwritten.', field)
+            log.warning(
+                'A custom decoding function for field %s is being overwritten.', field
+            )
         decode_functions[field] = function
     if function.__code__.co_argcount != 3:
         log.warning('Custom decoding functions should have three arguments.')
@@ -98,8 +104,7 @@ def add_encode_function(config, function, obj_type):
     settings = config.get_settings()
     encode_functions = settings.get('serial_encode_functions', {})
     if encode_functions.get(obj_type) is not None:
-        log.warning('You are replacing the encoding function for type %s',
-                    obj_type)
+        log.warning('You are replacing the encoding function for type %s', obj_type)
     encode_functions[obj_type] = function
     # line below needed if setting was not initialised before
     config.add_settings(serial_encode_functions=encode_functions)
@@ -110,10 +115,16 @@ def decode_date(dic, fieldname, context):
     try:
         dic[fieldname] = localize_date(date_from_str(dic[fieldname]), tz='UTC')
     except Exception:
-        raise ValueError(_(
-            'date-decode-value-error',
-            mapping={'value': dic[fieldname], 'key': fieldname,
-                     'format': date_format_str()}))
+        raise ValueError(
+            _(
+                'date-decode-value-error',
+                mapping={
+                    'value': dic[fieldname],
+                    'key': fieldname,
+                    'format': date_format_str(),
+                },
+            )
+        )
 
 
 def encode_boolean(obj):

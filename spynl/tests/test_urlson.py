@@ -1,8 +1,15 @@
 """Test full URLs."""
 
 import pytest
-from spynl.main.urlson import (handle_ws, value_ctx, array_ctx, object_ctx,
-                               loads, loads_dict, UnexpectedEndOfInput)
+from spynl.main.urlson import (
+    handle_ws,
+    value_ctx,
+    array_ctx,
+    object_ctx,
+    loads,
+    loads_dict,
+    UnexpectedEndOfInput,
+)
 
 
 def test_loads_normal():
@@ -20,8 +27,7 @@ def test_loads_list():
 def test_loads_dict_function():
     """Test loads_dict with dict in get."""
     get = {'k1': '{1:a,2:b,3:c,4:d,6:e}'}
-    assert loads_dict(get) == \
-        {'k1': {'1': 'a', '2': 'b', '3': 'c', '4': 'd', '6': 'e'}}
+    assert loads_dict(get) == {'k1': {'1': 'a', '2': 'b', '3': 'c', '4': 'd', '6': 'e'}}
 
 
 def test_loads_dict_mix():
@@ -85,30 +91,31 @@ def test_value_ctx_literal(collector):
 def test_array_ctx_empty(collector):
     """Test empty (array_ctx)."""
     assert array_ctx('[]', collector) == 2
-    assert collector.events == \
-        [('array_start', None), ('array_stop', None)]
+    assert collector.events == [('array_start', None), ('array_stop', None)]
 
 
 def test_array_ctx_ws(collector):
     """Test whitespace (array_ctx)."""
     assert array_ctx('[   ]', collector) == 5
-    assert collector.events == \
-        [('array_start', None), ('array_stop', None)]
+    assert collector.events == [('array_start', None), ('array_stop', None)]
 
 
 def test_array_ctx_comma(collector):
     """Test comma (array_ctx)."""
     assert array_ctx('[ , ,, ]', collector) == 8
-    assert collector.events == \
-        [('array_start', None), ('array_stop', None)]
+    assert collector.events == [('array_start', None), ('array_stop', None)]
 
 
 def test_array_ctx_literal(collector):
     """Test literal (array_ctx)."""
     assert array_ctx('[a,b , , c,]', collector) == 12
-    assert collector.events == \
-        [('array_start', None), ('literal', 'a'), ('literal', 'b'),
-         ('literal', 'c'), ('array_stop', None)]
+    assert collector.events == [
+        ('array_start', None),
+        ('literal', 'a'),
+        ('literal', 'b'),
+        ('literal', 'c'),
+        ('array_stop', None),
+    ]
 
 
 def test_array_ctx_unexpected(collector):
@@ -120,31 +127,34 @@ def test_array_ctx_unexpected(collector):
 def test_object_ctx_empty(collector):
     """Test empty (object_ctx)."""
     assert object_ctx('{}', collector) == 2
-    assert collector.events == \
-        [('object_start', None), ('object_stop', None)]
+    assert collector.events == [('object_start', None), ('object_stop', None)]
 
 
 def test_object_ctx_ws(collector):
     """Test whitespace (object_ctx)."""
     assert object_ctx('{  }', collector) == 4
-    assert collector.events == \
-        [('object_start', None), ('object_stop', None)]
+    assert collector.events == [('object_start', None), ('object_stop', None)]
 
 
 def test_object_ctx_comma(collector):
     """Test comma (object_ctx)."""
     assert object_ctx('{ ,, , }', collector) == 8
-    assert collector.events == \
-        [('object_start', None), ('object_stop', None)]
+    assert collector.events == [('object_start', None), ('object_stop', None)]
 
 
 def test_object_ctx_literal(collector):
     """Test literal (object_ctx)."""
     assert object_ctx('{a:abc,b : 4,,c: }', collector) == 18
-    assert collector.events == \
-        [('object_start', None), ('key', 'a'), ('literal', 'abc'),
-         ('key', 'b'), ('literal', '4'), ('key', 'c'), ('literal', ''),
-         ('object_stop', None)]
+    assert collector.events == [
+        ('object_start', None),
+        ('key', 'a'),
+        ('literal', 'abc'),
+        ('key', 'b'),
+        ('literal', '4'),
+        ('key', 'c'),
+        ('literal', ''),
+        ('object_stop', None),
+    ]
 
 
 def test_object_ctx_unexpected(collector):
@@ -182,5 +192,8 @@ def test_loads_string():
 
 def test_loads_nested():
     """Test nested (loads)."""
-    assert loads('{a: 2, c: [], d: [{f:1},d]}') == \
-        {'a': '2', 'c': [], 'd': [{'f': '1'}, 'd']}
+    assert loads('{a: 2, c: [], d: [{f:1},d]}') == {
+        'a': '2',
+        'c': [],
+        'd': [{'f': '1'}, 'd'],
+    }

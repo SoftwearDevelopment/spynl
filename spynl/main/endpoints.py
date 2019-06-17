@@ -63,8 +63,11 @@ def time(request):
         $setting[spynl.date_format]\n
         tz        | string | local time zone, e.g. Europe/Amsterdam\n
     """
-    response = {'server_time': date_to_str(localize_date(datetime.utcnow(),
-                                                         user_specific=False))}
+    response = {
+        'server_time': date_to_str(
+            localize_date(datetime.utcnow(), user_specific=False)
+        )
+    }
     user_info = get_user_info(request)
     if user_info.get('tz') is not None:
         response['local_time'] = date_to_str(now())
@@ -98,7 +101,7 @@ def main(config):
     config.add_endpoint(time, 'time', permission=NO_PERMISSION_REQUIRED)
 
     # useful for testing purposes
-    config.add_endpoint(request_echo, 'request_echo',
-                        permission=NO_PERMISSION_REQUIRED)
-    config.add_endpoint(request_check, 'request_check',
-                        permission=NO_PERMISSION_REQUIRED)
+    config.add_endpoint(request_echo, 'request_echo', permission=NO_PERMISSION_REQUIRED)
+    config.add_endpoint(
+        request_check, 'request_check', permission=NO_PERMISSION_REQUIRED
+    )

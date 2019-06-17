@@ -35,8 +35,7 @@ def loads(body, headers=None, context=None):
             if str(err) == 'Could not determine delimiter':
                 dialect = csv.Sniffer().sniff(body[:6000], delimiters=',\t|')
             else:
-                raise MalformedRequestException('text/csv',
-                                                error_cause=str(err))
+                raise MalformedRequestException('text/csv', error_cause=str(err))
 
         if not delimiter:
             delimiter = dialect.delimiter
@@ -44,9 +43,10 @@ def loads(body, headers=None, context=None):
             quotechar = dialect.quotechar
 
     data = body.split("\n")
-    dict_data = [objects.SpynlDecoder(context=context)(dic)
-                 for dic in csv.DictReader(data, delimiter=delimiter,
-                                           quotechar=quotechar)]
+    dict_data = [
+        objects.SpynlDecoder(context=context)(dic)
+        for dic in csv.DictReader(data, delimiter=delimiter, quotechar=quotechar)
+    ]
 
     return {'data': dict_data}
 
@@ -101,8 +101,7 @@ def dumps(body, pretty=False):  # pylint: disable=unused-argument
     If there is no "data" key, we render the whole response as JSON.
     """
     if body.get('data'):
-        csv_writer = UnicodeStringCSVWriter(quoting=csv.QUOTE_MINIMAL,
-                                            quotechar="'")
+        csv_writer = UnicodeStringCSVWriter(quoting=csv.QUOTE_MINIMAL, quotechar="'")
         json_data = body.get('data')
         keys = list(json_data[0].keys())
         csv_writer.writerow(keys)

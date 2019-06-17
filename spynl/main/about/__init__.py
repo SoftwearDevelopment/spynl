@@ -7,7 +7,7 @@ from pyramid.settings import asbool
 from pyramid.security import Allow, Authenticated, DENY_ALL
 
 from spynl.main.routing import Resource
-from spynl.main.about.endpoints import (hello, versions, build, ini)
+from spynl.main.about.endpoints import hello, versions, build, ini
 
 
 class AboutResource(Resource):
@@ -15,8 +15,7 @@ class AboutResource(Resource):
 
     paths = ['about']
 
-    __acl__ = [(Allow, 'role:spynl-developer', 'read'),
-               DENY_ALL]
+    __acl__ = [(Allow, 'role:spynl-developer', 'read'), DENY_ALL]
 
 
 class StaticResource(Resource):
@@ -28,19 +27,22 @@ class StaticResource(Resource):
     __acl__ = [(Allow, 'role:spynl-developer', 'read'), DENY_ALL]
 
 
-
 def main(config):
     """doc, get, version, build, add endpoints."""
     settings = config.get_settings()
 
-    config.add_static_view(name='static_swagger',
-                           path='spynl.main:docs/swagger-ui/',
-                           factory=StaticResource,
-                           permission='read')
-    config.add_static_view(name='static_docson',
-                           path='spynl.main:docs/docson/',
-                           factory=StaticResource,
-                           permission='read')
+    config.add_static_view(
+        name='static_swagger',
+        path='spynl.main:docs/swagger-ui/',
+        factory=StaticResource,
+        permission='read',
+    )
+    config.add_static_view(
+        name='static_docson',
+        path='spynl.main:docs/docson/',
+        factory=StaticResource,
+        permission='read',
+    )
 
     # check if we can use authentication for the more sensitive views
     permission = NO_PERMISSION_REQUIRED
@@ -49,11 +51,13 @@ def main(config):
     else:
         permission = NO_PERMISSION_REQUIRED
 
-    config.add_endpoint(hello, None, context=AboutResource,
-                        permission=NO_PERMISSION_REQUIRED)
-    config.add_endpoint(versions, 'versions', context=AboutResource,
-                        permission=Authenticated)
-    config.add_endpoint(build, 'build', context=AboutResource,
-                        permission=NO_PERMISSION_REQUIRED)
-    config.add_endpoint(ini, 'ini', context=AboutResource,
-                        permission=permission)
+    config.add_endpoint(
+        hello, None, context=AboutResource, permission=NO_PERMISSION_REQUIRED
+    )
+    config.add_endpoint(
+        versions, 'versions', context=AboutResource, permission=Authenticated
+    )
+    config.add_endpoint(
+        build, 'build', context=AboutResource, permission=NO_PERMISSION_REQUIRED
+    )
+    config.add_endpoint(ini, 'ini', context=AboutResource, permission=permission)

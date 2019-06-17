@@ -25,5 +25,4 @@ def loads(body, headers=None, **kwargs):
     try:
         return yaml.load(body)
     except ValueError as err:
-        raise MalformedRequestException('application/x-yaml',
-                                        error_cause=str(err))
+        raise MalformedRequestException('application/x-yaml', error_cause=str(err))

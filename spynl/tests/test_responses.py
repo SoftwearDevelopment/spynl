@@ -33,21 +33,30 @@ def test_get_req_dont_parse_body(app):
 
     Whether the content type is defined in Spynl or not.
     """
-    response = loads(app.request(
-        '/request_echo', method='GET', body=b'THIS_IS_NOT_JSON',
-        headers={'Content-Type': 'application/json'}).text)
+    response = loads(
+        app.request(
+            '/request_echo',
+            method='GET',
+            body=b'THIS_IS_NOT_JSON',
+            headers={'Content-Type': 'application/json'},
+        ).text
+    )
     assert response['status'] == 'ok'
-    response = loads(app.request(
-        '/request_echo', method='GET', body=b'A=B',
-        headers={'Content-Type': 'application/x-www-form-urlencoded'}).text)
+    response = loads(
+        app.request(
+            '/request_echo',
+            method='GET',
+            body=b'A=B',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        ).text
+    )
     assert response['status'] == 'ok'
 
 
 def test_contenttype_unsupported(app):
     """Raise exception when conttenttype is unsupported."""
     with pytest.raises(AppError, match='Content type is niet ondersteund'):
-        app.post('/request_echo', 'wtf',
-                 headers={'Content-Type': 'text/plain'})
+        app.post('/request_echo', 'wtf', headers={'Content-Type': 'text/plain'})
 
 
 def test_accepted_contenttype_is_all_of_them(app):
@@ -64,7 +73,9 @@ def test_contenttype_xml(app):
     assert '<param1>bla</param1>' in response
     # Now let it find out the content type by filename
     headers = {'Content-Type': ''}
-    response = app.post('/request_echo.xml?param2=blupp', '<a></a>', headers=headers).text
+    response = app.post(
+        '/request_echo.xml?param2=blupp', '<a></a>', headers=headers
+    ).text
     assert '<param2>blupp</param2>' in response
 
 
@@ -72,14 +83,17 @@ def test_contenttype_csv(app):
     """Test contenttype csv, set response type in URL path."""
     data = [{"a": 100, "b": 200}, {"a": 150, "b": 250}]
     response = app.post('/request_echo.csv', dumps({"data": data}), {}).text
-    assert any((response == 'a,b\r\n100,200\r\n150,250\r\n',
-                response == 'b,a\r\n200,100\r\n250,150\r\n'))
+    assert any(
+        (
+            response == 'a,b\r\n100,200\r\n150,250\r\n',
+            response == 'b,a\r\n200,100\r\n250,150\r\n',
+        )
+    )
 
 
 def test_json(app):
     """Send JSON data in via a data dictionary (pure JSON), returne it back."""
-    data = {'a': 1, 'b': [1.2, 4.5],
-            'c': {'ca': False, 'cb': 'string1'}}
+    data = {'a': 1, 'b': [1.2, 4.5], 'c': {'ca': False, 'cb': 'string1'}}
     str_request = dumps({'data': data})
     response = app.post('/request_check', str_request).text
     assert loads(response)['data'] == data
@@ -91,9 +105,10 @@ def test_bad_json(app):
 
     with pytest.raises(AppError, match='Expecting value: line 1 column 1'):
         app.post('/request_echo', '<a>', headers=headers)
-    with pytest.raises(AppError,
-                       match='Expecting property name enclosed in'
-                       ' double quotes: line 1 column 2'):
+    with pytest.raises(
+        AppError,
+        match='Expecting property name enclosed in double quotes: line 1 column 2',
+    ):
         app.post('/request_echo', '{', headers=headers)
 
 
@@ -120,8 +135,9 @@ def test_jsonandget(app):
     pure JSON.
     """
     returned = {'a': '1', 'b': ['1.2', '4.5'], 'c': {'ca': 'string1'}}
-    response = app.post('/request_echo?data={a:1,b:[1.2,4.5],c:{ca:string1}}',
-                        dumps({'data': {'a': 2}})).text
+    response = app.post(
+        '/request_echo?data={a:1,b:[1.2,4.5],c:{ca:string1}}', dumps({'data': {'a': 2}})
+    ).text
     assert loads(response)['data'] == returned
 
 

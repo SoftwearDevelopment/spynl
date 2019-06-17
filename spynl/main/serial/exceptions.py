@@ -19,8 +19,9 @@ class UnsupportedContentTypeException(SpynlException):
 
     def __init__(self, content_type):
         """Exception message."""
-        message = _('unsupported-content-type-exception',
-                    mapping={'type': content_type})
+        message = _(
+            'unsupported-content-type-exception', mapping={'type': content_type}
+        )
         super().__init__(message=message)
 
 
@@ -29,8 +30,9 @@ class DeserializationUnsupportedException(SpynlException):
 
     def __init__(self, content_type):
         """Exception message."""
-        message = _('deserialization-unsupported-exception',
-                    mapping={'type': content_type})
+        message = _(
+            'deserialization-unsupported-exception', mapping={'type': content_type}
+        )
         super().__init__(message=message)
 
 
@@ -39,8 +41,9 @@ class SerializationUnsupportedException(SpynlException):
 
     def __init__(self, content_type):
         """Exception message."""
-        message = _('serialization-unsupported-exception',
-                    mapping={'type': content_type})
+        message = _(
+            'serialization-unsupported-exception', mapping={'type': content_type}
+        )
         super().__init__(message=message)
 
 
@@ -50,10 +53,10 @@ class MalformedRequestException(SpynlException):
     def __init__(self, content_type, error_cause=None):
         """Exception message."""
         if error_cause:
-            message = _('malformed-request-exception-type',
-                        mapping={'type': content_type,
-                                 'request': error_cause})
+            message = _(
+                'malformed-request-exception-type',
+                mapping={'type': content_type, 'request': error_cause},
+            )
         else:
-            message = _('malformed-request-exception',
-                        mapping={'type': content_type})
+            message = _('malformed-request-exception', mapping={'type': content_type})
         super().__init__(message=message)

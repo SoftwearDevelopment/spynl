@@ -30,33 +30,36 @@ def dev():
 
 
 package_option = click.option(
-    '-p', '--packages',
+    '-p',
+    '--packages',
     multiple=True,
     callback=resolve_packages,
-    help='Packages to operate on.'
+    help='Packages to operate on.',
 )
 
 
 language_option = click.option(
-    '-l', '--languages',
+    '-l',
+    '--languages',
     multiple=True,
     default=['nl', 'en', 'de', 'fr', 'es', 'it'],
-    help=('A language code such as "en" or "nl". '
-          'Can be provided multiple times for multiple languages.')
+    help=(
+        'A language code such as "en" or "nl". '
+        'Can be provided multiple times for multiple languages.'
+    ),
 )
 
 
 ini_option = click.option(
-    '-i', '--ini',
+    '-i',
+    '--ini',
     help='Specify an ini file to use.',
     type=click.Path(exists=True),
-    callback=check_ini
+    callback=check_ini,
 )
 
 task_option = click.option(
-    '-t', '--task',
-    type=click.Choice(['dev', 'latest']),
-    default='dev'
+    '-t', '--task', type=click.Choice(['dev', 'latest']), default='dev'
 )
 
 
@@ -69,7 +72,7 @@ def versions():
             package.project_name: {
                 'version': package.version,
                 'commit': lookup_scm_commit(package.location),
-                'scmVersion': lookup_scm_commit_describe(package.location)
+                'scmVersion': lookup_scm_commit_describe(package.location),
             }
         }
         if package.project_name == SPYNL_DISTRIBUTION.project_name:
@@ -131,16 +134,24 @@ def generate_documentation(ini):
 @dev.command()
 @package_option
 @language_option
-@click.option('--refresh', '-r',
-              help='Refresh the translations calalogs.',
-              is_flag=True)
-@click.option('--no-location', '-n',
-              help='Remove the comments (locations) from the .pot and .po file',
-              is_flag=True)
-@click.option('--add-comments', '-c',
-              help=('Add translator comments from the code (translator comments'
-                    ' should start with #.)'),
-              is_flag=True)
+@click.option(
+    '--refresh', '-r', help='Refresh the translations calalogs.', is_flag=True
+)
+@click.option(
+    '--no-location',
+    '-n',
+    help='Remove the comments (locations) from the .pot and .po file',
+    is_flag=True,
+)
+@click.option(
+    '--add-comments',
+    '-c',
+    help=(
+        'Add translator comments from the code (translator comments'
+        ' should start with #.)'
+    ),
+    is_flag=True,
+)
 def translate(packages, languages, refresh, no_location, add_comments):
     """Perform translation tasks."""
     base_command = sys.executable + ' setup.py '
@@ -158,8 +169,7 @@ def translate(packages, languages, refresh, no_location, add_comments):
 
             for lang in languages:
                 try:
-                    run_command(base_command + 'update_catalog -l ' + lang,
-                                check=True)
+                    run_command(base_command + 'update_catalog -l ' + lang, check=True)
                 except subprocess.CalledProcessError:
                     # po file does not exist
                     run_command(base_command + 'init_catalog -l ' + lang)
@@ -176,8 +186,14 @@ def extract_missing_translations(ctx, packages, languages):
     """ extract the messages that still need to be translated """
     wd = os.getcwd()
     # prepare files with comments:
-    ctx.invoke(translate, packages=packages, languages=languages, refresh=True,
-               no_location=True, add_comments=True)
+    ctx.invoke(
+        translate,
+        packages=packages,
+        languages=languages,
+        refresh=True,
+        no_location=True,
+        add_comments=True,
+    )
 
     for package in packages:
         os.chdir(package.location)
@@ -192,31 +208,31 @@ def extract_missing_translations(ctx, packages, languages):
         json_messages = {}
 
         # Use English as the standard:
-        filename = os.path.join(output_dir, 'en', 'LC_MESSAGES',
-                                domain + '.po')
+        filename = os.path.join(output_dir, 'en', 'LC_MESSAGES', domain + '.po')
         with open(filename, 'r') as f:
             en_messages = read_po(f)._messages
         # Check the English messages, fail if there is one missing:
         for message_id, message in en_messages.items():
             if not message.string:
-                fail('missing English message: {} in {}'
-                     .format(message_id, filename))
+                fail('missing English message: {} in {}'.format(message_id, filename))
 
         warnings = []
         for lang in [lang for lang in languages if lang != 'en']:
-            filename = os.path.join(output_dir, lang, 'LC_MESSAGES',
-                                    domain + '.po')
+            filename = os.path.join(output_dir, lang, 'LC_MESSAGES', domain + '.po')
             with open(filename, 'r') as po_file:
                 po_messages = read_po(po_file)._messages
 
             for message_id, message in po_messages.items():
                 if not message.string:
-                    warnings.append('missing message: {} in {}'.\
-                                    format(message_id, filename))
+                    warnings.append(
+                        'missing message: {} in {}'.format(message_id, filename)
+                    )
                 # if it's not the same as en, it doesn't need to be translated
                 # + we do not want to translate locale_id's for now.
-                elif (message.string != en_messages[message_id].string or
-                      'locale_id' in message_id):
+                elif (
+                    message.string != en_messages[message_id].string
+                    or 'locale_id' in message_id
+                ):
                     continue
                 json_messages[message_id] = {
                     'message': en_messages[message_id].string,
@@ -230,8 +246,14 @@ def extract_missing_translations(ctx, packages, languages):
                 json.dump(json_messages, outfile, sort_keys=True, indent=4)
 
     # restore files:
-    ctx.invoke(translate, packages=packages, languages=languages, refresh=True,
-               no_location=True, add_comments=False)
+    ctx.invoke(
+        translate,
+        packages=packages,
+        languages=languages,
+        refresh=True,
+        no_location=True,
+        add_comments=False,
+    )
 
     # print warnings after all the other output:
     if warnings:

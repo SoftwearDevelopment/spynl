@@ -17,10 +17,7 @@ def export_data(data, header):
 
     The inner lists are ordered according the header.
     """
-    return [
-        [row[k] for k in header]
-        for row in data
-    ]
+    return [[row[k] for k in header] for row in data]
 
 
 def export_excel(header, data, response, filename):
@@ -41,7 +38,9 @@ def export_excel(header, data, response, filename):
 
 def serve_excel_response(response, file, filename):
     response.content_disposition = 'attachment; filename=%s' % filename
-    response.content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.content_type = (
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
     response.app_iter = FileIter(file)
     return response
 

@@ -15,12 +15,10 @@ def reset_app(app):
     app.cookiejar.clear()
 
 
-@pytest.mark.parametrize("method,language", [
-    (None, 'nl'),
-    ('cookie', 'en'),
-    ('header', 'nl'),
-    ('setting', 'nl')
-])
+@pytest.mark.parametrize(
+    "method,language",
+    [(None, 'nl'), ('cookie', 'en'), ('header', 'nl'), ('setting', 'nl')],
+)
 def test_response_message(app, app_factory, method, language, settings):
     """Test /about, with various methods of specifying the language"""
     headers = {}
@@ -44,5 +42,7 @@ def test_exception_message_is_translated():
         my_config.add_translation_dirs('spynl.main:locale/')
         with pytest.raises(Forbidden) as exc_info:
             check_origin(ping(dr), None)(None, dr)
-        assert "Requests naar Spynl zijn niet toegestaan"\
-               " vanaf origin 'Not-a-Url'." in str(exc_info.value)
+        assert (
+            "Requests naar Spynl zijn niet toegestaan"
+            " vanaf origin 'Not-a-Url'." in str(exc_info.value)
+        )

@@ -3,8 +3,7 @@ Error views for 4xx and 5xx HTTP errors
 """
 
 from pyramid.security import ACLDenied
-from pyramid.httpexceptions import (HTTPForbidden, HTTPNotFound,
-                                    HTTPInternalServerError)
+from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound, HTTPInternalServerError
 
 from spynl.main.utils import log_error
 from spynl.main.locale import SpynlTranslationString as _
@@ -60,15 +59,20 @@ def error400(exc, request):
 
     error_type = exc.__class__.__name__
     if isinstance(exc, HTTPNotFound):
-        message = _('no-endpoint-for-path',
-                    mapping={'path': request.path_info})
-    elif (isinstance(exc, HTTPForbidden) and hasattr(exc, 'result') and
-          exc.result is not None):
+        message = _('no-endpoint-for-path', mapping={'path': request.path_info})
+    elif (
+        isinstance(exc, HTTPForbidden)
+        and hasattr(exc, 'result')
+        and exc.result is not None
+    ):
         if isinstance(exc.result, ACLDenied):
             message = _(
                 'permission-denial',
-                mapping={'context': request.context.__class__.__name__,
-                         'permission': exc.result.permission})
+                mapping={
+                    'context': request.context.__class__.__name__,
+                    'permission': exc.result.permission,
+                },
+            )
             # TODO: log exc.result as detail info
         else:
             message = exc.result.msg

@@ -53,15 +53,18 @@ def get_settings(setting=None):
 
 def check_origin(endpoint, info):
     """Check if origin is allowed"""
+
     def wrapper_view(context, request):
         """raise HTTPForbidden if origin isn't allowed"""
         origin = request.headers.get('Origin', '')
         if not is_origin_allowed(origin):
             # because this is a wrapper, the bad origin will not be properly
             # escalated to forbidden, so it needs to be done like this.
-            raise Forbidden(detail=BadOrigin(origin).message.translate(
-                request.localizer))
+            raise Forbidden(
+                detail=BadOrigin(origin).message.translate(request.localizer)
+            )
         return endpoint(context, request)
+
     return wrapper_view
 
 
@@ -73,8 +76,8 @@ check_origin.options = ('is_error_view',)
 def validate_locale(locale):
     """Validate a locale against our supported languages."""
     supported_languages = [
-        lang.strip().lower() for lang in
-        get_settings().get('spynl.languages', 'en').split(',')
+        lang.strip().lower()
+        for lang in get_settings().get('spynl.languages', 'en').split(',')
     ]
     language = None
 
@@ -92,6 +95,7 @@ def handle_pre_flight_request(endpoint, info):
     "pre-flight-request": return custom response with some information on
     what we allow. Used by browsers before they send XMLHttpRequests.
     """
+
     def wrapper(context, request):
         """Call the endpoint if not an OPTION (pre-flight) request,
         otherwise return a custom Response."""
@@ -105,18 +109,26 @@ def handle_pre_flight_request(endpoint, info):
                     headerlist.append(('Access-Control-Allow-Origin', origin))
                 else:
                     headerlist.append(('Access-Control-Allow-Origin', 'null'))
-            headerlist.extend([('Access-Control-Allow-Methods', 'GET,POST'),
-                               ('Access-Control-Max-Age', '86400'),
-                               ('Access-Control-Allow-Credentials', 'true'),
-                               ('Content-Length', '0'),
-                               ('Content-Type', 'text/plain')])
+            headerlist.extend(
+                [
+                    ('Access-Control-Allow-Methods', 'GET,POST'),
+                    ('Access-Control-Max-Age', '86400'),
+                    ('Access-Control-Allow-Credentials', 'true'),
+                    ('Content-Length', '0'),
+                    ('Content-Type', 'text/plain'),
+                ]
+            )
             # you can send any headers to Spynl, basically
             if 'Access-Control-Request-Headers' in request.headers:
                 headerlist.append(
-                    ('Access-Control-Allow-Headers',
-                     request.headers['Access-Control-Request-Headers']))
+                    (
+                        'Access-Control-Allow-Headers',
+                        request.headers['Access-Control-Request-Headers'],
+                    )
+                )
             # returning a generic and resource-agnostic pre-flight response
             return Response(headerlist=headerlist)
+
     return wrapper
 
 
@@ -133,8 +145,7 @@ def is_origin_allowed(origin):
         return True
 
     settings = get_settings()
-    dev_whitelist = parse_csv_list(settings.get('spynl.dev_origin_whitelist',
-                                                ''))
+    dev_whitelist = parse_csv_list(settings.get('spynl.dev_origin_whitelist', ''))
     dev_list_urls = [url for url in dev_whitelist if not url.endswith('://')]
     origin_allowed = origin in dev_list_urls
     dev_list_protocols = [url for url in dev_whitelist if url.endswith('://')]
@@ -146,8 +157,7 @@ def is_origin_allowed(origin):
             tld = get_tld(origin)
         except (TldBadUrl, TldDomainNotFound):
             tld = origin  # dev domains like e.g. 0.0.0.0:9000 will fall here
-        tld_whitelist = parse_csv_list(settings.get(
-            'spynl.tld_origin_whitelist', ''))
+        tld_whitelist = parse_csv_list(settings.get('spynl.tld_origin_whitelist', ''))
         if tld in tld_whitelist:
             origin_allowed = True
     return origin_allowed
@@ -156,8 +166,11 @@ def is_origin_allowed(origin):
 def get_header_args(request):
     """Return a dictionary with arguments passed as headers."""
     # these require a spynl-specific prefix to be recognized
-    headers = {key: value for key, value in request.headers.items()
-               if key.lower().startswith('x-spynl-')}
+    headers = {
+        key: value
+        for key, value in request.headers.items()
+        if key.lower().startswith('x-spynl-')
+    }
     # We might also get the session id and client IP address with the headers
     for key in request.headers.keys():
         if key.lower() == 'sid':
@@ -177,8 +190,7 @@ def get_parsed_body(request):
         if body_parser:
             request.parsed_body = body_parser(request)
         else:
-            request.parsed_body = {} if not request.body \
-                                     else json.loads(request.body)
+            request.parsed_body = {} if not request.body else json.loads(request.body)
     else:
         # disregard any body content if not a POST of PUT request
         request.parsed_body = {}
@@ -205,9 +217,14 @@ def unify_args(request):
     # TODO: needs some refactoring - maybe urlson can actually do this parsing
     # for us. We don't know the context yet.
     from spynl.main.serial import objects
+
     context = hasattr(request, 'context') and request.context or None
-    args.update(json.loads(json.dumps(urlson.loads_dict(request.GET)),
-                           object_hook=objects.SpynlDecoder(context=context)))
+    args.update(
+        json.loads(
+            json.dumps(urlson.loads_dict(request.GET)),
+            object_hook=objects.SpynlDecoder(context=context),
+        )
+    )
 
     request.endpoint_method = find_view_name(request)
 
@@ -291,10 +308,12 @@ def get_err_source(original_traceback=None):
         if not original_traceback:
             original_traceback = sys.exc_info()[2]  # class, exc, traceback
         first_call = traceback.extract_tb(original_traceback)[-1]
-        return dict(module=first_call[0],
-                    linenr=first_call[1],
-                    method=first_call[2],
-                    src_code=first_call[3])
+        return dict(
+            module=first_call[0],
+            linenr=first_call[1],
+            method=first_call[2],
+            src_code=first_call[3],
+        )
     except Exception:
         return 'I was unable to retrieve error source information.'
 
@@ -329,24 +348,32 @@ def parse_value(value, class_info):
         try:
             return class_info(value)
         except Exception:
-            raise SpynlException(_(
-                'parse-value-exception-as-class',
-                mapping={'value': value, 'class': class_info.__name__}))
+            raise SpynlException(
+                _(
+                    'parse-value-exception-as-class',
+                    mapping={'value': value, 'class': class_info.__name__},
+                )
+            )
 
     if hasattr(class_info, '__iter__'):
         for cl in class_info:
             if not isclass(cl):
-                raise SpynlException(_(
-                    'parse-value-exception-not-class',
-                    mapping={'class': cl, 'value': value}))
+                raise SpynlException(
+                    _(
+                        'parse-value-exception-not-class',
+                        mapping={'class': cl, 'value': value},
+                    )
+                )
             try:
                 return cl(value)
             except Exception:
                 pass
-    raise SpynlException(_(
-        'parse-value-exception-any-class',
-        mapping={'value': value,
-                 'classes': [cl.__name__ for cl in class_info]}))
+    raise SpynlException(
+        _(
+            'parse-value-exception-any-class',
+            mapping={'value': value, 'classes': [cl.__name__ for cl in class_info]},
+        )
+    )
 
 
 def parse_csv_list(csv_list):
@@ -377,8 +404,10 @@ def get_yaml_from_docstring(doc_str, load_yaml=True):
 
 def required_args(*arguments):
     """Call the decorator that checks if required args passed in request."""
+
     def outer_wrapper(func):
         """Return the decorator."""
+
         @wraps(func)
         def inner_wrapper(*args):
             """
@@ -395,7 +424,9 @@ def required_args(*arguments):
                 return func(request)
             else:
                 return func(*args)
+
         return inner_wrapper
+
     return outer_wrapper
 
 
@@ -414,16 +445,16 @@ def report_to_sentry(exception, request):
 
     try:
         import raven
+
         dsn = 'https://{}@app.getsentry.com/{}'.format(
-            settings['spynl.sentry_key'],
-            settings['spynl.sentry_project']
+            settings['spynl.sentry_key'], settings['spynl.sentry_project']
         )
         client = raven.Client(
             dsn=dsn,
             release=spynl_version,
             site='Spynl',
             environment=settings.get('spynl.ops.environment', 'dev'),
-            processors=('raven.processors.SanitizePasswordsProcessor',)
+            processors=('raven.processors.SanitizePasswordsProcessor',),
         )
     except (ImportError, KeyError):
         # if raven package is not installed or sentry key or project don't exist move on
@@ -441,8 +472,8 @@ def report_to_sentry(exception, request):
             url=request.path_url,
             debug_message=getattr(exception, 'debug_message', None),
             developer_message=getattr(exception, 'developer_message', None),
-            detail=getattr(exception, 'detail', None)
-        )
+            detail=getattr(exception, 'detail', None),
+        ),
     )
 
 
@@ -477,7 +508,7 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
     if not error_type:
         error_type = exc.__class__.__name__
     if error_type.endswith('Exception'):
-        error_type = error_type[:-len('Exception')]
+        error_type = error_type[: -len('Exception')]
 
     if not error_msg:
         try:
@@ -489,8 +520,8 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
 
     user_info = get_user_info(request, purpose='error_view')
 
-    debug_message = getattr(exc, 'debug_message', 'No debug message'),
-    developer_message = getattr(exc, 'developer_message', 'No developer message'),
+    debug_message = (getattr(exc, 'debug_message', 'No debug message'),)
+    developer_message = (getattr(exc, 'developer_message', 'No developer message'),)
 
     metadata = dict(
         user=user_info,
@@ -498,7 +529,7 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         debug_message=debug_message,
         developer_message=developer_message,
         err_source=get_err_source(exc.__traceback__),
-        detail=getattr(exc, 'detail', None)
+        detail=getattr(exc, 'detail', None),
     )
 
     if developer_message:
@@ -512,13 +543,14 @@ def log_error(exc, request, top_msg, error_type=None, error_msg=None):
         error_type,
         str(error_msg),
         exc_info=sys.exc_info(),
-        extra=dict(meta=metadata)
+        extra=dict(meta=metadata),
     )
 
-    if ((getattr(exc, 'monitor', None) is True or
-         not isinstance(exc, (HTTPForbidden, HTTPNotFound)))):
-            report_to_sentry(exc, request)
-            report_to_newrelic(user_info)
+    if getattr(exc, 'monitor', None) is True or not isinstance(
+        exc, (HTTPForbidden, HTTPNotFound)
+    ):
+        report_to_sentry(exc, request)
+        report_to_newrelic(user_info)
 
 
 @contextlib.contextmanager

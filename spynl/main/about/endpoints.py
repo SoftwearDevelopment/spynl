@@ -49,11 +49,13 @@ def hello(request):
     packages = get_spynl_packages()
     for package in packages:
         plugin_versions[package.project_name] = package.version
-    return {'message': _('about-message'),
-            'spynl_version': spynl_version,
-            'plugins': plugin_versions,
-            'language': negotiate_locale_name(request),
-            'time': date_to_str(now())}
+    return {
+        'message': _('about-message'),
+        'spynl_version': spynl_version,
+        'plugins': plugin_versions,
+        'language': negotiate_locale_name(request),
+        'time': date_to_str(now()),
+    }
 
 
 def versions(request):
@@ -120,8 +122,7 @@ def build(request):
     response['build_time'] = spynl_settings.get('spynl.ops.build_time', None)
     response['start_time'] = spynl_settings.get('spynl.ops.start_time', None)
     response['spynl_function'] = spynl_settings.get('spynl.ops.function', None)
-    response['build_number'] = spynl_settings.get('spynl.ops.build_number',
-                                                  None)
+    response['build_number'] = spynl_settings.get('spynl.ops.build_number', None)
 
     return response
 
@@ -147,8 +148,9 @@ def ini(request):
         ini_doc[i]['value'] = str(spynl_settings.get(setting['name']))
 
     request.response.content_type = 'text/html'
-    result = render('spynl.main:docs/ini.jinja2',
-                    {'settings': ini_doc,
-                     'description': ini_description},
-                    request=request)
+    result = render(
+        'spynl.main:docs/ini.jinja2',
+        {'settings': ini_doc, 'description': ini_description},
+        request=request,
+    )
     return result

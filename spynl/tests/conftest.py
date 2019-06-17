@@ -9,31 +9,37 @@ from pyramid import testing
 from pyramid_mailer import get_mailer
 
 from spynl.main import main
-from spynl.main.serial.objects import (add_decode_function, decode_date,
-                                       add_encode_function, encode_boolean,
-                                       encode_date)
+from spynl.main.serial.objects import (
+    add_decode_function,
+    decode_date,
+    add_encode_function,
+    encode_boolean,
+    encode_date,
+)
 
 
 @pytest.fixture(scope="session")
 def settings():
     """Return the settings for the test pyramid application."""
-    return {'spynl.pretty': '1',
-            'enable_plugins': [],
-            'pyramid.debug_authorization': 'false',
-            'pyramid.default_locale_name': 'nl',
-            'pyramid.reload_templates': 'true',
-            'spynl.domain': 'localhost',
-            'spynl.languages': 'en,nl',
-            'pyramid.debug_notfound': 'false',
-            'pyramid.debug_templates': 'true',
-            'pyramid.debug_routematch': 'false',
-            'spynl.date_systemtz': 'UTC',
-            'spynl.tld_origin_whitelist': 'softwearconnect.com,swcloud.nl',
-            'spynl.dev_origin_whitelist':
-                'http://0.0.0.0:9001,chrome-extension:// ',
-            'mail.host': 'smtp.fakehost.com', 'mail.ssl': 'false',
-            'mail.sender': 'info@spynl.com',
-            'pyramid.includes': 'pyramid_mailer.testing'}
+    return {
+        'spynl.pretty': '1',
+        'enable_plugins': [],
+        'pyramid.debug_authorization': 'false',
+        'pyramid.default_locale_name': 'nl',
+        'pyramid.reload_templates': 'true',
+        'spynl.domain': 'localhost',
+        'spynl.languages': 'en,nl',
+        'pyramid.debug_notfound': 'false',
+        'pyramid.debug_templates': 'true',
+        'pyramid.debug_routematch': 'false',
+        'spynl.date_systemtz': 'UTC',
+        'spynl.tld_origin_whitelist': 'softwearconnect.com,swcloud.nl',
+        'spynl.dev_origin_whitelist': 'http://0.0.0.0:9001,chrome-extension:// ',
+        'mail.host': 'smtp.fakehost.com',
+        'mail.ssl': 'false',
+        'mail.sender': 'info@spynl.com',
+        'pyramid.includes': 'pyramid_mailer.testing',
+    }
 
 
 @pytest.fixture(scope="session")
@@ -57,11 +63,13 @@ def app(settings):
 @pytest.fixture
 def app_factory():
     """Return a basic factory app maker to be able to pass custom settings."""
+
     def make_app(settings):
         """Return the maker app."""
         spynl_app = main(None, **settings)
         webtest_app = TestApp(spynl_app)
         return webtest_app
+
     return make_app
 
 

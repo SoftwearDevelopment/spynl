@@ -5,12 +5,10 @@ Custom handling of requests and responses.
 from os.path import basename, splitext
 from copy import deepcopy
 
-from pyramid.events import (NewRequest, BeforeTraversal, ContextFound,
-                            NewResponse)
+from pyramid.events import NewRequest, BeforeTraversal, ContextFound, NewResponse
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 
-from spynl.main.utils import (unify_args, get_logger, is_origin_allowed,
-                              validate_locale)
+from spynl.main.utils import unify_args, get_logger, is_origin_allowed, validate_locale
 from spynl.main.serial.typing import negotiate_request_content_type
 from spynl.main.serial.exceptions import UnsupportedContentTypeException
 
@@ -27,13 +25,14 @@ def prepare_content_types(event):
         request.content_type = negotiate_request_content_type(request)
     except UnsupportedContentTypeException as e:
         request.content_type = None
-        raise HTTPUnsupportedMediaType(detail=e.message.translate(
-            request.localizer))
+        raise HTTPUnsupportedMediaType(detail=e.message.translate(request.localizer))
 
     # Overwrite the HTML assumption made by the browsers
     # about response type with the Spynl default, views can overwrite
-    if request.response.content_type == 'text/html'\
-            and '/static' not in request.path_url:
+    if (
+        request.response.content_type == 'text/html'
+        and '/static' not in request.path_url
+    ):
         request.response.content_type = 'application/json'
 
 
@@ -112,9 +111,12 @@ def parse_args_and_log_request(event):
     origin_txt = ''
     if origin:
         origin_txt = ' Origin: {}'.format(origin)
-    log.info('New request for URL path "%s" from %s',
-             request.path_url, origin_txt,
-             extra=dict(meta=dict(url=request.path_url), payload=args))
+    log.info(
+        'New request for URL path "%s" from %s',
+        request.path_url,
+        origin_txt,
+        extra=dict(meta=dict(url=request.path_url), payload=args),
+    )
 
 
 def enforce_response_type(event):
@@ -132,13 +134,16 @@ def enforce_response_type(event):
     if 'force_download' in args:
         filename = str(basename(r.path_info))
         event.response.headers.update(
-            {'Content-Description': 'File Transfer',
-             'Content-Type': 'application/octet-stream',
-             'Content-Disposition': 'attachment: filename=' + filename,
-             'Content-Transfer-Encoding': 'binary',
-             'Expires': '0',
-             'Cache-Control': 'must-revalidate',
-             'Pragma': 'public'})
+            {
+                'Content-Description': 'File Transfer',
+                'Content-Type': 'application/octet-stream',
+                'Content-Disposition': 'attachment: filename=' + filename,
+                'Content-Transfer-Encoding': 'binary',
+                'Expires': '0',
+                'Cache-Control': 'must-revalidate',
+                'Pragma': 'public',
+            }
+        )
 
 
 def main(config):

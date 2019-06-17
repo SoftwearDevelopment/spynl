@@ -30,7 +30,7 @@ def versions(ctx):
             package.project_name: {
                 'version': package.version,
                 'commit': lookup_scm_commit(package.location),
-                'scmVersion': lookup_scm_commit_describe(package.location)
+                'scmVersion': lookup_scm_commit_describe(package.location),
             }
         }
         if package.project_name == SPYNL_DISTRIBUTION.project_name:
@@ -43,21 +43,32 @@ def versions(ctx):
         print(json.dumps(versions, indent=4), file=f)
 
 
-@task(help={'scm-url': 'The URL needed to clone the repo, either for '
-                       'git or mercurial. Please no revision information, '
-                       'you can use the revision parameter for that. '
-                       'Include the protocol, e.g. ssh or https.',
-            'developing': 'If True (default), python setup.py develop is '
-                          'used, otherwise install',
-            'revision': 'Which revision to update to (default: do not update)',
-            'fallbackrevision': 'Use this revision if the repository does not '
-                                ' have the target revision.',
-            'install-deps': 'If True (default), pre-install dependencies '
-                            '(eg. via apt-get).',
-            'src-path': 'Desired installation path. Defaults to '
-                        '$VIRTUAL_ENV/src directory.'})
-def install(ctx, scm_url=None, developing=True, revision=None,
-            fallbackrevision=None, install_deps=True, src_path=None):
+@task(
+    help={
+        'scm-url': 'The URL needed to clone the repo, either for '
+        'git or mercurial. Please no revision information, '
+        'you can use the revision parameter for that. '
+        'Include the protocol, e.g. ssh or https.',
+        'developing': 'If True (default), python setup.py develop is '
+        'used, otherwise install',
+        'revision': 'Which revision to update to (default: do not update)',
+        'fallbackrevision': 'Use this revision if the repository does not '
+        ' have the target revision.',
+        'install-deps': 'If True (default), pre-install dependencies '
+        '(eg. via apt-get).',
+        'src-path': 'Desired installation path. Defaults to '
+        '$VIRTUAL_ENV/src directory.',
+    }
+)
+def install(
+    ctx,
+    scm_url=None,
+    developing=True,
+    revision=None,
+    fallbackrevision=None,
+    install_deps=True,
+    src_path=None,
+):
     """
     Clone a repo, update to revision or fallbackrevision
     and install the Spynl package.
@@ -101,7 +112,8 @@ def install(ctx, scm_url=None, developing=True, revision=None,
                 default_branch = 'master' if vcs_is_git else 'default'
                 print(
                     '[spynl dev.install] Updating to fallback revision %s ...'
-                    % fallbackrevision or default_branch
+                    % fallbackrevision
+                    or default_branch
                 )
                 cmd = vcs + checkout_cmd + ' ' + default_branch
                 ctx.run(cmd)
@@ -121,9 +133,13 @@ def install(ctx, scm_url=None, developing=True, revision=None,
             ctx.run('./setup.sh --post-install')
 
 
-@task(help={'ini-file': 'Optional location of an ini-file you want to use to '
-                        'serve spynl with, if you do not want to use the '
-                        'default.'})
+@task(
+    help={
+        'ini-file': 'Optional location of an ini-file you want to use to '
+        'serve spynl with, if you do not want to use the '
+        'default.'
+    }
+)
 def serve(ctx, ini_file=None):
     """
     Run a local server. The ini-file development.ini is searched for in
@@ -135,8 +151,10 @@ def serve(ctx, ini_file=None):
     else:
         config_package = get_config_package(require='development.ini')
         if config_package is None:
-            print('[spynl dev.serve] No config package found. '
-                  'Serving with minimal.ini ...')
+            print(
+                '[spynl dev.serve] No config package found. '
+                'Serving with minimal.ini ...'
+            )
             path2spynl = os.path.dirname(__file__) + '/../../..'
             ini_location = '%s/minimal.ini' % path2spynl
         else:
@@ -147,14 +165,18 @@ def serve(ctx, ini_file=None):
         ctx.run('pserve %s --reload' % ini_location, pty=True)
 
 
-@task(aliases=('tests',),
-      help={'packages': PACKAGES_HELP,
-            'called-standalone': 'If False, this task is a pre-task and the '
-                                 'user gets to cancel the task flow when '
-                                 'tests fail.',
-            'reports': 'If True, Junit and Coverage reports will be made '
-                       '(requires a few extra packages, '
-                       'e.g. for pycoverage).'})
+@task(
+    aliases=('tests',),
+    help={
+        'packages': PACKAGES_HELP,
+        'called-standalone': 'If False, this task is a pre-task and the '
+        'user gets to cancel the task flow when '
+        'tests fail.',
+        'reports': 'If True, Junit and Coverage reports will be made '
+        '(requires a few extra packages, '
+        'e.g. for pycoverage).',
+    },
+)
 def test(ctx, packages='_all', called_standalone=True, reports=False):
     """
     Perfom tests in one or more spynl plugins.
@@ -177,13 +199,17 @@ def test(ctx, packages='_all', called_standalone=True, reports=False):
                 raise Exit("[spynl dev.test] Aborting at user request.")
 
 
-@task(help={'packages': PACKAGES_HELP,
-            'languages': 'An iterable of language codes (e.g. ("nl",). '
-                         'Defaults to the setting "spynl.languages".',
-            'action': 'Either "compile" (compile selected languages) or '
-                      '"refresh" (extract messages from the source code '
-                      'and update the .po files for the selected languages). '
-                      'Defaults to "compile".'})
+@task(
+    help={
+        'packages': PACKAGES_HELP,
+        'languages': 'An iterable of language codes (e.g. ("nl",). '
+        'Defaults to the setting "spynl.languages".',
+        'action': 'Either "compile" (compile selected languages) or '
+        '"refresh" (extract messages from the source code '
+        'and update the .po files for the selected languages). '
+        'Defaults to "compile".',
+    }
+)
 def translate(ctx, packages='_all', languages=None, action='compile'):
     """
     Ensure that translations files are up-to-date w.r.t. to the code. If action
@@ -194,14 +220,15 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
     """
     refresh = dict(compile=False, refresh=True).get(action)
     if refresh is None:
-        raise Exit("[spynl dev.translate] action should be 'compile' or "
-                   "'refresh'.")
+        raise Exit("[spynl dev.translate] action should be 'compile' or " "'refresh'.")
 
     languages = languages_from_dev_config() if languages is None else languages
     if languages is None:
-        raise Exit('[spynl dev.translate] No languages set and also no '
-                   'spynl.languages setting found. Cannot determine which '
-                   'catalogues to work on.')
+        raise Exit(
+            '[spynl dev.translate] No languages set and also no '
+            'spynl.languages setting found. Cannot determine which '
+            'catalogues to work on.'
+        )
 
     for package_name in resolve_packages_param(packages):
         with package_dir(package_name):
@@ -212,20 +239,23 @@ def translate(ctx, packages='_all', languages=None, action='compile'):
             locale_path = get_or_create_locale_path()
 
             if refresh:  # Extract messages from source:
-                ctx.run('python setup.py extract_messages '
-                        '--output-file {lp}/locale/messages.pot --no-wrap '
-                        '--sort-by-file --input-dirs {lp} --project {project} '
-                        '--copyright-holder "Softwear BV" --version {v}'
-                        .format(lp=locale_path, project=package_name,
-                                v=spynl_version))
+                ctx.run(
+                    'python setup.py extract_messages '
+                    '--output-file {lp}/locale/messages.pot --no-wrap '
+                    '--sort-by-file --input-dirs {lp} --project {project} '
+                    '--copyright-holder "Softwear BV" --version {v}'.format(
+                        lp=locale_path, project=package_name, v=spynl_version
+                    )
+                )
 
             for lang in languages:
-                path2po = '%s/locale/%s/LC_MESSAGES/%s.po' % (locale_path,
-                                                              lang,
-                                                              package_name)
+                path2po = '%s/locale/%s/LC_MESSAGES/%s.po' % (
+                    locale_path,
+                    lang,
+                    package_name,
+                )
                 command = get_translation_command(lang, path2po, refresh)
-                command = command.format(lp=locale_path, pn=package_name,
-                                         lang=lang)
+                command = command.format(lp=locale_path, pn=package_name, lang=lang)
                 if command:
                     ctx.run(command)
                 print("[spynl dev.translate] Done with language %s." % lang)
@@ -237,21 +267,28 @@ def get_translation_command(lang, po_file, refresh):
     msg, command = '', ''
     # update if refresh
     if refresh and not os.path.exists(po_file):  # init if needed:
-        msg = ('[spynl dev.translate] File %s does not exist.'
-               ' Initializing.' % po_file)
-        command = ('python setup.py init_catalog -l {lang} '
-                   '-i {lp}/locale/messages.pot -d {lp}/locale -D {pn}')
+        msg = '[spynl dev.translate] File %s does not exist. Initializing.' % po_file
+        command = (
+            'python setup.py init_catalog -l {lang} '
+            '-i {lp}/locale/messages.pot -d {lp}/locale -D {pn}'
+        )
     elif refresh:  # update if not init
         msg = '[spynl dev.translate] update the %s catalog' % lang
-        command = ('python setup.py update_catalog -N --no-wrap -l {lang} '
-                   '-i {lp}/locale/messages.pot -d {lp}/locale -D {pn}')
+        command = (
+            'python setup.py update_catalog -N --no-wrap -l {lang} '
+            '-i {lp}/locale/messages.pot -d {lp}/locale -D {pn}'
+        )
     # if not refresh, compile
     elif os.path.exists(po_file):
-        command = ('python setup.py compile_catalog --domain {pn} '
-                   '--directory {lp}/locale --domain {pn} --locale {lang}')
+        command = (
+            'python setup.py compile_catalog --domain {pn} '
+            '--directory {lp}/locale --domain {pn} --locale {lang}'
+        )
     else:
-        msg = ('[spynl dev.translate] File %s does not exist.'
-               ' Update the package first.' % po_file)
+        msg = (
+            '[spynl dev.translate] File %s does not exist.'
+            ' Update the package first.' % po_file
+        )
 
     if msg:
         print(msg)

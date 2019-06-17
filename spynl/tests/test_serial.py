@@ -9,13 +9,21 @@ from xml.etree.ElementTree import fromstring
 
 import pytest
 
-from spynl.main.dateutils import (date_to_str, date_from_str, localize_date)
+from spynl.main.dateutils import date_to_str, date_from_str, localize_date
 
-from spynl.main.serial import (handlers, json, xml, csv, py, loads, dumps,
-                               MalformedRequestException,
-                               UnsupportedContentTypeException,
-                               DeserializationUnsupportedException,
-                               SerializationUnsupportedException)
+from spynl.main.serial import (
+    handlers,
+    json,
+    xml,
+    csv,
+    py,
+    loads,
+    dumps,
+    MalformedRequestException,
+    UnsupportedContentTypeException,
+    DeserializationUnsupportedException,
+    SerializationUnsupportedException,
+)
 from spynl.main.serial.csv import loads as csv_loads
 
 
@@ -70,12 +78,11 @@ def test_sniff_nl():
 
 def test_main_json_loads_valid(app):
     """Test if valid jsons are loaded correctly."""
-    valid_jsons = [('{"string":"blah","int":1}',
-                    {'string': 'blah', 'int': 1}),
-                   ('{"object":{"int":1},"bool":true}',
-                    {'object': {'int': 1}, 'bool': True}),
-                   ('{"bool":true,"float":3.5}',
-                    {'bool': True, 'float': 3.5})]
+    valid_jsons = [
+        ('{"string":"blah","int":1}', {'string': 'blah', 'int': 1}),
+        ('{"object":{"int":1},"bool":true}', {'object': {'int': 1}, 'bool': True}),
+        ('{"bool":true,"float":3.5}', {'bool': True, 'float': 3.5}),
+    ]
     for data_in, output in valid_jsons:
         assert json.loads(data_in) == output
 
@@ -141,8 +148,9 @@ def test_json_dumps_str():
 def test_json_dumps_date():
     """Test date (json dumps)."""
     now = datetime.datetime.now()
-    assert json.dumps({'now': now}) == \
-        '{"now": "' + date_to_str(localize_date(now)) + '"}'
+    assert (
+        json.dumps({'now': now}) == '{"now": "' + date_to_str(localize_date(now)) + '"}'
+    )
 
 
 def test_xml_sniff_triangle():
@@ -167,11 +175,11 @@ def test_xml_sniff_tab():
 
 def test_xml_loads_valid():
     """Test valid (xml loads)."""
-    valid_xmls = [('<a><b>1</b><c>2</c></a>', {"b": "1", "c": "2"}),
-
-                  ('<a><b>true</b><c>3.5</c></a>', {"b": "true", "c": "3.5"}),
-
-                  ("""
+    valid_xmls = [
+        ('<a><b>1</b><c>2</c></a>', {"b": "1", "c": "2"}),
+        ('<a><b>true</b><c>3.5</c></a>', {"b": "true", "c": "3.5"}),
+        (
+            """
                    <request>
                         <action>add</action>
                         <resource>user</resource>
@@ -187,12 +195,14 @@ def test_xml_loads_valid():
                         </data>
                    </request>
                    """,
-                   {'action': 'add',
-                    'resource': 'user',
-                    'data': [{'a': '1', 'b': 'True'},
-                             {'c': 'Just testing', 'h': '> 3'}]}),
-
-                  ("""
+            {
+                'action': 'add',
+                'resource': 'user',
+                'data': [{'a': '1', 'b': 'True'}, {'c': 'Just testing', 'h': '> 3'}],
+            },
+        ),
+        (
+            """
                    <request>
                         <filter>
                             <a>
@@ -201,7 +211,9 @@ def test_xml_loads_valid():
                         </filter>
                    </request>
                    """,
-                   {'filter': {'a': {'_gt': '3'}}})]
+            {'filter': {'a': {'_gt': '3'}}},
+        ),
+    ]
     for data_in, output in valid_xmls:
         assert xml.loads(data_in) == output
 
@@ -229,8 +241,7 @@ def test_xml_loads_html_umlaut():
     An HTML representation of an umlaut comes in, is loaded as
     unicode.
     """
-    ums = [('<a><foreigner>H&#246;ning</foreigner></a>',
-            {"foreigner": "H\xf6ning"})]
+    ums = [('<a><foreigner>H&#246;ning</foreigner></a>', {"foreigner": "H\xf6ning"})]
     for data_in, output in ums:
         assert xml.loads(data_in) == output
 
@@ -262,8 +273,7 @@ def test_xml_dumps_simple():
 
 def test_xml_dumps_list():
     """Test list (xml dumps)."""
-    response = dumps({'a': 1, 'b': [2.5, 1.6], 'c': {'ab': True}},
-                     'application/xml')
+    response = dumps({'a': 1, 'b': [2.5, 1.6], 'c': {'ab': True}}, 'application/xml')
     root = fromstring(response)
     assert len(root) == 3
     assert root.findtext('a').strip() == '1'
@@ -311,8 +321,7 @@ def test_xml_dumps_encoding():
 
 def test_xml_dumps_str():
     """A unicode in input comes out fine (xml dumps)."""
-    data_in, output = ({u"foreigner": "H\xf6ning"},
-                       "<foreigner>H\xf6ning</foreigner>")
+    data_in, output = ({u"foreigner": "H\xf6ning"}, "<foreigner>H\xf6ning</foreigner>")
     assert output in xml.dumps(data_in)
 
 
@@ -377,8 +386,7 @@ def test_csv_dumps_date():
     """Test date (csv dumps)."""
     now = datetime.datetime.now()
     response = csv.dumps({'data': [{'now': now}]})
-    assert response.split("\n")[1].strip('"\r') == \
-        date_to_str(localize_date(now))
+    assert response.split("\n")[1].strip('"\r') == date_to_str(localize_date(now))
 
 
 def test_for_py_dumps():
@@ -406,8 +414,7 @@ def test_csv_loads_csv_import_without_headers_returns_dict():
     """Test csv import with headers, returns dict object."""
     body = 'name,surname,color\ntest_name,test_surname,test_color'
     dict_reader = csv_loads(body)['data'][0]
-    result = {'name': 'test_name', 'surname': 'test_surname',
-              'color': 'test_color'}
+    result = {'name': 'test_name', 'surname': 'test_surname', 'color': 'test_color'}
     assert dict_reader == result
 
 
@@ -420,8 +427,7 @@ def test_csv_loads_csv_import_with_only_delimiter_specified_in_headers():
     body = 'name,surname,color\ntest_name,test_surname,"test, color"'
     headers = {'x-spynl-delimiter': ',', 'x-spynl-quotechar': ''}
     dict_reader = csv_loads(body, headers)['data'][0]
-    result = {'name': 'test_name', 'surname': 'test_surname',
-              'color': 'test, color'}
+    result = {'name': 'test_name', 'surname': 'test_surname', 'color': 'test, color'}
     assert dict_reader == result
 
 
@@ -431,8 +437,10 @@ def test_csv_loads_csv_import_with_only_quotechar_in_headers():
 
     Returns correct dict with correct identified delimiter.
     """
-    body = 'a,b,\nc,d,\ne,f,\ng,h,\ni,j,\nk,l,\nm,n,\no,p,\nq,r,\n'\
-           's,"t, @",\nu,v,\nw,x,\ny,z'
+    body = (
+        'a,b,\nc,d,\ne,f,\ng,h,\ni,j,\nk,l,\nm,n,\no,p,\nq,r,\n'
+        's,"t, @",\nu,v,\nw,x,\ny,z'
+    )
     headers = {'x-spynl-delimiter': '', 'x-spynl-quotechar': '"'}
     dict_reader = csv_loads(body, headers)['data'][8]
     assert dict_reader['b'] == 't, @'

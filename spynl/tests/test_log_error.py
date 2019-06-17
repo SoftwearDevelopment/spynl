@@ -10,6 +10,7 @@ TOP_MSG = "TEST Error of type %s with message: '%s'"
 
 def test_log_error_msg(caplog):
     """Test casting the exception to string."""
+
     class Error(Exception):
         def __str__(self):
             return "An error has occurred"
@@ -58,8 +59,9 @@ def test_log_given_exc_type_and_msg(caplog):
     try:
         raise Exception
     except Exception as exc:
-        log_error(exc, DummyRequest(), TOP_MSG,
-                  error_type="Argh", error_msg="what the hell")
+        log_error(
+            exc, DummyRequest(), TOP_MSG, error_type="Argh", error_msg="what the hell"
+        )
         for rec in caplog.records:
             assert "TEST Error of type Argh" in rec.message
 

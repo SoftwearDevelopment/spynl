@@ -15,8 +15,7 @@ from spynl.main.locale import SpynlTranslationString as _
 
 WS = re.compile(r'\s+')
 KEY = re.compile(r'([^:]*)')
-LITERALS = {'object': re.compile(r'([^,\}]*)'),
-            'array': re.compile(r'([^,\]]*)')}
+LITERALS = {'object': re.compile(r'([^,\}]*)'), 'array': re.compile(r'([^,\]]*)')}
 
 
 def loads_dict(dictionary):
@@ -102,9 +101,10 @@ class InvalidToken(ValueError):
 
     def __str__(self):
         """str representation of this Error"""
-        context = self.urlson[self.offset:self.offset + 10]
-        return 'Invalid token at offset ${offset}: ${context}...'\
-                .format({'offset': self.offset, 'context': context})
+        context = self.urlson[self.offset : self.offset + 10]
+        return 'Invalid token at offset ${offset}: ${context}...'.format(
+            {'offset': self.offset, 'context': context}
+        )
 
 
 class UnexpectedEndOfInput(ValueError):

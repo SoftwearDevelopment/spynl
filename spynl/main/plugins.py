@@ -5,8 +5,7 @@ from pkg_resources import iter_entry_points  # pylint: disable=E0611
 def main(config):
     """initialize this module, find all plugins and include them"""
     installed_plugins = {
-        plugin.name: plugin
-        for plugin in iter_entry_points('spynl.plugins')
+        plugin.name: plugin for plugin in iter_entry_points('spynl.plugins')
     }
 
     # Either load what is requested or all the installed plugins.

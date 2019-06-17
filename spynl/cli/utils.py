@@ -7,8 +7,12 @@ from invoke.exceptions import Exit
 from spynl.main.pkg_utils import get_spynl_package, get_spynl_packages
 
 
-def resolve_packages_param(packages_param, complain_not_installed=True,
-                           resolve_to='package-names', include_spynl=True):
+def resolve_packages_param(
+    packages_param,
+    complain_not_installed=True,
+    resolve_to='package-names',
+    include_spynl=True,
+):
     """
     Resolve "packages" string parameter (a CSV list) into a list
     of installed package names, or alternatively their SCM url
@@ -18,14 +22,14 @@ def resolve_packages_param(packages_param, complain_not_installed=True,
     all installed spynl packages.
     """
     include_scm_urls = resolve_to == 'scm-urls'
-    installed_packages = get_spynl_packages(include_scm_urls=include_scm_urls,
-                                            include_spynl=include_spynl)
+    installed_packages = get_spynl_packages(
+        include_scm_urls=include_scm_urls, include_spynl=include_spynl
+    )
     if packages_param != '_all':
         pnames = [pn.strip() for pn in packages_param.split(',')]
         project_names = [p.project_name for p in installed_packages]
         for name in pnames:
-            if (name != 'spynl' and name not in project_names and
-                    complain_not_installed):
+            if name != 'spynl' and name not in project_names and complain_not_installed:
                 raise Exit("Package %s is not installed. Exiting ..." % name)
         packages = [p for p in installed_packages if p.project_name in pnames]
     else:
@@ -58,9 +62,13 @@ def assert_response_code(response, exp_code):
     code = response.status_code
     if isinstance(exp_code, tuple):
         if code not in exp_code:
-            raise Exit("Code %s is not in %s when testing %s"
-                       % (code, exp_code, response.request.url))
+            raise Exit(
+                "Code %s is not in %s when testing %s"
+                % (code, exp_code, response.request.url)
+            )
     else:
         if not code == exp_code:
-            raise Exit("Code %s was expected to be %s when testing %s "
-                       % (code, exp_code, response.request.url))
+            raise Exit(
+                "Code %s was expected to be %s when testing %s "
+                % (code, exp_code, response.request.url)
+            )

@@ -8,20 +8,14 @@ from spynl.main.serial.exceptions import UndeterminedContentTypeException
 from spynl.main.serial.exceptions import UnsupportedContentTypeException
 
 
-handlers = {'application/json': {'dump': json.dumps,
-                                 'load': json.loads,
-                                 'sniff': json.sniff},
-            'application/xml': {'dump': xml.dumps,
-                                'load': xml.loads,
-                                'sniff': xml.sniff},
-            'application/x-yaml': {'dump': yaml.dumps,
-                                   'load': yaml.loads,
-                                   'sniff': yaml.sniff},
-            'text/csv': {'dump': csv.dumps,
-                         'load': csv.loads,
-                         'sniff': csv.sniff},
-            'text/html': {'dump': html.dumps},
-            'text/x-python': {'dump': py.dumps}}
+handlers = {
+    'application/json': {'dump': json.dumps, 'load': json.loads, 'sniff': json.sniff},
+    'application/xml': {'dump': xml.dumps, 'load': xml.loads, 'sniff': xml.sniff},
+    'application/x-yaml': {'dump': yaml.dumps, 'load': yaml.loads, 'sniff': yaml.sniff},
+    'text/csv': {'dump': csv.dumps, 'load': csv.loads, 'sniff': csv.sniff},
+    'text/html': {'dump': html.dumps},
+    'text/x-python': {'dump': py.dumps},
+}
 handlers['text/xml'] = handlers['application/xml']
 
 
@@ -71,8 +65,7 @@ def negotiate_response_content_type(request):
     if 'Accept' in request.headers:
         accept_type = request.headers['Accept'].split(',')[0]
     # we use accept only if it is not one of the general types
-    if not content_type and accept_type\
-            and accept_type not in ('text/html', '*/*'):
+    if not content_type and accept_type and accept_type not in ('text/html', '*/*'):
         content_type = accept_type
 
     if not content_type:

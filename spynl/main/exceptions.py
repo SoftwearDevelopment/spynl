@@ -25,14 +25,17 @@ class SpynlException(Exception):
     internal SpynlException. For the mapping to work, the
     catch_mapped_exceptions function needs to be registered as a view deriver.
     """
+
     http_escalate_as = HTTPBadRequest
     monitor = True
 
-    def __init__(self,
-                 message='an internal error has occured',
-                 developer_message=None,
-                 debug_message=None,
-                 monitor=None):
+    def __init__(
+        self,
+        message='an internal error has occured',
+        developer_message=None,
+        debug_message=None,
+        monitor=None,
+    ):
         super().__init__(*self.args)
         # set messages
         self.message = message
@@ -63,9 +66,7 @@ class SpynlException(Exception):
             'status': 'error',
             'type': self.__class__.__name__,
             'message': self.message,
-            'developer_message': getattr(self,
-                                         'developer_message',
-                                         self.message)
+            'developer_message': getattr(self, 'developer_message', self.message),
         }
 
         return response
@@ -88,13 +89,16 @@ class SpynlException(Exception):
         A decorator to map the decorated SpynlException class to an external
         exception class.
         """
+
         def decorator(internal_class):
             # Make sure a failure occurs at start up, and not during runtime:
             if not issubclass(internal_class, cls):
-                raise Exception('You can only map an external exception to a '
-                                'SpynlException.')
+                raise Exception(
+                    'You can only map an external exception to a SpynlException.'
+                )
             cls._exception_mapping[external_class] = internal_class
             return internal_class
+
         return decorator
 
     @classmethod
@@ -102,8 +106,7 @@ class SpynlException(Exception):
         """
         return the internal exception corresponding to the external exception
         """
-        internal_class = cls._exception_mapping.get(
-            external_exception.__class__)
+        internal_class = cls._exception_mapping.get(external_exception.__class__)
         if internal_class:
             internal_exception = internal_class()
             internal_exception.set_external_exception(external_exception)
@@ -127,6 +130,7 @@ def catch_mapped_exceptions(endpoint, info):
     exceptions to specific SpynlExceptions if the mapping is registered in
     SpynlException.
     """
+
     def wrapper_view(context, request):
         try:
             return endpoint(context, request)
@@ -135,6 +139,7 @@ def catch_mapped_exceptions(endpoint, info):
             if new_exception:
                 raise new_exception from exception
             raise
+
     return wrapper_view
 
 
@@ -159,6 +164,7 @@ class MissingParameter(SpynlException):
     """Exception when parameter is missing."""
 
     monitor = False
+
     def __init__(self, param):
         """Exception message."""
         message = _('missing-parameter', mapping={'param': param})

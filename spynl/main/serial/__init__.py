@@ -23,15 +23,21 @@ from pyramid.settings import asbool
 
 from spynl.main.serial.typing import handlers
 from spynl.main.serial.typing import negotiate_response_content_type
-from spynl.main.serial.exceptions import (UndeterminedContentTypeException,
-                                          UnsupportedContentTypeException,
-                                          SerializationUnsupportedException,
-                                          DeserializationUnsupportedException,
-                                          MalformedRequestException)
-from spynl.main.serial.objects import (add_decode_function, decode_date,
-                                       add_encode_function, encode_boolean,
-                                       encode_date,
-                                       encode_spynl_translation_string)
+from spynl.main.serial.exceptions import (
+    UndeterminedContentTypeException,
+    UnsupportedContentTypeException,
+    SerializationUnsupportedException,
+    DeserializationUnsupportedException,
+    MalformedRequestException,
+)
+from spynl.main.serial.objects import (
+    add_decode_function,
+    decode_date,
+    add_encode_function,
+    encode_boolean,
+    encode_date,
+    encode_spynl_translation_string,
+)
 from spynl.main.locale import SpynlTranslationString
 
 
@@ -41,8 +47,9 @@ def parse_post_data(request):
     if hasattr(request, 'context') and request.context:
         context = request.context
     try:
-        parsed_body = loads(request.text, request.content_type,
-                            request.headers, context)
+        parsed_body = loads(
+            request.text, request.content_type, request.headers, context
+        )
     except MalformedRequestException as e:
         raise HTTPBadRequest(detail=e.message.translate(request.localizer))
 
@@ -62,8 +69,7 @@ def renderer(values, system):
     if not isinstance(system['context'], Exception):
         r.response.content_type = negotiate_response_content_type(r)
 
-    if r.response.content_type == 'application/json'\
-       and 'status' not in values:
+    if r.response.content_type == 'application/json' and 'status' not in values:
         values['status'] = 'ok'
 
     pretty = asbool(r.registry.settings.get('spynl.pretty'))
@@ -77,6 +83,7 @@ def renderer(values, system):
 
 # ---- high-level dumps and loads functions,
 #      relay to specific dumps and loads per type
+
 
 def dumps(body, content_type, pretty=False):
     """Relay to content-type specific dumping."""
@@ -117,12 +124,12 @@ def main(config):
     to render output and parse post data
     Define decoding and encoding functions for objects
     """
-    config.add_settings({'spynl.renderer': renderer,
-                         'spynl.post_parser': parse_post_data})
+    config.add_settings(
+        {'spynl.renderer': renderer, 'spynl.post_parser': parse_post_data}
+    )
     # define decode function for date fields:
     add_decode_function(config, decode_date, ['date'])
     # define encoding functions
     add_encode_function(config, encode_date, datetime)
     add_encode_function(config, encode_boolean, bool)
-    add_encode_function(config, encode_spynl_translation_string,
-                        SpynlTranslationString)
+    add_encode_function(config, encode_spynl_translation_string, SpynlTranslationString)

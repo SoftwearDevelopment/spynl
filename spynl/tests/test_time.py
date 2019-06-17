@@ -13,8 +13,7 @@ def test_now():
     utc_now = datetime.utcnow()
     system_dt = now()
     assert system_dt.tzinfo.zone == 'UTC'
-    assert utc_now.strftime('%Y-%m-%d %H:%M') == system_dt.strftime(
-        '%Y-%m-%d %H:%M')
+    assert utc_now.strftime('%Y-%m-%d %H:%M') == system_dt.strftime('%Y-%m-%d %H:%M')
 
 
 def test_localize_date_to_str():

@@ -10,13 +10,16 @@ from spynl.main.exceptions import SpynlException, catch_mapped_exceptions
 @pytest.fixture
 def exception_app(app_factory, settings, monkeypatch):
     """Plugin an endpoint that always raises and echo's back information."""
+
     def patched_plugin_main(config):
         def raise_validation_error(request):
             """
             Always raises a validationerror.
             """
+
             class S(Schema):
                 x = fields.String(required=True)
+
             S().load({})
 
         def buggy_endpoint(request):
@@ -34,6 +37,7 @@ def exception_app(app_factory, settings, monkeypatch):
             within the reponse.
             """
             if request.GET:
+
                 class CustomException(SpynlException):
                     def make_response(self):
                         data = super().make_response()
@@ -103,8 +107,9 @@ def test_spynlexception(exception_app):
 
 def test_overridden_spynlexception(exception_app):
     """Test overridden SpynlException"""
-    response = exception_app.get('/echo-raise', params={'custom': 'blah'},
-                                 expect_errors=True)
+    response = exception_app.get(
+        '/echo-raise', params={'custom': 'blah'}, expect_errors=True
+    )
     assert response.json.get('custom') == 'blah'
 
 
@@ -124,8 +129,9 @@ def test_exception_mapping(exception_app):
     """
     ToBeMapped exception should get mapped to the correct SpynlException
     """
-    response = exception_app.post_json('/buggy-endpoint', status=409,
-                                       expect_errors=True)
+    response = exception_app.post_json(
+        '/buggy-endpoint', status=409, expect_errors=True
+    )
     assert response.json_body['extra'] == 'extra info'
     assert response.json_body['message'] == 'This is a Spynl message'
 
@@ -135,7 +141,8 @@ def test_validation_error(exception_app):
     expected = dict(
         status='error',
         type='ValidationError',
-        developer_message={'x': ['Missing data for required field.']}
+        developer_message={'x': ['Missing data for required field.']},
     )
-    assert response.status_code == 400 and all(i in response.json_body.items()
-                                               for i in expected.items())
+    assert response.status_code == 400 and all(
+        i in response.json_body.items() for i in expected.items()
+    )

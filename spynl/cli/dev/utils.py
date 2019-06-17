@@ -24,8 +24,9 @@ def get_or_create_locale_path():
     for path, dirs, _ in os.walk(os.path.abspath(os.getcwd())):
         if 'locale' in dirs:
             locale_path = path
-            print("[spynl dev.translate] Located locale folder in"
-                  " %s ..." % locale_path)
+            print(
+                "[spynl dev.translate] Located locale folder in" " %s ..." % locale_path
+            )
             break
     else:  # make locale folder if it doesn't exist already
         print("[spynl dev.translate] Creating locale folder ...")

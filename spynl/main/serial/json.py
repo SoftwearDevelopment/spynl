@@ -14,8 +14,7 @@ def loads(body, context=None, **kwargs):
         decoder = objects.SpynlDecoder(context)
         return json.loads(body, object_hook=decoder)
     except ValueError as err:
-        raise MalformedRequestException('application/json',
-                                        error_cause=str(err))
+        raise MalformedRequestException('application/json', error_cause=str(err))
 
 
 def dumps(body, pretty=False):
