@@ -19,7 +19,6 @@ def prepare_content_types(event):
     response content type
     """
     request = event.request
-    response = event.response
 
     # negotiate request content type
     try:
@@ -30,8 +29,11 @@ def prepare_content_types(event):
 
     # Overwrite the HTML assumption made by the browsers
     # about response type with the Spynl default, views can overwrite
-    if response.content_type == 'text/html' and '/static' not in request.path_url:
-        response.content_type = 'application/json'
+    if (
+        request.response.content_type == 'text/html'
+        and '/static' not in request.path_url
+    ):
+        request.response.content_type = 'application/json'
 
 
 def corsify_response(event):
