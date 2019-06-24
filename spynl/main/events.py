@@ -19,6 +19,7 @@ def prepare_content_types(event):
     response content type
     """
     request = event.request
+    response = event.response
 
     # negotiate request content type
     try:
@@ -29,11 +30,8 @@ def prepare_content_types(event):
 
     # Overwrite the HTML assumption made by the browsers
     # about response type with the Spynl default, views can overwrite
-    if (
-        request.response.content_type == 'text/html'
-        and '/static' not in request.path_url
-    ):
-        request.response.content_type = 'application/json'
+    if response.content_type == 'text/html' and '/static' not in request.path_url:
+        response.content_type = 'application/json'
 
 
 def corsify_response(event):
@@ -49,7 +47,7 @@ def corsify_response(event):
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Server-Side_Access_Control
     http://www.kinvey.com/bloog/60/kinvey-adds-cross-origin-resource-sharing-cors
     """
-    response = event.request.response
+    response = event.response
     origin = event.request.headers.get('Origin')
     if origin:  # otherwise we are on localhost or are called directly
         if is_origin_allowed(origin):
