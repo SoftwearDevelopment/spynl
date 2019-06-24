@@ -53,11 +53,11 @@ def corsify_response(event):
     origin = event.request.headers.get('Origin')
     if origin:  # otherwise we are on localhost or are called directly
         if is_origin_allowed(origin):
-            response.headerlist.append(('Access-Control-Allow-Origin', origin))
+            response.headers.setdefault('Access-Control-Allow-Origin', origin)
         else:
-            response.headerlist.append(('Access-Control-Allow-Origin', 'null'))
-    response.headerlist.append(('Access-Control-Allow-Credentials', 'true'))
-    response.headerlist.append(('Vary', 'Accept-Encoding, Origin'))
+            response.headers.setdefault('Access-Control-Allow-Origin', 'null')
+    response.headers.setdefault('Access-Control-Allow-Credentials', 'true')
+    response.headers.setdefault('Vary', 'Accept-Encoding, Origin')
 
 
 def split_extension(event):
