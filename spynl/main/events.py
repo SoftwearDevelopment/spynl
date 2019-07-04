@@ -57,6 +57,7 @@ def corsify_response(event):
         else:
             response.headers['Access-Control-Allow-Origin'] = 'null'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headerlist.append(('Access-Control-Allow-Headers', 'Content-Disposition'))
     response.headers['Vary'] = 'Accept-Encoding, Origin'
 
 
