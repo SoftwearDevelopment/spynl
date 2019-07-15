@@ -13,20 +13,39 @@ README = open(os.path.join(here, 'README.md')).read()
 
 
 install_requires = [
-    'webob', 'pyramid', 'invoke>=0.14,<0.15', 'requests',
-    'pyramid_mailer', 'pyramid_jinja2', 'pyramid_exclog', 'pytz', 'pbkdf2',
-    'python-dateutil', 'html2text', 'beaker', 'waitress', 'gunicorn',
-    'jsonschema', 'sphinx', 'pyyaml', 'tld==0.7.9', 'babel', 'click', 'webtest',
-    'pytest', 'dnspython', 'pytest-cov',
-    'marshmallow==3.0.0rc4', 'openpyxl',
+    'webob',
+    'pyramid',
+    'invoke>=0.14,<0.15',
+    'requests',
+    'pyramid_mailer',
+    'pyramid_jinja2',
+    'pyramid_exclog',
+    'pytz',
+    'pbkdf2',
+    'python-dateutil',
+    'html2text',
+    'beaker',
+    'waitress',
+    'gunicorn',
+    'jsonschema',
+    'sphinx',
+    'pyyaml',
+    'tld==0.7.9',
+    'babel',
+    'click',
+    'webtest',
+    'pytest',
+    'dnspython',
+    'pytest-cov',
+    'marshmallow==3.0.0rc4',
+    'openpyxl',
 ]
 
 
 def find_version(*file_paths):
     """ get the version string from a file path."""
     version_file = codecs.open(os.path.join(here, *file_paths), 'r').read()
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
@@ -43,10 +62,12 @@ setup(
     version=find_version('spynl', 'main', 'version.py'),
     description='spynl',
     long_description=README,
-    classifiers=["Programming Language :: Python :: 3.5",
-                 "Framework :: Pylons",
-                 "Topic :: Internet :: WWW/HTTP",
-                 "Topic :: Internet :: WWW/HTTP :: WSGI :: Application"],
+    classifiers=[
+        "Programming Language :: Python :: 3.5",
+        "Framework :: Pylons",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+    ],
     author='Softwear BV',
     author_email='development@softwear.nl',
     url='https://github.com/SoftwearDevelopment/spynl',
@@ -63,7 +84,7 @@ setup(
         "console_scripts": [
             "spynl = spynl.cli:program.run",
             "spynl-cli = spynl.cli.new:cli",
-        ]
+        ],
     },
-    paster_plugins=['pyramid']
+    paster_plugins=['pyramid'],
 )

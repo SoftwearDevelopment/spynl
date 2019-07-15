@@ -1,6 +1,7 @@
 import os
 from spynl.main.locale import SpynlTranslationString as _
 
+
 def hello(request):
     """
     Say hello to the world.
@@ -29,5 +30,4 @@ def includeme(config):
     Configure endpoints and translation path
     """
     config.add_endpoint(hello, 'hello')
-    config.add_translation_dirs('%s/src/my-package/locale'
-                                % os.environ['VIRTUAL_ENV'])
+    config.add_translation_dirs('%s/src/my-package/locale' % os.environ['VIRTUAL_ENV'])

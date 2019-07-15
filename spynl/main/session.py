@@ -43,7 +43,7 @@ def main(config):
         # cookies, headers, GET vars, POST vars.
         try:
             body = get_parsed_body(request)
-        except:
+        except:  # noqa: E722
             body = {}
         for params in (body, request.GET, request.headers, request.cookies):
             if 'sid' in params:

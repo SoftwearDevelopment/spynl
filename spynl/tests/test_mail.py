@@ -9,7 +9,6 @@ name.
 """
 
 
-import os
 from uuid import uuid4
 
 import pytest
@@ -17,25 +16,7 @@ from pyramid.testing import DummyRequest
 
 from spynl.main.mail import _sendmail as sendmail, send_template_email
 
-from spynl.main.exceptions import EmailTemplateNotFound, EmailRecipientNotGiven
-
-
-@pytest.fixture
-def config():
-    configurator = testing.setUp(settings={})
-    configurator.include('pyramid_jinja2')
-    configurator.add_jinja2_renderer('.jinja2')
-    yield configurator
-    testing.tearDown()
-
-
-@pytest.fixture
-def config2(settings):
-    """configurator """
-    settings.update({'mail.dummy_recipient': 'dummy@dummy.com'})
-    config_ = testing.setUp(settings=settings)
-    yield config_
-    testing.tearDown()
+from spynl.main.exceptions import EmailTemplateNotFound
 
 
 @pytest.fixture
@@ -55,28 +36,7 @@ def dummy_request():
     return dummy_request
 
 
-def test_missing_recipient(config2, dummy_request, mailer):
-    """Test fail silently."""
-    # there will be no error, but sendmail will return false
-    assert not sendmail(
-        dummy_request, None, 'Nic Test', "Hey Nic! It's me, Nic.", mailer=mailer
-    )
-    email = mailer.outbox[0]
-    assert email.subject == 'Nic Test'
-    assert email.recipient == 'dummy@dummy.com'
-    assert email.body == "Hey Nic! It's me, Nic."
-    with pytest.raises(EmailRecipientNotGiven):
-        sendmail(
-            dummy_request,
-            None,
-            'Nic Test',
-            "Hey Nic! It's me, Nic.",
-            mailer=mailer,
-            fail_silently=False,
-        )
-
-
-def test_missing_recipient(dummy_request, mailer):
+def test_simple_plain_email(dummy_request, mailer):
     """Do a simple plain email test"""
     assert sendmail(
         dummy_request,
