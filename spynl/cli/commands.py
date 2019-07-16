@@ -8,7 +8,7 @@ import click
 from babel.messages.pofile import read_po
 
 from spynl.main.version import __version__ as spynl_version
-from spynl.cli.new.utils import resolve_packages, check_ini, run_command, fail
+from spynl.cli.utils import resolve_packages, check_ini, run_command, fail
 from spynl.main.pkg_utils import (
     SPYNL_DISTRIBUTION,
     lookup_scm_commit,

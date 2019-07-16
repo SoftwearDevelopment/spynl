@@ -81,10 +81,7 @@ setup(
     test_suite="spynl",
     entry_points={
         "paste.app_factory": ["main = spynl.main:main"],
-        "console_scripts": [
-            "spynl = spynl.cli:program.run",
-            "spynl-cli = spynl.cli.new:cli",
-        ],
+        "console_scripts": ["spynl-cli = spynl.cli:cli"],
     },
     paster_plugins=['pyramid'],
 )

@@ -1,13 +1,7 @@
-"""Crete a Invoke instance with dev and ops tasks."""
+from pkg_resources import iter_entry_points
 
-from invoke import Program, Collection
-
-from spynl.main.version import __version__ as spynl_version
-from spynl.cli.dev import tasks as dev_tasks
-from spynl.cli.ops import tasks as ops_tasks
+from .commands import cli, dev
 
 
-NAMESPACE = Collection()
-NAMESPACE.add_collection(dev_tasks, 'dev')
-NAMESPACE.add_collection(ops_tasks, 'ops')
-program = Program(version=spynl_version, namespace=NAMESPACE)
+for plugin in iter_entry_points('spynl.commands'):
+    plugin.resolve()
