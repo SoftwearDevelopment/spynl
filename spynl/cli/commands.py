@@ -1,4 +1,5 @@
 import json
+import shutil
 import os
 import subprocess
 import sys
@@ -113,6 +114,36 @@ def test(packages, reports, non_interactive, pytest_options):
                 msg = 'Do you wish to continue?'
                 if idx != len(packages) and not click.confirm(msg):
                     fail('Aborting at user request.')
+
+
+@dev.command()
+@click.option(
+    '--force', '-f', is_flag=True, default=False, help='Overwrite existing hooks'
+)
+@package_option
+def install_git_hooks(force, packages):
+    """Install git hooks"""
+    dependencies = ['flake8', 'flake8-breakpoint', 'black']
+    cmd = sys.executable + ' -m pip install {}'.format(' '.join(dependencies))
+    run_command(cmd, check=True)
+
+    def resolve_package_hook_path(pkg):
+        return os.path.join(pkg.location, '.git', 'hooks', 'pre-commit')
+
+    if not force:
+        existing_hooks = []
+        for pkg in packages:
+            hook_path = resolve_package_hook_path(pkg)
+            if os.path.exists(hook_path):
+                existing_hooks.append(hook_path)
+        if existing_hooks:
+            msg = 'Please back up existing hooks before running this command.\n{}'
+            fail(msg.format('\n'.join(existing_hooks)))
+
+    for pkg in packages:
+        hook_path = resolve_package_hook_path(pkg)
+        shutil.copy(os.path.join(SPYNL_DISTRIBUTION.location, 'pre-commit'), hook_path)
+        click.echo('Installed {}'.format(hook_path))
 
 
 @dev.command()
