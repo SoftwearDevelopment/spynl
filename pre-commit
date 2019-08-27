@@ -2,7 +2,7 @@
 
 # Shared pre-commit hook.
 # Lints using Black and Flake8
-# Runs tests using pytest
+# Runs tests in all packages using pytest
 # Install using spynl-cli dev install-git-hooks
 
 set -euf -o pipefail
@@ -11,4 +11,4 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 python -m black -S --check $PROJECT_ROOT
 python -m flake8 $PROJECT_ROOT
-(cd $PROJECT_ROOT && pytest)
+spynl-cli dev test
