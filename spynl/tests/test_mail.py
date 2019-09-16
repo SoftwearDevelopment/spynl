@@ -67,6 +67,38 @@ def test_sender_name(dummy_request, mailer):
     assert email.extra_headers == {'From': 'bla bla.com  bla <info@spynl.com>'}
 
 
+def test_bcc(dummy_request, mailer):
+    """
+    test that bcc gets added properly
+    """
+    assert sendmail(
+        dummy_request,
+        'nicolas@softwear',
+        'Nic Test',
+        "Hey Nic! It's me, Nic.",
+        bcc=['bcc@bcc.com', 'bcc2@bcc.com'],
+        mailer=mailer,
+    )
+    email = mailer.outbox[0]
+    assert email.bcc == ['bcc@bcc.com', 'bcc2@bcc.com']
+
+
+def test_cc(dummy_request, mailer):
+    """
+    test that cc gets added properly
+    """
+    assert sendmail(
+        dummy_request,
+        'nicolas@softwear',
+        'Nic Test',
+        "Hey Nic! It's me, Nic.",
+        cc=['cc@cc.com', 'cc2@cc.com'],
+        mailer=mailer,
+    )
+    email = mailer.outbox[0]
+    assert email.cc == ['cc@cc.com', 'cc2@cc.com']
+
+
 def test_custom_html_template_mail(dummy_request, mailer, template):
     """The custom template is correctly used."""
     with open(template[0], 'w') as fob:
