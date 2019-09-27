@@ -290,3 +290,12 @@ def extract_missing_translations(ctx, packages, languages):
         print('\n\nWarnings:\n')
     for warning in warnings:
         print(warning)
+
+
+@dev.command()
+def build_spynl():
+    """build spynl dev"""
+    run_command(
+        'git fetch && git rebase origin/dev &&'
+        ' git submodule update --remote && git ci -am build'
+    )
