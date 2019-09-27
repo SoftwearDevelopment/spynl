@@ -297,5 +297,6 @@ def build_spynl():
     """build spynl dev"""
     run_command(
         'git fetch && git rebase origin/dev &&'
-        ' git submodule update --remote && git ci -am build'
+        ' git submodule update --remote && git commit -am build &&'
+        ' git push'
     )
