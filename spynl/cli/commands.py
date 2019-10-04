@@ -108,12 +108,15 @@ def test(packages, reports, non_interactive, pytest_options):
         try:
             run_command(cmd, check=True)
         except subprocess.CalledProcessError:
+            failed_tests = True
             if non_interactive:
                 fail("Tests for {} failed".format(pkg.project_name))
             else:
                 msg = 'Do you wish to continue?'
                 if idx != len(packages) and not click.confirm(msg):
                     fail('Aborting at user request.')
+    if failed_tests:
+        fail('Failed tests')
 
 
 @dev.command()
