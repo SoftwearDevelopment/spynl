@@ -11,4 +11,4 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 
 python -m black -S --check $PROJECT_ROOT
 python -m flake8 $PROJECT_ROOT
-spynl-cli dev test
+spynl-cli dev test --non-interactive
