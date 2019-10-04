@@ -92,7 +92,6 @@ def versions():
 @package_option
 @click.option('--reports', is_flag=True)
 @click.option('--non-interactive', is_flag=True)
-@click.option('--reports', is_flag=True)
 @click.argument('pytest-options', nargs=-1)
 def test(packages, reports, non_interactive, pytest_options):
     """Run tests."""
@@ -101,6 +100,7 @@ def test(packages, reports, non_interactive, pytest_options):
     if reports:
         cmd += ' --cov=spynl '
 
+    failed_tests = False
     for idx, pkg in enumerate(packages, start=1):
         cmd += ' '.join(pytest_options)
 
