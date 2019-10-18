@@ -4,7 +4,9 @@ import openpyxl
 
 from spynl.main.serial.file_responses import (
     export_csv,
+    serve_csv_response,
     export_excel,
+    serve_excel_response,
     export_header,
     export_data,
 )
@@ -17,7 +19,8 @@ def test_export_csv(dummyrequest):
     ]
 
     header = ['warehouse', 'collection', 'brand']
-    resp = export_csv(header, data, dummyrequest.response)
+    temp_file = export_csv(header, data)
+    resp = serve_csv_response(dummyrequest.response, temp_file)
     assert resp.content_type == 'text/csv'
     assert resp.text == (
         'warehouse,collection,brand\r\nabc,spring,G-Star\r\nxyz,summer,Diesel\r\n'
@@ -31,7 +34,8 @@ def test_export_excel(dummyrequest):
     ]
 
     header = ['warehouse', 'collection', 'brand']
-    resp = export_excel(header, data, dummyrequest.response, 'filename.xlsx')
+    temp_file = export_excel(header, data)
+    resp = serve_excel_response(dummyrequest.response, temp_file, 'filename.xlsx')
     assert resp.content_disposition == 'attachment; filename=filename.xlsx'
     assert (
         resp.content_type

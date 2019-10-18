@@ -158,6 +158,7 @@ def send_template_email(
     sender=None,
     reply_to=None,
     sender_name=None,
+    extension='.jinja2',
 ):
     """
     Send email using a html template.
@@ -178,6 +179,7 @@ def send_template_email(
 
     If a template file is given, we assume that the file ends with .jinja2, and
     that there is a companion file .subject.jinja2 that defines the subject.
+    You can specify a different extension if needed (including the dot).
     """
     if (template_string is None and template_file is None) or (
         template_string is not None and template_file is not None
@@ -189,10 +191,12 @@ def send_template_email(
 
     if template_file is not None:
         try:
-            html_body = render(template_file + '.jinja2', replacements, request=request)
+            html_body = render(template_file + extension, replacements, request=request)
             if not subject:
                 subject = render(
-                    template_file + '.subject.jinja2', replacements, request=request
+                    template_file + '.subject' + extension,
+                    replacements,
+                    request=request,
                 )
                 subject = subject.replace('\n', '')
         except TemplateNotFound:

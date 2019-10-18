@@ -20,7 +20,7 @@ def export_data(data, header):
     return [[row[k] for k in header] for row in data]
 
 
-def export_excel(header, data, response, filename):
+def export_excel(header, data):
     """Export the data as an excel attachment."""
     tmp = NamedTemporaryFile()
     wb = Workbook()
@@ -33,7 +33,7 @@ def export_excel(header, data, response, filename):
     wb.save(tmp.name)
     tmp.seek(0)
 
-    return serve_excel_response(response, tmp, filename)
+    return tmp
 
 
 def serve_excel_response(response, file, filename):
@@ -45,7 +45,7 @@ def serve_excel_response(response, file, filename):
     return response
 
 
-def export_csv(header, data, response):
+def export_csv(header, data):
     """Export the data as csv as a string."""
     with StringIO() as tmp:
         writer = csv.DictWriter(tmp, fieldnames=header)
@@ -53,7 +53,7 @@ def export_csv(header, data, response):
         writer.writerows(data)
         data = tmp.getvalue()
 
-    return serve_csv_response(response, data)
+    return data
 
 
 def serve_csv_response(response, data):
