@@ -178,25 +178,26 @@ def add_endpoint(
     else:  # This is a general endpoint without route
         logger.debug("Adding endpoint '%s'", endpoint_name)
         config.add_view(func, name=endpoint_name, permission=permission, **kw)
-        document_endpoint(config, func, endpoint_name)
+        if generate_documentation:
+            document_endpoint(config, func, endpoint_name)
 
 
 def main(config):
     """Define our list of resources and the means to add an endpoint."""
     resources = {}
-    '''A dictionary of the resource classes Spynl serves with at least
-       one endpoint. Keys are class names.'''
+    # A dictionary of the resource classes Spynl serves with at least
+    # one endpoint. Keys are class names.
     config.add_settings({'spynl.resources': resources})
     resource_routes_info = {
         'spynl.{path}': {'resources': (Resource,), 'route_factory': add_resource_routes}
     }
-    '''This dict maps patterns of resource route names (with path
-       being replacable) which are available to a factory function that
-       adds these routes and a list of resource classes these routes
-       should be created for. The function will receive config, route_name,
-       resource_class and path parameters. This is extensible by other
-       Spynl plugins. Our convention is that there is also a route
-       pattern that ends with ".nomethod"'''
+    # This dict maps patterns of resource route names (with path
+    # being replacable) which are available to a factory function that
+    # adds these routes and a list of resource classes these routes
+    # should be created for. The function will receive config, route_name,
+    # resource_class and path parameters. This is extensible by other
+    # Spynl plugins. Our convention is that there is also a route
+    # pattern that ends with ".nomethod"
     config.add_settings({'spynl.resource_routes_info': resource_routes_info})
 
     config.add_directive('add_endpoint', add_endpoint)
