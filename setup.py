@@ -37,7 +37,7 @@ install_requires = [
     'pytest',
     'dnspython',
     'pytest-cov',
-    'marshmallow==3.0.0rc4',
+    'marshmallow',
     'openpyxl',
 ]
 
