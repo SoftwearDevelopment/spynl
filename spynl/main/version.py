@@ -1,2 +1,2 @@
 """The current spynl version"""
-__version__ = '161.0'
+__version__ = '161.1'
