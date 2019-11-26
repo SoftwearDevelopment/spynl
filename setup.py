@@ -38,7 +38,7 @@ install_requires = [
     'dnspython',
     'pytest-cov',
     'marshmallow',
-    'openpyxl',
+    'openpyxl==3.0.1',
 ]
 
 
