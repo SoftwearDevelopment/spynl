@@ -112,11 +112,10 @@ def main_includeme(config):
     # add jinja for templating
     config.include('pyramid_jinja2')
     config.add_settings({'jinja2.i18n.gettext': TemplateTranslations})
+    config.add_settings({'jinja2.trim_blocks': 'true'})
     jinja_filters = {
         'static_url': 'pyramid_jinja2.filters:static_url_filter',
         'quoteplus': 'urllib.parse.quote_plus',
-        'format_currency': 'babel.numbers.format_currency',
-        'format_decimal': 'babel.numbers.format_decimal',
     }
     add_jinja2_filters(config, jinja_filters)
     return config
